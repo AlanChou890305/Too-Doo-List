@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Notion To-Do Widget",
+    "slug": "notion-todo-widget",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "platforms": ["ios", "android", "web"],
+    "web": {
+      "port": 8081,
+      "bundler": "metro",
+      "output": "web",
+      "build": {
+        "output": {
+          "publicUrl": "."
+        }
+      }
+    },
+    "sdkVersion": "53.0.0",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ],
+    "jsEngine": "hermes",
+    "bridge": {
+      "enabled": true
+    }
+  }
+}
