@@ -1,6 +1,6 @@
-# Notion-Style To-Do Calendar App
+# Too Doo List
 
-This is a mobile to-do list app with a Notion-style calendar view and a weekly widget, built with React Native and Expo.
+A React Native to-do list application with calendar integration.
 
 ## Features
 - Notion-like calendar view: select a day to add/edit tasks
