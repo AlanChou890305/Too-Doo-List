@@ -1,0 +1,22 @@
+{
+  "cli": {
+    "version": ">= 5.10.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "channel": "Too-Doo-List"
+    }
+  },
+  "submit": {
+    "production": {
+      "channel": "Too-Doo-List"
+    }
+  }
+}

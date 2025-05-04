@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Too Doo List",
-    "slug": "TooDooList",
+    "slug": "Too-Doo-List",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,15 +14,16 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "platforms": ["ios", "android", "web"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cty0305.too.doo.list"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.cty0305.too.doo.list"
     },
     "web": {
       "port": 8081,
@@ -38,7 +39,7 @@
     "sdkVersion": "53.0.0",
     "plugins": [
       [
-        "expo-build-properties",
+        "expo-localization",
         {
           "ios": {
             "useFrameworks": "static"
