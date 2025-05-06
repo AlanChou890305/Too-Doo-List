@@ -25,8 +25,8 @@ const MAX_TASK_AREA_HEIGHT = Dimensions.get("window").height * 0.8; // 最大高
 function getToday() {
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -40,6 +40,10 @@ export default function App() {
   const [taskAreaHeight, setTaskAreaHeight] = useState(MIN_TASK_AREA_HEIGHT);
   const [taskText, setTaskText] = useState("");
   const swipeOffset = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef(null);
+  const scrollY = useRef(0);
+  const [visibleMonth, setVisibleMonth] = useState(new Date().getMonth());
+  const [visibleYear, setVisibleYear] = useState(new Date().getFullYear());
 
   // Calculate task area height based on content
   const calculateTaskAreaHeight = () => {
@@ -47,8 +51,11 @@ export default function App() {
     const headerHeight = 60; // Header height (date + add button)
     const taskHeight = 64; // Each task height including margin
     const minPadding = 20;
-    const contentHeight = headerHeight + (tasksCount * taskHeight) + minPadding;
-    return Math.min(Math.max(MIN_TASK_AREA_HEIGHT, contentHeight), MAX_TASK_AREA_HEIGHT);
+    const contentHeight = headerHeight + tasksCount * taskHeight + minPadding;
+    return Math.min(
+      Math.max(MIN_TASK_AREA_HEIGHT, contentHeight),
+      MAX_TASK_AREA_HEIGHT
+    );
   };
 
   // Update task area height when tasks change
@@ -57,50 +64,24 @@ export default function App() {
     setTaskAreaHeight(newHeight);
   }, [tasks]);
 
-  // Initialize swipe offset for calendar
-  const calendarSwipeOffset = useRef(new Animated.Value(0)).current;
-
-  // Handle calendar swipe
-  const handleCalendarSwipe = (direction) => {
-    if (direction === 'left') {
-      setSelectedDate(addDays(selectedDate, 30));
-    } else if (direction === 'right') {
-      setSelectedDate(addDays(selectedDate, -30));
-    }
+  // Calendar navigation functions
+  const goToNextMonth = () => {
+    setSelectedDate(addDays(selectedDate, 30));
   };
 
-  // Calendar pan responder
-  const calendarPanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => {
-      calendarSwipeOffset.setValue(0);
-    },
-    onPanResponderMove: (_, gestureState) => {
-      calendarSwipeOffset.setValue(gestureState.dx);
-    },
-    onPanResponderRelease: (_, gestureState) => {
-      if (Math.abs(gestureState.dx) > 100) {
-        handleCalendarSwipe(gestureState.dx > 0 ? 'right' : 'left');
-      }
-      Animated.spring(calendarSwipeOffset, {
-        toValue: 0,
-        friction: 5,
-        tension: 40,
-        useNativeDriver: true,
-      }).start();
-    },
-  });
+  const goToPrevMonth = () => {
+    setSelectedDate(addDays(selectedDate, -30));
+  };
 
   // 日期格式化函數
   const formatDate = (date) => {
-    if (!date) return '';
+    if (!date) return "";
     const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) return '';
-    return dateObj.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    if (isNaN(dateObj.getTime())) return "";
+    return dateObj.toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -112,11 +93,11 @@ export default function App() {
       if (isNaN(date.getTime())) return getToday();
       date.setDate(date.getDate() + days);
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     } catch (error) {
-      console.error('Error in addDays:', error);
+      console.error("Error in addDays:", error);
       return getToday();
     }
   };
@@ -132,7 +113,7 @@ export default function App() {
         setSelectedDate(newDate);
       }
     } catch (error) {
-      console.error('Error in handleSwipe:', error);
+      console.error("Error in handleSwipe:", error);
       setSelectedDate(getToday());
     }
   };
@@ -156,7 +137,7 @@ export default function App() {
       } else if (gestureState.dx < -3) {
         handleSwipe("left");
       }
-      
+
       // 添加回彈動畫
       Animated.timing(swipeOffset, {
         toValue: 0,
@@ -264,60 +245,112 @@ export default function App() {
   };
 
   const renderCalendar = () => {
-    const year = new Date(selectedDate).getFullYear();
-    const month = new Date(selectedDate).getMonth();
+    // Calculate date range: 3 months before and after current date
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setMonth(today.getMonth() - 3, 1); // First day of month 3 months ago
+    
+    const endDate = new Date(today);
+    endDate.setMonth(today.getMonth() + 3 + 1, 0); // Last day of month 3 months from now
 
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    // Generate all dates in the range
+    const allDates = [];
+    const current = new Date(startDate);
 
-    const dates = [];
-    const totalDays = 28; // 4 weeks * 7 days
+    // Make sure we start from the beginning of the week (Sunday)
+    const startDay = current.getDay();
+    current.setDate(current.getDate() - startDay);
 
-    const startDay = firstDay.getDay();
-    for (let i = startDay - 1; i >= 0; i--) {
-      const date = addDays(firstDay.toISOString().split("T")[0], -i - 1);
-      dates.push(renderDate(date));
+    // Adjust end date to complete the last week
+    const end = new Date(endDate);
+    const endDay = end.getDay();
+    end.setDate(end.getDate() + (6 - endDay));
+
+    while (current <= end) {
+      const dateStr = current.toISOString().split("T")[0];
+      const dateObj = new Date(dateStr);
+
+      // Only add dates if they're within our range
+      if (dateObj >= startDate && dateObj <= endDate) {
+        allDates.push(renderDate(dateStr));
+      } else {
+        // Add empty view for dates outside our range
+        allDates.push(<View key={dateStr} style={styles.emptyDate} />);
+      }
+
+      current.setDate(current.getDate() + 1);
     }
 
-    for (let i = 1; i <= lastDay.getDate(); i++) {
-      const date = new Date(year, month, i).toISOString().split("T")[0];
-      dates.push(renderDate(date));
-      if (dates.length >= totalDays) break;
-    }
-
-    // Fill remaining days to complete 4 weeks
-    while (dates.length < totalDays) {
-      dates.push(<View key={`empty-${dates.length}`} style={styles.emptyDate}></View>);
-    }
-
+    // Group into weeks
     const weeks = [];
-    for (let i = 0; i < dates.length; i += 7) {
-      weeks.push(
-        <View key={`week-${i}`} style={styles.calendarWeekRow}>
-          {dates.slice(i, i + 7)}
-        </View>
-      );
+    for (let i = 0; i < allDates.length; i += 7) {
+      const weekDates = allDates.slice(i, i + 7);
+      // Only add weeks that have at least one date in our range
+      if (weekDates.some((date) => date.props.style !== styles.emptyDate)) {
+        weeks.push(
+          <View key={`week-${i}`} style={styles.calendarWeekRow}>
+            {weekDates}
+          </View>
+        );
+      }
     }
 
-    return (
-      <View style={styles.customCalendar}>
-        <Text style={styles.calendarTitle}>{`${year}年${month + 1}月`}</Text>
-        <View style={styles.calendarWeekHeader}>
-          {["日", "一", "二", "三", "四", "五", "六"].map((day) => (
-            <Text key={day} style={styles.weekDayText}>
-              {day}
-            </Text>
-          ))}
-        </View>
-        {weeks}
-      </View>
-    );
+    return weeks;
   };
+
+  // Handle scroll to update month when crossing month boundaries
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    scrollY.current = offsetY; // Update scroll position
+
+    const weekHeight = 50; // Approximate height of a week row
+    const currentWeek = Math.floor(offsetY / weekHeight);
+
+    // Calculate the current month based on scroll position
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setMonth(today.getMonth() - 3, 1); // First day of month 3 months ago
+    const newDate = new Date(startDate);
+    newDate.setDate(newDate.getDate() + currentWeek * 7);
+
+    // Only update if we've scrolled to a new month
+    if (
+      newDate.getMonth() !== visibleMonth ||
+      newDate.getFullYear() !== visibleYear
+    ) {
+      setVisibleMonth(newDate.getMonth());
+      setVisibleYear(newDate.getFullYear());
+    }
+  };
+
+  const handleDateSelect = (date) => {
+    const newDate = new Date(date);
+
+    // Only update the selected date and month header
+    setSelectedDate(date);
+
+    // Update the visible month in the header if needed
+    if (
+      newDate.getMonth() !== visibleMonth ||
+      newDate.getFullYear() !== visibleYear
+    ) {
+      setVisibleMonth(newDate.getMonth());
+      setVisibleYear(newDate.getFullYear());
+    }
+
+    // Prevent any default behavior that might cause scrolling
+    return false;
+  };
+
+  // Simplified renderMonthWeeks since we're handling dates differently now
+  const renderMonthWeeks = () => [];
 
   const renderDate = (date) => {
     const isSelected = date === selectedDate;
+    const dateObj = new Date(date);
     const isCurrentMonth =
-      new Date(date).getMonth() === new Date(selectedDate).getMonth();
+      dateObj.getMonth() === visibleMonth &&
+      dateObj.getFullYear() === visibleYear;
     const isToday = date === getToday();
 
     return (
@@ -329,7 +362,7 @@ export default function App() {
             setMoveMode(false);
             setTaskToMove(null);
           } else {
-            setSelectedDate(date);
+            handleDateSelect(date);
           }
         }}
         style={[
@@ -339,16 +372,19 @@ export default function App() {
         ]}
       >
         <View style={styles.calendarDayContent}>
-          <Text
-            style={[
-              styles.calendarDayText,
-              !isCurrentMonth && styles.otherMonthText,
-              isSelected && styles.selectedDayText,
-            ]}
-          >
-            {new Date(date).getDate()}
-          </Text>
-          {isToday && <View style={styles.dot} />}
+          {isToday && <View style={styles.todayCircle} />}
+          <View style={styles.dateContainer}>
+            <Text
+              style={[
+                styles.calendarDayText,
+                !isCurrentMonth && styles.otherMonthText,
+                isSelected && styles.selectedDayText,
+              ]}
+            >
+              {new Date(date).getDate()}
+            </Text>
+          </View>
+          {tasks[date]?.length > 0 && <View style={styles.taskDot} />}
         </View>
       </TouchableOpacity>
     );
@@ -369,18 +405,16 @@ export default function App() {
 
   const renderTaskArea = () => {
     return (
-      <View 
+      <View
         {...taskAreaPanResponder.panHandlers}
         style={[styles.taskArea, { height: taskAreaHeight }]}
       >
         <View style={styles.resizeHandle} />
-        <View
-          style={[styles.taskAreaContent, { height: taskAreaHeight - 30 }]}
-        >
+        <View style={[styles.taskAreaContent, { height: taskAreaHeight - 30 }]}>
           <View style={styles.tasksHeaderRow}>
             <Text style={styles.tasksHeader}>{formatDate(selectedDate)}</Text>
-            <TouchableOpacity 
-              style={styles.addButton} 
+            <TouchableOpacity
+              style={styles.addButton}
               onPress={() => openAddTask(selectedDate)}
               activeOpacity={0.7}
             >
@@ -421,18 +455,38 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <View 
-          style={styles.calendarContainer}
-          {...calendarPanResponder.panHandlers}
-        >
-          <Animated.View
-            style={{
-              transform: [{ translateX: calendarSwipeOffset }],
-            }}
-          >
-            {renderCalendar()}
-          </Animated.View>
+        {/* Fixed Header */}
+        <View style={styles.fixedHeader}>
+          <Text style={styles.currentMonthTitle}>
+            {visibleYear}年{visibleMonth + 1}月
+          </Text>
+          <View style={styles.weekDaysHeader}>
+            {["日", "一", "二", "三", "四", "五", "六"].map((day) => (
+              <Text key={day} style={styles.weekDayText}>
+                {day}
+              </Text>
+            ))}
+          </View>
         </View>
+
+        {/* Scrollable Content */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.calendarScrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onScroll={handleScroll}
+          onScrollBeginDrag={(event) => {
+            scrollY.current = event.nativeEvent.contentOffset.y;
+          }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View style={styles.scrollSpacer} />
+          {renderCalendar()}
+          <View style={styles.scrollSpacer} />
+        </ScrollView>
         <View style={styles.tasksContainer}>{renderTaskArea()}</View>
 
         <Modal
@@ -459,7 +513,10 @@ export default function App() {
               />
               <View style={styles.modalButtons}>
                 <View style={styles.buttonGroup}>
-                  <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
+                  <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={saveTask}
+                  >
                     <Text style={styles.saveButtonText}>儲存</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -472,18 +529,14 @@ export default function App() {
                     <TouchableOpacity
                       style={styles.deleteButton}
                       onPress={() => {
-                        Alert.alert(
-                          '確認刪除',
-                          '確定要刪除這個任務嗎？',
-                          [
-                            { text: '取消', style: 'cancel' },
-                            { 
-                              text: '確定', 
-                              style: 'destructive',
-                              onPress: () => deleteTask(editingTask)
-                            }
-                          ]
-                        );
+                        Alert.alert("確認刪除", "確定要刪除這個任務嗎？", [
+                          { text: "取消", style: "cancel" },
+                          {
+                            text: "確定",
+                            style: "destructive",
+                            onPress: () => deleteTask(editingTask),
+                          },
+                        ]);
                       }}
                     >
                       <Text style={styles.deleteButtonText}>刪除</Text>
@@ -504,11 +557,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f7f7fa",
   },
-  calendarContainer: {
-    padding: 10,
+  // Header styles
+  fixedHeader: {
     backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderColor: "#eee",
+    paddingTop: 10,
+    zIndex: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  currentMonthTitle: {
+    fontSize: 24,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  weekDaysHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
+  // Scroll container
+  calendarScrollView: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  scrollSpacer: {
+    height: 10,
+  },
+  // Month container
+  monthContainer: {
+    marginBottom: 0,
   },
   customCalendar: {
     borderRadius: 16,
@@ -519,30 +604,29 @@ const styles = StyleSheet.create({
   },
   calendarTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 5,
+    fontWeight: "600",
+    marginVertical: 15,
     color: "#3d3d4e",
+    textAlign: "center",
   },
   calendarWeekHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    marginBottom: 5,
+    // Empty as we moved the week header to be fixed
   },
   weekDayText: {
     flex: 1,
     textAlign: "center",
     color: "#666",
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "400",
+    minWidth: 40,
+    maxWidth: 40,
   },
   calendarWeekRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 8,
+    height: 50,
+    paddingHorizontal: 4,
   },
   emptyDate: {
     width: "14%",
@@ -553,48 +637,57 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",
-    margin: 2,
+    margin: 1,
     borderRadius: 8,
     backgroundColor: "#fff",
-    padding: 5,
+    zIndex: 1,
+    minWidth: 40,
+    maxWidth: 40,
+    minHeight: 40,
+    maxHeight: 40,
   },
   calendarDayContent: {
-    flex: 1,
+    width: "100%",
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+  },
+  dateContainer: {
     width: "100%",
     height: "100%",
-    paddingBottom: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
   calendarDayText: {
     fontSize: 16,
-    color: "#3d3d4e",
+    color: "#000000",
+    textAlign: "center",
+    lineHeight: 16,
   },
   selectedDay: {
     backgroundColor: "#e8e7fc",
+    zIndex: 3,
+    elevation: 2,
+    minWidth: 40,
+    maxWidth: 40,
+    minHeight: 40,
+    maxHeight: 40,
   },
   selectedDayText: {
     color: "#6c63ff",
     fontWeight: "700",
+    zIndex: 4,
   },
   otherMonthText: {
-    color: "#ccc",
+    color: "#999999",
   },
   calendarDayMoveTarget: {
     borderColor: "#ffb300",
     borderWidth: 2,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#6c63ff",
-    position: "absolute",
-    bottom: 2,
-    left: "50%",
-    transform: [{ translateX: -3 }],
-  },
+
   tasksContainer: {
     backgroundColor: "#f7f7fa",
     borderTopWidth: 1,

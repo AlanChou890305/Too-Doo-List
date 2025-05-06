@@ -19,10 +19,6 @@
       "bundleIdentifier": "com.cty0305.too.doo.list"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "package": "com.cty0305.too.doo.list"
     },
     "web": {
