@@ -31,19 +31,21 @@ function getToday() {
 }
 
 export default function App() {
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const getCurrentDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
 
   const [tasks, setTasks] = useState({});
   const [inputText, setInputText] = useState('');
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [selectedDate, setSelectedDate] = useState(getCurrentDate());
   const [modalVisible, setModalVisible] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
   const [taskToMove, setTaskToMove] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [editingText, setEditingText] = useState('');
-  const [visibleMonth, setVisibleMonth] = useState(today.getMonth());
-  const [visibleYear, setVisibleYear] = useState(today.getFullYear());
+  const [visibleMonth, setVisibleMonth] = useState(new Date(getCurrentDate()).getMonth());
+  const [visibleYear, setVisibleYear] = useState(new Date(getCurrentDate()).getFullYear());
   const [taskAreaHeight, setTaskAreaHeight] = useState(MIN_TASK_AREA_HEIGHT);
   const [taskText, setTaskText] = useState("");
   const swipeOffset = useRef(new Animated.Value(0)).current;
@@ -290,63 +292,37 @@ export default function App() {
   };
 
   const renderCalendar = () => {
-    // Get current date
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    
-    // Calculate the date range: 3 months before and after current month
-    const startDate = new Date(currentYear, currentMonth - 3, 1);
-    const endDate = new Date(currentYear, currentMonth + 4, 0); // Last day of month +3
-    
-    // Set to noon to avoid timezone issues
-    startDate.setHours(12, 0, 0, 0);
-    endDate.setHours(12, 0, 0, 0);
-    
-    // Group dates by week
     const weeks = [];
+    const currentDate = new Date(visibleYear, visibleMonth, 1);
     
-    // Start from the first day of the month
-    const firstDayOfMonth = new Date(startDate);
-    firstDayOfMonth.setDate(1); // Ensure we're at the 1st
-    firstDayOfMonth.setHours(12, 0, 0, 0);
+    // Get the first day of the month and the last day of the month
+    const firstDayOfMonth = new Date(visibleYear, visibleMonth, 1);
+    const lastDayOfMonth = new Date(visibleYear, visibleMonth + 1, 0);
     
-    // Get the day of week (0 = Sunday, 1 = Monday, etc.)
+    // Find the first Sunday on or before the first day of the month
     const firstDayOfWeek = firstDayOfMonth.getDay();
+    const firstSunday = new Date(firstDayOfMonth);
+    firstSunday.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
     
-    // Start from the Sunday of the week containing the first day of the month
-    let currentDate = new Date(firstDayOfMonth);
-    currentDate.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
-    
-    // Generate weeks until we pass the end date
-    while (currentDate <= endDate) {
+    // We want exactly 5 weeks (35 days)
+    for (let week = 0; week < 5; week++) {
       const weekDates = [];
       
       // Generate all 7 days of the week
-      for (let i = 0; i < 7; i++) {
-        const dayDate = new Date(currentDate);
-        dayDate.setDate(currentDate.getDate() + i);
+      for (let day = 0; day < 7; day++) {
+        const dayDate = new Date(firstSunday);
+        dayDate.setDate(firstSunday.getDate() + (week * 7) + day);
         dayDate.setHours(12, 0, 0, 0);
         
-        if (dayDate >= startDate && dayDate <= endDate) {
-          const dateStr = dayDate.toISOString().split("T")[0];
-          weekDates.push(renderDate(dateStr));
-        } else {
-          weekDates.push(<View key={`empty-${dayDate.getTime()}`} style={styles.emptyDate} />);
-        }
+        const dateStr = dayDate.toISOString().split("T")[0];
+        weekDates.push(renderDate(dateStr));
       }
       
-      // Add the week if it contains any dates within our range
-      if (weekDates.some(date => date.props.style !== styles.emptyDate)) {
-        weeks.push(
-          <View key={`week-${currentDate.getTime()}`} style={styles.calendarWeekRow}>
-            {weekDates}
-          </View>
-        );
-      }
-      
-      // Move to the next week
-      currentDate.setDate(currentDate.getDate() + 7);
+      weeks.push(
+        <View key={`week-${week}`} style={styles.calendarWeekRow}>
+          {weekDates}
+        </View>
+      );
     }
     
     return weeks;
@@ -361,7 +337,7 @@ export default function App() {
     const currentWeek = Math.floor(offsetY / weekHeight);
 
     // Calculate the current month based on scroll position
-    const today = new Date();
+    const today = new Date(getCurrentDate());
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
     
@@ -415,7 +391,10 @@ export default function App() {
       dateObj.getMonth() === visibleMonth &&
       dateObj.getFullYear() === visibleYear;
       
-    const isToday = date === todayStr;
+    // Format the current date to match the date string format (YYYY-MM-DD)
+    const today = new Date();
+    const todayFormatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const isToday = date === todayFormatted;
     const isInRange = true; // Always show the date number
 
     const renderDateContent = () => {
@@ -552,25 +531,33 @@ export default function App() {
           </View>
         </View>
 
-        {/* Scrollable Content */}
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.calendarScrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          scrollEventThrottle={16}
-          onScroll={handleScroll}
-          onScrollBeginDrag={(event) => {
-            scrollY.current = event.nativeEvent.contentOffset.y;
-          }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-        >
-          <View style={styles.scrollSpacer} />
-          {renderCalendar()}
-          <View style={styles.scrollSpacer} />
-        </ScrollView>
-        <View style={styles.tasksContainer}>{renderTaskArea()}</View>
+        <View style={styles.contentContainer}>
+          {/* Calendar Section */}
+          <View style={styles.calendarContainer}>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.calendarScrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              scrollEventThrottle={16}
+              onScroll={handleScroll}
+              onScrollBeginDrag={(event) => {
+                scrollY.current = event.nativeEvent.contentOffset.y;
+              }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            >
+              <View style={styles.scrollSpacer} />
+              {renderCalendar()}
+              <View style={styles.scrollSpacer} />
+            </ScrollView>
+          </View>
+          
+          {/* Tasks Section */}
+          <View style={styles.tasksContainer}>
+            {renderTaskArea()}
+          </View>
+        </View>
 
         <Modal
           animationType="fade"
@@ -640,6 +627,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f7f7fa",
   },
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  calendarContainer: {
+    flexShrink: 0,
+    backgroundColor: '#fff',
+  },
   // Header styles
   fixedHeader: {
     backgroundColor: "#fff",
@@ -666,11 +661,11 @@ const styles = StyleSheet.create({
   },
   // Scroll container
   calendarScrollView: {
-    flex: 1,
+    flexGrow: 0,
     backgroundColor: "#fff",
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 0,
   },
   scrollSpacer: {
     height: 10,
@@ -812,34 +807,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tasksContainer: {
-    backgroundColor: "#f7f7fa",
-    borderTopWidth: 1,
-    borderColor: "#eee",
-    padding: 12,
-    minHeight: MIN_TASK_AREA_HEIGHT,
+    flex: 1,
+    backgroundColor: '#f7f7fa',
   },
   taskAreaContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-  },
-  taskArea: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#f7f7fa', // Match tasks container background
+    flex: 1,
+    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 4,
     elevation: 5,
     overflow: 'hidden',
-    height: MIN_TASK_AREA_HEIGHT,
+  },
+  taskArea: {
+    flex: 1,
+    backgroundColor: '#f7f7fa',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 16,
   },
   dragHandleContainer: {
     width: '100%',
