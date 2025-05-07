@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   SafeAreaView,
   View,
   Text,
+  Dimensions,
   StyleSheet,
   TouchableOpacity,
   Modal,
@@ -11,7 +12,6 @@ import {
   Alert,
   ScrollView,
   PanResponder,
-  Dimensions,
   Animated,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -31,19 +31,24 @@ function getToday() {
 }
 
 export default function App() {
-  const [selectedDate, setSelectedDate] = useState(getToday());
-  const [tasks, setTasks] = useState({ [getToday()]: [] });
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  const [tasks, setTasks] = useState({});
+  const [inputText, setInputText] = useState('');
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
   const [moveMode, setMoveMode] = useState(false);
   const [taskToMove, setTaskToMove] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
+  const [editingText, setEditingText] = useState('');
+  const [visibleMonth, setVisibleMonth] = useState(today.getMonth());
+  const [visibleYear, setVisibleYear] = useState(today.getFullYear());
   const [taskAreaHeight, setTaskAreaHeight] = useState(MIN_TASK_AREA_HEIGHT);
   const [taskText, setTaskText] = useState("");
   const swipeOffset = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const scrollY = useRef(0);
-  const [visibleMonth, setVisibleMonth] = useState(new Date().getMonth());
-  const [visibleYear, setVisibleYear] = useState(new Date().getFullYear());
 
   // Calculate task area height based on content
   const calculateTaskAreaHeight = () => {
@@ -118,57 +123,41 @@ export default function App() {
     }
   };
 
-  const taskAreaPanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: (evt, gestureState) => {
-      // Only handle horizontal swipes
-      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-    },
-    onMoveShouldSetPanResponder: (evt, gestureState) => {
-      // Only handle horizontal swipes
-      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-    },
-    onPanResponderGrant: () => {
-      swipeOffset.setOffset(swipeOffset._value);
-    },
-    onPanResponderRelease: (evt, gestureState) => {
-      // 降低觸發閾值到 3
+  const { height: screenHeight } = Dimensions.get('window');
+  const pan = useRef(new Animated.Value(MIN_TASK_AREA_HEIGHT)).current;
+  const currentHeight = useRef(MIN_TASK_AREA_HEIGHT);
+
+  // Disabled drag interaction
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => false,
+    onMoveShouldSetPanResponder: () => false,
+    onPanResponderGrant: () => {},
+    onPanResponderMove: () => {},
+    onPanResponderRelease: () => {},
+  });
+
+  // Handle horizontal swipes for date navigation
+  const handleSwipeGesture = (evt, gestureState) => {
+    if (Math.abs(gestureState.dx) > Math.abs(gestureState.dy)) {
       if (gestureState.dx > 3) {
         handleSwipe("right");
       } else if (gestureState.dx < -3) {
         handleSwipe("left");
       }
+    }
+  };
 
-      // 添加回彈動畫
-      Animated.timing(swipeOffset, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    },
-  });
-
-  // 處理拖拉調整高度
-  const heightPanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderMove: (_, gestureState) => {
-      const newHeight = taskAreaHeight - gestureState.dy;
-      if (
-        newHeight >= MIN_TASK_AREA_HEIGHT &&
-        newHeight <= MAX_TASK_AREA_HEIGHT
-      ) {
-        setTaskAreaHeight(newHeight);
-      }
-    },
-  });
-
-  // Load tasks from storage
+  // Load tasks from storage and set initial scroll position
   useEffect(() => {
     AsyncStorage.getItem(TASKS_STORAGE_KEY).then((data) => {
       if (data) {
         const loadedTasks = JSON.parse(data);
         setTasks(loadedTasks);
       }
+    }).then(() => {
+      // After loading tasks, ensure we have the correct date selected
+      const today = getToday();
+      setSelectedDate(today);
     });
   }, []);
 
@@ -176,6 +165,62 @@ export default function App() {
   useEffect(() => {
     AsyncStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
+
+  // Ensure today's date is selected and centered when app loads
+  useEffect(() => {
+    const today = getToday();
+    setSelectedDate(today);
+    
+    // Function to center today's week in the calendar
+    const centerToday = () => {
+      if (!scrollViewRef.current) return;
+      
+      const todayDate = new Date(today);
+      todayDate.setHours(12, 0, 0, 0);
+      
+      // Calculate the start date of the calendar (3 months before current month)
+      const startDate = new Date(todayDate);
+      startDate.setMonth(todayDate.getMonth() - 3);
+      startDate.setDate(1);
+      startDate.setHours(12, 0, 0, 0);
+      
+      // Find the first Sunday on or before the start date
+      const firstDayOfWeek = startDate.getDay();
+      const firstSunday = new Date(startDate);
+      firstSunday.setDate(startDate.getDate() - firstDayOfWeek);
+      firstSunday.setHours(12, 0, 0, 0);
+      
+      // Calculate the number of weeks between first Sunday and today
+      const diffInDays = Math.floor((todayDate - firstSunday) / (1000 * 60 * 60 * 24));
+      const weekNumber = Math.floor(diffInDays / 7);
+      
+      // Calculate scroll position to center today's week
+      const weekHeight = 50; // Height of each week row
+      const visibleWeeks = 4; // Number of weeks visible on screen
+      const scrollPosition = (weekNumber * weekHeight) - ((visibleWeeks / 2) * weekHeight);
+      
+      // Scroll to position with animation
+      scrollViewRef.current.scrollTo({
+        y: scrollPosition,
+        animated: true
+      });
+    };
+    
+    // Initial scroll after a short delay
+    const timer1 = setTimeout(centerToday, 100);
+    
+    // Additional scroll after layout is complete
+    const timer2 = setTimeout(centerToday, 300);
+    
+    // One more attempt after a longer delay
+    const timer3 = setTimeout(centerToday, 1000);
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
 
   const openAddTask = (date) => {
     setEditingTask(null);
@@ -245,73 +290,90 @@ export default function App() {
   };
 
   const renderCalendar = () => {
-    // Calculate date range: 3 months before and after current date
+    // Get current date
     const today = new Date();
-    const startDate = new Date(today);
-    startDate.setMonth(today.getMonth() - 3, 1); // First day of month 3 months ago
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
     
-    const endDate = new Date(today);
-    endDate.setMonth(today.getMonth() + 3 + 1, 0); // Last day of month 3 months from now
-
-    // Generate all dates in the range
-    const allDates = [];
-    const current = new Date(startDate);
-
-    // Make sure we start from the beginning of the week (Sunday)
-    const startDay = current.getDay();
-    current.setDate(current.getDate() - startDay);
-
-    // Adjust end date to complete the last week
-    const end = new Date(endDate);
-    const endDay = end.getDay();
-    end.setDate(end.getDate() + (6 - endDay));
-
-    while (current <= end) {
-      const dateStr = current.toISOString().split("T")[0];
-      const dateObj = new Date(dateStr);
-
-      // Only add dates if they're within our range
-      if (dateObj >= startDate && dateObj <= endDate) {
-        allDates.push(renderDate(dateStr));
-      } else {
-        // Add empty view for dates outside our range
-        allDates.push(<View key={dateStr} style={styles.emptyDate} />);
-      }
-
-      current.setDate(current.getDate() + 1);
-    }
-
-    // Group into weeks
+    // Calculate the date range: 3 months before and after current month
+    const startDate = new Date(currentYear, currentMonth - 3, 1);
+    const endDate = new Date(currentYear, currentMonth + 4, 0); // Last day of month +3
+    
+    // Set to noon to avoid timezone issues
+    startDate.setHours(12, 0, 0, 0);
+    endDate.setHours(12, 0, 0, 0);
+    
+    // Group dates by week
     const weeks = [];
-    for (let i = 0; i < allDates.length; i += 7) {
-      const weekDates = allDates.slice(i, i + 7);
-      // Only add weeks that have at least one date in our range
-      if (weekDates.some((date) => date.props.style !== styles.emptyDate)) {
+    
+    // Start from the first day of the month
+    const firstDayOfMonth = new Date(startDate);
+    firstDayOfMonth.setDate(1); // Ensure we're at the 1st
+    firstDayOfMonth.setHours(12, 0, 0, 0);
+    
+    // Get the day of week (0 = Sunday, 1 = Monday, etc.)
+    const firstDayOfWeek = firstDayOfMonth.getDay();
+    
+    // Start from the Sunday of the week containing the first day of the month
+    let currentDate = new Date(firstDayOfMonth);
+    currentDate.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
+    
+    // Generate weeks until we pass the end date
+    while (currentDate <= endDate) {
+      const weekDates = [];
+      
+      // Generate all 7 days of the week
+      for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(currentDate);
+        dayDate.setDate(currentDate.getDate() + i);
+        dayDate.setHours(12, 0, 0, 0);
+        
+        if (dayDate >= startDate && dayDate <= endDate) {
+          const dateStr = dayDate.toISOString().split("T")[0];
+          weekDates.push(renderDate(dateStr));
+        } else {
+          weekDates.push(<View key={`empty-${dayDate.getTime()}`} style={styles.emptyDate} />);
+        }
+      }
+      
+      // Add the week if it contains any dates within our range
+      if (weekDates.some(date => date.props.style !== styles.emptyDate)) {
         weeks.push(
-          <View key={`week-${i}`} style={styles.calendarWeekRow}>
+          <View key={`week-${currentDate.getTime()}`} style={styles.calendarWeekRow}>
             {weekDates}
           </View>
         );
       }
+      
+      // Move to the next week
+      currentDate.setDate(currentDate.getDate() + 7);
     }
-
+    
     return weeks;
   };
 
   // Handle scroll to update month when crossing month boundaries
-  const handleScroll = (event) => {
+  const handleScroll = useCallback((event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    scrollY.current = offsetY; // Update scroll position
+    scrollY.current = offsetY;
 
     const weekHeight = 50; // Approximate height of a week row
     const currentWeek = Math.floor(offsetY / weekHeight);
 
     // Calculate the current month based on scroll position
     const today = new Date();
-    const startDate = new Date(today);
-    startDate.setMonth(today.getMonth() - 3, 1); // First day of month 3 months ago
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    
+    // Calculate the same way as in renderCalendar
+    const startMonth = currentMonth - 3;
+    const startYear = currentYear + Math.floor(startMonth / 12);
+    const adjustedStartMonth = ((startMonth % 12) + 12) % 12;
+    const startDate = new Date(startYear, adjustedStartMonth, 1);
+    
+    // Calculate the new date based on weeks scrolled
     const newDate = new Date(startDate);
-    newDate.setDate(newDate.getDate() + currentWeek * 7);
+    newDate.setDate(startDate.getDate() + currentWeek * 7);
 
     // Only update if we've scrolled to a new month
     if (
@@ -321,7 +383,7 @@ export default function App() {
       setVisibleMonth(newDate.getMonth());
       setVisibleYear(newDate.getFullYear());
     }
-  };
+  }, [visibleMonth, visibleYear]);
 
   const handleDateSelect = (date) => {
     const newDate = new Date(date);
@@ -348,10 +410,35 @@ export default function App() {
   const renderDate = (date) => {
     const isSelected = date === selectedDate;
     const dateObj = new Date(date);
-    const isCurrentMonth =
+    
+    const isCurrentMonth = 
       dateObj.getMonth() === visibleMonth &&
       dateObj.getFullYear() === visibleYear;
-    const isToday = date === getToday();
+      
+    const isToday = date === todayStr;
+    const isInRange = true; // Always show the date number
+
+    const renderDateContent = () => {
+      return (
+        <View style={styles.dateContainer}>
+          <View style={[
+            styles.dateTextContainer,
+            isToday && styles.todayCircle,
+            isSelected && styles.selectedDate
+          ]}>
+            <Text style={[
+              styles.calendarDayText,
+              !isCurrentMonth && styles.otherMonthText,
+              isSelected && styles.selectedDayText,
+              isToday && styles.todayText,
+              !isInRange && styles.hiddenDate,
+            ]}>
+              {isInRange ? dateObj.getDate() : ''}
+            </Text>
+          </View>
+        </View>
+      );
+    };
 
     return (
       <TouchableOpacity
@@ -371,21 +458,8 @@ export default function App() {
           moveMode && styles.calendarDayMoveTarget,
         ]}
       >
-        <View style={styles.calendarDayContent}>
-          {isToday && <View style={styles.todayCircle} />}
-          <View style={styles.dateContainer}>
-            <Text
-              style={[
-                styles.calendarDayText,
-                !isCurrentMonth && styles.otherMonthText,
-                isSelected && styles.selectedDayText,
-              ]}
-            >
-              {new Date(date).getDate()}
-            </Text>
-          </View>
-          {tasks[date]?.length > 0 && <View style={styles.taskDot} />}
-        </View>
+        {renderDateContent()}
+        {tasks[date]?.length > 0 && <View style={styles.taskDot} />}
       </TouchableOpacity>
     );
   };
@@ -402,52 +476,62 @@ export default function App() {
       )}
     </TouchableOpacity>
   );
-
   const renderTaskArea = () => {
     return (
-      <View
-        {...taskAreaPanResponder.panHandlers}
-        style={[styles.taskArea, { height: taskAreaHeight }]}
-      >
-        <View style={styles.resizeHandle} />
-        <View style={[styles.taskAreaContent, { height: taskAreaHeight - 30 }]}>
-          <View style={styles.tasksHeaderRow}>
-            <Text style={styles.tasksHeader}>{formatDate(selectedDate)}</Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => openAddTask(selectedDate)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.addButtonIcon}>
-                <Text style={styles.addButtonText}>+</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            style={[styles.tasksContainer, { height: taskAreaHeight }]}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingBottom: 100, // Add padding at the bottom
-              paddingTop: 10, // Add padding at the top
-            }}
-            horizontal={false}
-            showsVerticalScrollIndicator={false}
+      <View style={styles.taskAreaContainer}>
+        <Animated.View 
+          style={[
+            styles.taskArea, 
+            { 
+              height: pan.interpolate({
+                inputRange: [MIN_TASK_AREA_HEIGHT, screenHeight * 0.9],
+                outputRange: [MIN_TASK_AREA_HEIGHT, screenHeight * 0.9],
+                extrapolate: 'clamp',
+              })
+            }
+          ]}
+        >
+          <View 
+            style={styles.dragHandleContainer}
+            {...panResponder.panHandlers}
           >
-            {tasks[selectedDate]?.map((item) => (
+            <View style={styles.dragHandle} />
+          </View>
+          <View style={[styles.taskAreaContent, { height: taskAreaHeight - 30 }]}>
+            <View style={styles.tasksHeaderRow}>
+              <Text style={styles.tasksHeader}>{formatDate(selectedDate)}</Text>
               <TouchableOpacity
-                key={item.id}
-                style={styles.taskItem}
-                onPress={() => openEditTask(item)}
-                onLongPress={() => startMoveTask(item)}
+                style={styles.addButton}
+                onPress={() => openAddTask(selectedDate)}
+                activeOpacity={0.7}
               >
-                <Text style={styles.taskText}>{item.text}</Text>
-                {moveMode && taskToMove && taskToMove.id === item.id && (
-                  <Text style={styles.moveHint}>Tap a date to move</Text>
-                )}
+                <View style={styles.addButtonIcon}>
+                  <Text style={styles.addButtonText}>+</Text>
+                </View>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            </View>
+            <ScrollView
+              style={styles.tasksScrollView}
+              contentContainerStyle={styles.tasksScrollContent}
+              showsVerticalScrollIndicator={false}
+              horizontal={false}
+            >
+              {tasks[selectedDate]?.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.taskItem}
+                  onPress={() => openEditTask(item)}
+                  onLongPress={() => startMoveTask(item)}
+                >
+                  <Text style={styles.taskText}>{item.text}</Text>
+                  {moveMode && taskToMove && taskToMove.id === item.id && (
+                    <Text style={styles.moveHint}>Tap a date to move</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Animated.View>
       </View>
     );
   };
@@ -455,7 +539,6 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        {/* Fixed Header */}
         <View style={styles.fixedHeader}>
           <Text style={styles.currentMonthTitle}>
             {visibleYear}年{visibleMonth + 1}月
@@ -569,10 +652,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   currentMonthTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "600",
-    textAlign: "center",
+    textAlign: "left",
     marginBottom: 10,
+    marginLeft: 16,
   },
   weekDaysHeader: {
     flexDirection: "row",
@@ -629,8 +713,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   emptyDate: {
-    width: "14%",
-    aspectRatio: 1,
+    width: 40,
+    height: 40,
+    margin: 2,
+  },
+  hiddenDate: {
+    opacity: 0,
   },
   calendarDay: {
     flex: 1,
@@ -662,7 +750,8 @@ const styles = StyleSheet.create({
   },
   calendarDayText: {
     fontSize: 16,
-    color: "#000000",
+    color: '#333',
+    fontWeight: '500',
     textAlign: "center",
     lineHeight: 16,
   },
@@ -687,7 +776,41 @@ const styles = StyleSheet.create({
     borderColor: "#ffb300",
     borderWidth: 2,
   },
-
+  taskDot: {
+    position: 'absolute',
+    bottom: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#6c63ff',
+  },
+  todayCircle: {
+    backgroundColor: '#6c63ff', // Matches add button color
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  todayText: {
+    color: 'white', // White for better contrast
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  dateTextContainer: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+  },
+  selectedDate: {
+    // No background color, just text color change
+  },
+  selectedDayText: {
+    color: '#6c63ff', // Same as add button color
+    fontWeight: '600',
+  },
   tasksContainer: {
     backgroundColor: "#f7f7fa",
     borderTopWidth: 1,
@@ -695,29 +818,53 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: MIN_TASK_AREA_HEIGHT,
   },
-  taskArea: {
-    borderRadius: 16,
-    marginTop: 8,
-    position: "relative",
-    backgroundColor: "transparent",
-    overflow: "hidden",
-  },
-  resizeHandle: {
-    position: "absolute",
-    top: 0,
+  taskAreaContainer: {
+    position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
-    height: 20,
-    backgroundColor: "transparent",
     zIndex: 1,
+  },
+  taskArea: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f7f7fa', // Match tasks container background
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: 'hidden',
+    height: MIN_TASK_AREA_HEIGHT,
+  },
+  dragHandleContainer: {
+    width: '100%',
+    paddingTop: 10,
+    paddingBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f7f7fa', // Match tasks container background
+  },
+  dragHandle: {
+    width: 60,
+    height: 5,
+    backgroundColor: '#888',
+    borderRadius: 3,
+    opacity: 0.8,
   },
   tasksHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
-    paddingHorizontal: 0,
+    paddingHorizontal: 12,
     width: "100%",
+    backgroundColor: '#f7f7fa', // Match tasks container background
+    paddingTop: 8,
   },
   tasksHeader: {
     fontSize: 16,
@@ -755,20 +902,20 @@ const styles = StyleSheet.create({
   },
   taskItem: {
     backgroundColor: "#fff",
-    padding: 14,
-    borderRadius: 10,
-    elevation: 2,
+    padding: 12,
+    borderRadius: 8,
+    elevation: 1,
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 44,
-    marginBottom: 10,
+    minHeight: 40,
+    marginBottom: 8,
+    marginHorizontal: 12,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    width: "100%",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -806,7 +953,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
-    color: "#3d3d4e",
   },
   input: {
     borderWidth: 1,
