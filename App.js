@@ -17,7 +17,10 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GestureHandlerRootView, PanGestureHandler, State } from "react-native-gesture-handler";
 import { Swipeable } from "react-native-gesture-handler";
-import Svg, { Line, Rect, Circle } from "react-native-svg";
+import { MaterialIcons } from '@expo/vector-icons';
+import Svg, { Rect, Line, Circle } from 'react-native-svg';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
 const TASKS_STORAGE_KEY = "TASKS_STORAGE_KEY";
 
@@ -30,7 +33,36 @@ function getToday() {
   return `${year}-${month}-${day}`;
 }
 
-export default function App() {
+const Stack = createStackNavigator();
+
+function AccountScreen({ navigation, route }) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+      <MaterialIcons name="account-circle" size={64} color="#888" />
+      <Text style={{ fontSize: 20, color: '#333', marginTop: 16 }}>Account Settings</Text>
+      <Text style={{ color: '#888', marginTop: 8 }}>Coming soon...</Text>
+      <View style={styles.bottomMenuBar}>
+        <TouchableOpacity
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Calendar')}
+        >
+          <MaterialIcons name="calendar-today" size={24} color={route?.name === 'Calendar' ? '#111' : '#888'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Account')}
+        >
+          <MaterialIcons name="account-circle" size={24} color={route?.name === 'Account' ? '#111' : '#888'} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+
+function CalendarScreen({ navigation, route }) {
   const getCurrentDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -283,10 +315,10 @@ export default function App() {
     const { translationX, state } = nativeEvent;
     // Only trigger on gesture end (state === 5 for END)
     if (state === 5) {
-      if (translationX < -20) {
+      if (translationX < -10) {
         // Swipe left, go to next day
         setSelectedDate(getAdjacentDate(selectedDate, 1));
-      } else if (translationX > 20) {
+      } else if (translationX > 10) {
         // Swipe right, go to previous day
         setSelectedDate(getAdjacentDate(selectedDate, -1));
       }
@@ -475,11 +507,60 @@ export default function App() {
         {renderTaskArea()}
       </View>
       {renderModal()}
+      <View style={styles.bottomMenuBar}>
+        <TouchableOpacity
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Calendar')}
+        >
+          <MaterialIcons name="calendar-today" size={24} color={route?.name === 'Calendar' ? '#111' : '#888'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Account')}
+        >
+          <MaterialIcons name="account-circle" size={24} color={route?.name === 'Account' ? '#111' : '#888'} />
+        </TouchableOpacity>
+      </View>
     </GestureHandlerRootView>
   );
 }
 
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Calendar" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Calendar" component={CalendarScreen} />
+        <Stack.Screen name="Account" component={AccountScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 const styles = StyleSheet.create({
+  bottomMenuBar: {
+    height: '6%',
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+
+    overflow: 'hidden',
+  },
   container: {
     flex: 1,
     flexDirection: 'column',
