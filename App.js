@@ -322,7 +322,7 @@ function CalendarScreen({ navigation, route }) {
     const dayTasks = tasks[selectedDate] || [];
     console.log('RenderTaskArea dayTasks:', dayTasks);
     return (
-      <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]} activeOffsetX={[-1, 1]}>
+      <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]} activeOffsetX={[-20, 20]}>
         <View style={styles.taskArea}>
           <View style={[styles.taskAreaContent, {
             flexGrow: 1,
@@ -516,18 +516,27 @@ export default function App() {
             } else if (route.name === 'Setting') {
               iconName = 'settings';
             }
-            return <MaterialIcons name={iconName} size={size} color={color} />;
+            return (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <MaterialIcons name={iconName} size={size} color={color} />
+              </View>
+            );
           },
           tabBarActiveTintColor: '#111',
           tabBarInactiveTintColor: '#888',
           tabBarShowLabel: false,
           tabBarStyle: {
-            height: 80,
-            paddingBottom: 16,
-            paddingTop: 8,
+            height: 60,
+            paddingBottom: 4,
+            paddingTop: 4,
             backgroundColor: 'rgba(255,255,255,0.96)',
             borderTopWidth: 1,
             borderTopColor: '#eee',
+          },
+          tabBarIconStyle: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
           },
         })}
       >
@@ -539,6 +548,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  // ...
   // Removed bottomMenuBar style, handled by Tab.Navigator now
 
   container: {

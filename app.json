@@ -30,7 +30,9 @@
           "publicUrl": "."
         }
       },
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Too Doo List",
+      "description": "Too Doo List is a smart, simple, and organized to-do list app to help you manage your daily tasks efficiently. Stay productive and never miss a task again!"
     },
     "sdkVersion": "53.0.0",
     "plugins": [
