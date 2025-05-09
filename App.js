@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  SafeAreaView,
   View,
   Text,
   Dimensions,
@@ -17,10 +17,11 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GestureHandlerRootView, PanGestureHandler, State } from "react-native-gesture-handler";
 import { Swipeable } from "react-native-gesture-handler";
-import { MaterialIcons } from '@expo/vector-icons';
+// import { MaterialIcons } from '@expo/vector-icons'; // Already imported above
 import Svg, { Rect, Line, Circle } from 'react-native-svg';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const TASKS_STORAGE_KEY = "TASKS_STORAGE_KEY";
 
@@ -33,31 +34,17 @@ function getToday() {
   return `${year}-${month}-${day}`;
 }
 
-const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
-function AccountScreen({ navigation, route }) {
+function SettingScreen() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-      <MaterialIcons name="account-circle" size={64} color="#888" />
-      <Text style={{ fontSize: 20, color: '#333', marginTop: 16 }}>Account Settings</Text>
-      <Text style={{ color: '#888', marginTop: 8 }}>Coming soon...</Text>
-      <View style={styles.bottomMenuBar}>
-        <TouchableOpacity
-          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('Calendar')}
-        >
-          <MaterialIcons name="calendar-today" size={24} color={route?.name === 'Calendar' ? '#111' : '#888'} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('Account')}
-        >
-          <MaterialIcons name="account-circle" size={24} color={route?.name === 'Account' ? '#111' : '#888'} />
-        </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <MaterialIcons name="settings" size={64} color="#888" />
+        <Text style={{ fontSize: 20, color: '#333', marginTop: 16 }}>Settings</Text>
+        <Text style={{ color: '#888', marginTop: 8 }}>Coming soon...</Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -126,6 +113,7 @@ function CalendarScreen({ navigation, route }) {
   };
 
   const openEditTask = (task) => {
+    console.log('Open edit task:', task);
     setEditingTask(task);
     setTaskText(task.text);
     setSelectedDate(task.date);
@@ -155,13 +143,18 @@ function CalendarScreen({ navigation, route }) {
   };
 
   const deleteTask = (task) => {
-    if (task.date !== selectedDate) return;
-    const dayTasks = tasks[selectedDate] ? [...tasks[selectedDate]] : [];
+    if (!task) return;
+    const day = task.date;
+    const dayTasks = tasks[day] ? [...tasks[day]] : [];
     const filteredTasks = dayTasks.filter((t) => t.id !== task.id);
-    setTasks({ ...tasks, [selectedDate]: filteredTasks });
+    const newTasks = { ...tasks, [day]: filteredTasks };
+    setTasks(newTasks);
+    AsyncStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(newTasks));
     setModalVisible(false);
     setEditingTask(null);
     setTaskText("");
+    console.log('Deleted task', task.id);
+    console.log('Tasks after delete:', newTasks);
   };
 
   const startMoveTask = (task) => {
@@ -315,10 +308,10 @@ function CalendarScreen({ navigation, route }) {
     const { translationX, state } = nativeEvent;
     // Only trigger on gesture end (state === 5 for END)
     if (state === 5) {
-      if (translationX < -10) {
+      if (translationX < -1) {
         // Swipe left, go to next day
         setSelectedDate(getAdjacentDate(selectedDate, 1));
-      } else if (translationX > 10) {
+      } else if (translationX > 1) {
         // Swipe right, go to previous day
         setSelectedDate(getAdjacentDate(selectedDate, -1));
       }
@@ -327,10 +320,15 @@ function CalendarScreen({ navigation, route }) {
 
   const renderTaskArea = () => {
     const dayTasks = tasks[selectedDate] || [];
+    console.log('RenderTaskArea dayTasks:', dayTasks);
     return (
-      <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]}>
+      <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]} activeOffsetX={[-1, 1]}>
         <View style={styles.taskArea}>
-          <View style={styles.taskAreaContent}>
+          <View style={[styles.taskAreaContent, {
+            flexGrow: 1,
+            maxHeight: Dimensions.get('window').height * 0.38, // Adjust as needed for your layout
+            overflow: 'hidden',
+          }]}>
             <View style={styles.tasksHeaderRow}>
               <Text style={styles.tasksHeader}>{selectedDate}</Text>
               <TouchableOpacity
@@ -386,7 +384,7 @@ function CalendarScreen({ navigation, route }) {
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
-            {editingTask ? "編輯任務" : "新增任務"}
+            {editingTask ? "Edit task" : "Create task"}
           </Text>
           <TextInput
             style={styles.input}
@@ -400,29 +398,20 @@ function CalendarScreen({ navigation, route }) {
               style={[styles.saveButton, { marginRight: 4 }]}
               onPress={saveTask}
             >
-              <Text style={styles.saveButtonText}>儲存</Text>
+              <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.cancelButton, { marginRight: editingTask ? 4 : 0 }]}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.cancelButtonText}>取消</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             {editingTask && (
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => {
-                  Alert.alert("確認刪除", "確定要刪除這個任務嗎？", [
-                    { text: "取消", style: "cancel" },
-                    {
-                      text: "確定",
-                      style: "destructive",
-                      onPress: () => deleteTask(editingTask),
-                    },
-                  ]);
-                }}
+                onPress={() => deleteTask(editingTask)}
               >
-                <Text style={styles.deleteButtonText}>刪除</Text>
+                <Text style={styles.deleteButtonText}>Delete</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -482,7 +471,8 @@ function CalendarScreen({ navigation, route }) {
   );
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <GestureHandlerRootView style={styles.container}>
       <View style={styles.calendarSection}>
         {header}
         <View style={styles.weekDaysHeader}>
@@ -507,60 +497,50 @@ function CalendarScreen({ navigation, route }) {
         {renderTaskArea()}
       </View>
       {renderModal()}
-      <View style={styles.bottomMenuBar}>
-        <TouchableOpacity
-          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('Calendar')}
-        >
-          <MaterialIcons name="calendar-today" size={24} color={route?.name === 'Calendar' ? '#111' : '#888'} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('Account')}
-        >
-          <MaterialIcons name="account-circle" size={24} color={route?.name === 'Account' ? '#111' : '#888'} />
-        </TouchableOpacity>
-      </View>
     </GestureHandlerRootView>
+    </SafeAreaView>
   );
 }
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Calendar" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Calendar" component={CalendarScreen} />
-        <Stack.Screen name="Account" component={AccountScreen} />
-      </Stack.Navigator>
+      <Tab.Navigator
+        initialRouteName="Calendar"
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => {
+            let iconName;
+            if (route.name === 'Calendar') {
+              iconName = 'calendar-today';
+            } else if (route.name === 'Setting') {
+              iconName = 'settings';
+            }
+            return <MaterialIcons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#111',
+          tabBarInactiveTintColor: '#888',
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            height: 80,
+            paddingBottom: 16,
+            paddingTop: 8,
+            backgroundColor: 'rgba(255,255,255,0.96)',
+            borderTopWidth: 1,
+            borderTopColor: '#eee',
+          },
+        })}
+      >
+        <Tab.Screen name="Calendar" component={CalendarScreen} />
+        <Tab.Screen name="Setting" component={SettingScreen} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  bottomMenuBar: {
-    height: '6%',
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10,
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+  // Removed bottomMenuBar style, handled by Tab.Navigator now
 
-    overflow: 'hidden',
-  },
   container: {
     flex: 1,
     flexDirection: 'column',
@@ -574,6 +554,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f4f6',
     width: '100%',
     flex: 1,
+    paddingBottom: 60, // Add padding equal to bottom bar height
   },
   taskArea: {
     flex: 1,
