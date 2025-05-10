@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import ReactGA from "react-ga4";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -25,7 +25,68 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const TASKS_STORAGE_KEY = "TASKS_STORAGE_KEY";
+const LANGUAGE_STORAGE_KEY = "LANGUAGE_STORAGE_KEY";
 
+// Translation dictionaries
+const translations = {
+  en: {
+    settings: "Settings",
+    comingSoon: "Coming soon...",
+    terms: "Terms of Use",
+    privacy: "Privacy Policy",
+    version: "Version",
+    general: "General",
+    legal: "Legal",
+    calendar: "Calendar",
+    noTasks: "No tasks for this day.",
+    addTask: "Enter a new task...",
+    createTask: "Create task",
+    editTask: "Edit task",
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete",
+    moveHint: "Tap a date to move",
+    moveTask: "Move Task",
+    moveTaskAlert: "Now tap a date on the calendar to move this task.",
+    language: "Language",
+    english: "English",
+    chinese: "繁體中文(台灣)",
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  },
+  zh: {
+    settings: "設定",
+    comingSoon: "敬請期待...",
+    terms: "使用條款",
+    privacy: "隱私政策",
+    version: "版本",
+    general: "一般",
+    legal: "法律",
+    calendar: "行事曆",
+    noTasks: "這天沒有任務。",
+    addTask: "輸入新任務...",
+    createTask: "新增任務",
+    editTask: "編輯任務",
+    save: "儲存",
+    cancel: "取消",
+    delete: "刪除",
+    moveHint: "點選日期以移動",
+    moveTask: "移動任務",
+    moveTaskAlert: "請點選日曆上的日期以移動此任務。",
+    language: "語言",
+    english: "English",
+    chinese: "繁體中文(台灣)",
+    months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+    weekDays: ["日", "一", "二", "三", "四", "五", "六"]
+  }
+};
+
+// Language context
+const LanguageContext = createContext({
+  language: "en",
+  setLanguage: () => {},
+  t: translations.en,
+});
 
 function getToday() {
   const today = new Date();
@@ -38,19 +99,109 @@ function getToday() {
 const Tab = createBottomTabNavigator();
 
 function SettingScreen() {
+  const { language, setLanguage, t } = useContext(LanguageContext);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalText, setModalText] = useState("");
+
+  const openModal = (text) => {
+    setModalText(text);
+    setModalVisible(true);
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <MaterialIcons name="settings" size={64} color="#888" />
-        <Text style={{ fontSize: 20, color: '#333', marginTop: 16 }}>Settings</Text>
-        <Text style={{ color: '#888', marginTop: 8 }}>Coming soon...</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'rgb(247, 247, 250)' }}>
+      <View style={{ backgroundColor: 'rgb(247, 247, 250)', height: 64, justifyContent: 'center' }}>
+        <Text style={{ fontSize: 22, color: '#222', fontWeight: 'bold', letterSpacing: 0.5, textAlign: 'left', paddingLeft: 24 }}>{t.settings}</Text>
+      </View>
+      <View style={{ flex: 1, paddingHorizontal: 0, backgroundColor: 'rgb(247, 247, 250)' }}>
+        {/* General Section Title */}
+        <Text style={{ color: '#666', fontSize: 15, fontWeight: 'bold', marginLeft: 28, marginTop: 18, marginBottom: 2, letterSpacing: 0.5 }}>{t.general}</Text>
+        {/* Language selection block */}
+        <View style={{ backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 8, marginBottom: 0, padding: 20, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
+          <Text style={{ fontSize: 15, color: '#888', marginBottom: 10, fontWeight: '500' }}>{t.language}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: language === 'en' ? '#222' : '#eee',
+                paddingVertical: 8,
+                paddingHorizontal: 18,
+                borderRadius: 8,
+                marginRight: 10,
+                borderWidth: language === 'en' ? 0 : 1,
+                borderColor: '#ddd',
+              }}
+              onPress={() => setLanguage('en')}
+            >
+              <Text style={{ color: language === 'en' ? '#fff' : '#222', fontWeight: 'bold' }}>{t.english}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                backgroundColor: language === 'zh' ? '#222' : '#eee',
+                paddingVertical: 8,
+                paddingHorizontal: 18,
+                borderRadius: 8,
+                borderWidth: language === 'zh' ? 0 : 1,
+                borderColor: '#ddd',
+              }}
+              onPress={() => setLanguage('zh')}
+            >
+              <Text style={{ color: language === 'zh' ? '#fff' : '#222', fontWeight: 'bold' }}>{t.chinese}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        {/* Legal Section Title */}
+        <Text style={{ color: '#666', fontSize: 15, fontWeight: 'bold', marginLeft: 28, marginTop: 18, marginBottom: 2, letterSpacing: 0.5 }}>{t.legal}</Text>
+        {/* Links */}
+        <View style={{ backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 8, marginBottom: 0, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 }}>
+          <TouchableOpacity
+            onPress={() => openModal(t.comingSoon)}
+            activeOpacity={0.6}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 20 }}
+          >
+            <Text style={{ color: '#222', fontSize: 16 }}>{t.terms}</Text>
+            <Svg width={12} height={18} style={{ marginLeft: 6 }}>
+  <Line x1={3} y1={4} x2={9} y2={9} stroke="#bbb" strokeWidth={2} strokeLinecap="round" />
+  <Line x1={9} y1={9} x2={3} y2={14} stroke="#bbb" strokeWidth={2} strokeLinecap="round" />
+</Svg>
+          </TouchableOpacity>
+          <View style={{ height: 1, backgroundColor: '#ececec', marginLeft: 20 }} />
+          <TouchableOpacity
+            onPress={() => openModal(t.comingSoon)}
+            activeOpacity={0.6}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 20 }}
+          >
+            <Text style={{ color: '#222', fontSize: 16 }}>{t.privacy}</Text>
+            <Svg width={12} height={18} style={{ marginLeft: 6 }}>
+  <Line x1={3} y1={4} x2={9} y2={9} stroke="#bbb" strokeWidth={2} strokeLinecap="round" />
+  <Line x1={9} y1={9} x2={3} y2={14} stroke="#bbb" strokeWidth={2} strokeLinecap="round" />
+</Svg>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => setModalVisible(false)}>
+          <View style={{ backgroundColor: '#fff', padding: 32, borderRadius: 12, minWidth: 220, alignItems: 'center' }}>
+            <Text style={{ fontSize: 18, color: '#333', marginBottom: 16 }}>{modalText}</Text>
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 8, paddingVertical: 6, paddingHorizontal: 18, backgroundColor: '#111', borderRadius: 8 }}>
+              <Text style={{ color: '#fff', fontSize: 16 }}>{t.cancel}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+      <View style={{ alignItems: 'center', marginBottom: 18, backgroundColor: 'rgb(247, 247, 250)', paddingVertical: 8 }}>
+        <Text style={{ color: '#aaa', fontSize: 14 }}>{t.version} 1.0.0</Text>
       </View>
     </SafeAreaView>
   );
 }
 
-
 function CalendarScreen({ navigation, route }) {
+  const { language, t } = useContext(LanguageContext);
   const getCurrentDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -162,8 +313,8 @@ function CalendarScreen({ navigation, route }) {
     setMoveMode(true);
     setTaskToMove(task);
     Alert.alert(
-      "Move Task",
-      "Now tap a date on the calendar to move this task."
+      t.moveTask,
+      t.moveTaskAlert
     );
   };
 
@@ -180,7 +331,7 @@ function CalendarScreen({ navigation, route }) {
   };
 
   const renderCalendar = () => {
-    const weeks = [];
+    const weeks = []; // For calendar rendering
     const currentDate = new Date(visibleYear, visibleMonth, 1);
 
     // Get the first day of the month and the last day of the month
@@ -292,7 +443,7 @@ function CalendarScreen({ navigation, route }) {
     >
       <Text style={styles.taskText}>{item.text}</Text>
       {moveMode && taskToMove && taskToMove.id === item.id && (
-        <Text style={styles.moveHint}>Tap a date to move</Text>
+        <Text style={styles.moveHint}>{t.moveHint}</Text>
       )}
     </TouchableOpacity>
   );
@@ -353,7 +504,7 @@ function CalendarScreen({ navigation, route }) {
                   <Line x1="18" y1="40" x2="38" y2="40" stroke="#ccc" strokeWidth="2" strokeLinecap="round" />
                   <Circle cx="32" cy="16" r="6" fill="#e0e0e0" />
                 </Svg>
-                <Text style={styles.noTaskText}>No tasks for this day.</Text>
+                <Text style={styles.noTaskText}>{t.noTasks}</Text>
               </View>
             ) : (
               <FlatList
@@ -370,7 +521,6 @@ function CalendarScreen({ navigation, route }) {
     );
   };
 
-
   const renderModal = () => (
     <Modal
       animationType="fade"
@@ -385,13 +535,14 @@ function CalendarScreen({ navigation, route }) {
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
-            {editingTask ? "Edit task" : "Create task"}
+            {editingTask ? t.editTask : t.createTask}
           </Text>
           <TextInput
             style={styles.input}
             value={taskText}
             onChangeText={setTaskText}
-            placeholder="任務描述"
+            placeholder={t.addTask}
+            placeholderTextColor="#888"
             autoFocus
           />
           <View style={styles.modalButtons}>
@@ -399,20 +550,20 @@ function CalendarScreen({ navigation, route }) {
               style={[styles.saveButton, { marginRight: 4 }]}
               onPress={saveTask}
             >
-              <Text style={styles.saveButtonText}>Save</Text>
+              <Text style={styles.saveButtonText}>{t.save}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.cancelButton, { marginRight: editingTask ? 4 : 0 }]}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t.cancel}</Text>
             </TouchableOpacity>
             {editingTask && (
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => deleteTask(editingTask)}
               >
-                <Text style={styles.deleteButtonText}>Delete</Text>
+                <Text style={styles.deleteButtonText}>{t.delete}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -458,9 +609,7 @@ function CalendarScreen({ navigation, route }) {
   };
 
   // Calendar header UI
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
-  ];
+  const monthNames = t.months;
   const header = (
     <View style={styles.fixedHeader}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-start" }}>
@@ -474,36 +623,40 @@ function CalendarScreen({ navigation, route }) {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <GestureHandlerRootView style={styles.container}>
-      <View style={styles.calendarSection}>
-        {header}
-        <View style={styles.weekDaysHeader}>
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
-            <Text key={i} style={styles.weekDayText}>{d}</Text>
-          ))}
-        </View>
-        <View style={styles.calendarDivider} />
-        <PanGestureHandler onHandlerStateChange={handleVerticalGesture}>
-          <View>
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.calendarScrollView}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {renderCalendar()}
-            </ScrollView>
+        <View style={styles.calendarSection}>
+          {header}
+          <View style={styles.weekDaysHeader}>
+            {t.weekDays.map((d, i) => (
+              <Text key={i} style={styles.weekDayText}>{d}</Text>
+            ))}
           </View>
-        </PanGestureHandler>
-      </View>
-      <View style={styles.taskAreaContainer}>
-        {renderTaskArea()}
-      </View>
-      {renderModal()}
-    </GestureHandlerRootView>
+          <View>
+            <PanGestureHandler onHandlerStateChange={handleVerticalGesture}>
+              <View>
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.calendarScrollView}
+                  contentContainerStyle={styles.scrollContent}
+                >
+                  {renderCalendar()}
+                </ScrollView>
+              </View>
+            </PanGestureHandler>
+          </View>
+        </View>
+        <View style={styles.taskAreaContainer}>
+          {renderTaskArea()}
+        </View>
+        {renderModal()}
+      </GestureHandlerRootView>
     </SafeAreaView>
   );
 }
 
 export default function App() {
+  const [language, setLanguageState] = useState("en");
+  const [loadingLang, setLoadingLang] = useState(true);
+
   useEffect(() => {
     // Set browser tab title
     if (typeof document !== 'undefined') {
@@ -511,51 +664,70 @@ export default function App() {
     }
     ReactGA.initialize("G-FDKFB5F7VX");
     ReactGA.send({ hitType: "pageview", page: window.location.pathname });
+    // Load language from AsyncStorage
+    AsyncStorage.getItem(LANGUAGE_STORAGE_KEY).then((lang) => {
+      if (lang && (lang === 'en' || lang === 'zh')) {
+        setLanguageState(lang);
+      }
+      setLoadingLang(false);
+    });
   }, []);
 
+  const setLanguage = (lang) => {
+    setLanguageState(lang);
+    AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+  };
+
+  const t = translations[language] || translations.en;
+
+  if (loadingLang) return null;
+
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        initialRouteName="Calendar"
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => {
-            let iconName;
-            if (route.name === 'Calendar') {
-              iconName = 'calendar-today';
-            } else if (route.name === 'Setting') {
-              iconName = 'settings';
-            }
-            return (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <MaterialIcons name={iconName} size={size} color={color} />
-              </View>
-            );
-          },
-          tabBarActiveTintColor: '#111',
-          tabBarInactiveTintColor: '#888',
-          tabBarShowLabel: false,
-          tabBarStyle: {
-            height: 60,
-            paddingBottom: 4,
-            paddingTop: 4,
-            backgroundColor: 'rgba(255,255,255,0.96)',
-            borderTopWidth: 1,
-            borderTopColor: '#eee',
-          },
-          tabBarIconStyle: {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-          },
-        })}
-      >
-        <Tab.Screen name="Calendar" component={CalendarScreen} />
-        <Tab.Screen name="Setting" component={SettingScreen} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      <NavigationContainer>
+        <Tab.Navigator
+          initialRouteName="Calendar"
+          screenOptions={({ route }) => ({
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => {
+              let iconName;
+              if (route.name === 'Calendar') {
+                iconName = 'calendar-today';
+              } else if (route.name === 'Setting') {
+                iconName = 'settings';
+              }
+              return (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <MaterialIcons name={iconName} size={size} color={color} />
+                </View>
+              );
+            },
+            tabBarActiveTintColor: '#111',
+            tabBarInactiveTintColor: '#888',
+            tabBarShowLabel: false,
+            tabBarStyle: {
+              height: 60,
+              paddingBottom: 4,
+              paddingTop: 4,
+              backgroundColor: 'rgba(255,255,255,0.96)',
+              borderTopWidth: 1,
+              borderTopColor: '#eee',
+            },
+            tabBarIconStyle: {
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          })}
+        >
+          <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: t.calendar }} />
+          <Tab.Screen name="Setting" component={SettingScreen} options={{ title: t.settings }} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </LanguageContext.Provider>
   );
 }
+
 
 const styles = StyleSheet.create({
   // ...
