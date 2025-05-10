@@ -505,6 +505,10 @@ function CalendarScreen({ navigation, route }) {
 
 export default function App() {
   useEffect(() => {
+    // Set browser tab title
+    if (typeof document !== 'undefined') {
+      document.title = "Too Doo List";
+    }
     ReactGA.initialize("G-FDKFB5F7VX");
     ReactGA.send({ hitType: "pageview", page: window.location.pathname });
   }, []);
