@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import ReactGA from "react-ga4";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -503,6 +504,11 @@ function CalendarScreen({ navigation, route }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    ReactGA.initialize("G-FDKFB5F7VX");
+    ReactGA.send({ hitType: "pageview", page: window.location.pathname });
+  }, []);
+
   return (
     <NavigationContainer>
       <Tab.Navigator
