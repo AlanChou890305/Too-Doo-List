@@ -19,9 +19,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GestureHandlerRootView, PanGestureHandler, State } from "react-native-gesture-handler";
 import { Swipeable } from "react-native-gesture-handler";
 // import { MaterialIcons } from '@expo/vector-icons'; // Already imported above
-import Svg, { Rect, Line, Circle } from 'react-native-svg';
-import { NavigationContainer } from '@react-navigation/native';
+import Svg, { Rect, Line, Circle, Path, Ellipse } from 'react-native-svg';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const TASKS_STORAGE_KEY = "TASKS_STORAGE_KEY";
@@ -97,17 +98,94 @@ function getToday() {
 }
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function TermsScreen() {
+  const { t } = useContext(LanguageContext);
+  const navigation = useNavigation();
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'rgb(247, 247, 250)' }}>
+      {/* Custom Header with Back Chevron */}
+      <View style={{ backgroundColor: 'rgb(247, 247, 250)', height: 64, flexDirection: 'row', alignItems: 'center', paddingLeft: 8 }}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{ padding: 10, marginRight: 4 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Svg width={18} height={28}>
+            <Line x1={12} y1={6} x2={4} y2={14} stroke="#222" strokeWidth={2.2} strokeLinecap="round" />
+            <Line x1={4} y1={14} x2={12} y2={22} stroke="#222" strokeWidth={2.2} strokeLinecap="round" />
+          </Svg>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 22, color: '#222', fontWeight: 'bold', letterSpacing: 0.5, textAlign: 'left', marginLeft: 4 }}>{t.terms}</Text>
+      </View>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        {/* Simple Hourglass Illustration */}
+        <Svg width={56} height={56} style={{ marginBottom: 12 }}>
+          <Rect x={18} y={10} width={20} height={4} rx={2} fill="#E0E0E0" />
+          <Rect x={18} y={42} width={20} height={4} rx={2} fill="#E0E0E0" />
+          <Path d="M20 14 Q28 28 20 42" stroke="#B0B0B0" strokeWidth={2} fill="none" />
+          <Path d="M36 14 Q28 28 36 42" stroke="#B0B0B0" strokeWidth={2} fill="none" />
+          <Ellipse cx={28} cy={28} rx={5} ry={3} fill="#FFD580" />
+          <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
+        </Svg>
+        <Text style={{ fontSize: 18, color: '#888' }}>{t.comingSoon}</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function PrivacyScreen() {
+  const { t } = useContext(LanguageContext);
+  const navigation = useNavigation();
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'rgb(247, 247, 250)' }}>
+      {/* Custom Header with Back Chevron */}
+      <View style={{ backgroundColor: 'rgb(247, 247, 250)', height: 64, flexDirection: 'row', alignItems: 'center', paddingLeft: 8 }}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{ padding: 10, marginRight: 4 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Svg width={18} height={28}>
+            <Line x1={12} y1={6} x2={4} y2={14} stroke="#222" strokeWidth={2.2} strokeLinecap="round" />
+            <Line x1={4} y1={14} x2={12} y2={22} stroke="#222" strokeWidth={2.2} strokeLinecap="round" />
+          </Svg>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 22, color: '#222', fontWeight: 'bold', letterSpacing: 0.5, textAlign: 'left', marginLeft: 4 }}>{t.privacy}</Text>
+      </View>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        {/* Simple Hourglass Illustration */}
+        <Svg width={56} height={56} style={{ marginBottom: 12 }}>
+          <Rect x={18} y={10} width={20} height={4} rx={2} fill="#E0E0E0" />
+          <Rect x={18} y={42} width={20} height={4} rx={2} fill="#E0E0E0" />
+          <Path d="M20 14 Q28 28 20 42" stroke="#B0B0B0" strokeWidth={2} fill="none" />
+          <Path d="M36 14 Q28 28 36 42" stroke="#B0B0B0" strokeWidth={2} fill="none" />
+          <Ellipse cx={28} cy={28} rx={5} ry={3} fill="#FFD580" />
+          <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
+        </Svg>
+        <Text style={{ fontSize: 18, color: '#888' }}>{t.comingSoon}</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
 
 function SettingScreen() {
   const { language, setLanguage, t } = useContext(LanguageContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState("");
 
+
   const openModal = (text) => {
     setModalText(text);
     setModalVisible(true);
   };
 
+
+
+
+
+  const navigation = useNavigation();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'rgb(247, 247, 250)' }}>
       <View style={{ backgroundColor: 'rgb(247, 247, 250)', height: 64, justifyContent: 'center' }}>
@@ -118,7 +196,7 @@ function SettingScreen() {
         <Text style={{ color: '#666', fontSize: 15, fontWeight: 'bold', marginLeft: 28, marginTop: 18, marginBottom: 2, letterSpacing: 0.5 }}>{t.general}</Text>
         {/* Language selection block */}
         <View style={{ backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 8, marginBottom: 0, padding: 20, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
-          <Text style={{ fontSize: 15, color: '#888', marginBottom: 10, fontWeight: '500' }}>{t.language}</Text>
+          <Text style={{ color: '#222', fontSize: 16, marginBottom: 10 }}>{t.language}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity
               style={{
@@ -154,7 +232,7 @@ function SettingScreen() {
         {/* Links */}
         <View style={{ backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 8, marginBottom: 0, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 }}>
           <TouchableOpacity
-            onPress={() => openModal(t.comingSoon)}
+            onPress={() => navigation.navigate('Terms')}
             activeOpacity={0.6}
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 20 }}
           >
@@ -166,7 +244,7 @@ function SettingScreen() {
           </TouchableOpacity>
           <View style={{ height: 1, backgroundColor: '#ececec', marginLeft: 20 }} />
           <TouchableOpacity
-            onPress={() => openModal(t.comingSoon)}
+            onPress={() => navigation.navigate('Privacy')}
             activeOpacity={0.6}
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 20 }}
           >
@@ -178,10 +256,11 @@ function SettingScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
       <Modal
         visible={modalVisible}
-        transparent
         animationType="fade"
+        transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => setModalVisible(false)}>
@@ -653,7 +732,9 @@ function CalendarScreen({ navigation, route }) {
   );
 }
 
-export default function App() {
+export default App;
+
+function App() {
   const [language, setLanguageState] = useState("en");
   const [loadingLang, setLoadingLang] = useState(true);
 
@@ -682,52 +763,63 @@ export default function App() {
 
   if (loadingLang) return null;
 
+  function MainTabs() {
+    return (
+      <Tab.Navigator
+        initialRouteName="Calendar"
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => {
+            let iconName;
+            if (route.name === 'Calendar') {
+              iconName = 'calendar-today';
+            } else if (route.name === 'Setting') {
+              iconName = 'settings';
+            }
+            return (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <MaterialIcons name={iconName} size={size} color={color} />
+              </View>
+            );
+          },
+          tabBarActiveTintColor: '#111',
+          tabBarInactiveTintColor: '#888',
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            height: 60,
+            paddingBottom: 4,
+            paddingTop: 4,
+            backgroundColor: 'rgba(255,255,255,0.96)',
+            borderTopWidth: 1,
+            borderTopColor: '#eee',
+          },
+          tabBarIconStyle: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        })}
+      >
+        <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: t.calendar }} />
+        <Tab.Screen name="Setting" component={SettingScreen} options={{ title: t.settings }} />
+      </Tab.Navigator>
+    );
+  }
+
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
       <NavigationContainer>
-        <Tab.Navigator
-          initialRouteName="Calendar"
-          screenOptions={({ route }) => ({
-            headerShown: false,
-            tabBarIcon: ({ color, size }) => {
-              let iconName;
-              if (route.name === 'Calendar') {
-                iconName = 'calendar-today';
-              } else if (route.name === 'Setting') {
-                iconName = 'settings';
-              }
-              return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                  <MaterialIcons name={iconName} size={size} color={color} />
-                </View>
-              );
-            },
-            tabBarActiveTintColor: '#111',
-            tabBarInactiveTintColor: '#888',
-            tabBarShowLabel: false,
-            tabBarStyle: {
-              height: 60,
-              paddingBottom: 4,
-              paddingTop: 4,
-              backgroundColor: 'rgba(255,255,255,0.96)',
-              borderTopWidth: 1,
-              borderTopColor: '#eee',
-            },
-            tabBarIconStyle: {
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          })}
-        >
-          <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: t.calendar }} />
-          <Tab.Screen name="Setting" component={SettingScreen} options={{ title: t.settings }} />
-        </Tab.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="Terms" component={TermsScreen} />
+          <Stack.Screen name="Privacy" component={PrivacyScreen} />
+        </Stack.Navigator>
       </NavigationContainer>
     </LanguageContext.Provider>
   );
 }
 
+// ...
 
 const styles = StyleSheet.create({
   // ...
