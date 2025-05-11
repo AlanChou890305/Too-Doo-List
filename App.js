@@ -14,6 +14,7 @@ import {
   ScrollView,
   PanResponder,
   Animated,
+  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GestureHandlerRootView, PanGestureHandler, State } from "react-native-gesture-handler";
@@ -34,6 +35,8 @@ const LANGUAGE_STORAGE_KEY = "LANGUAGE_STORAGE_KEY";
 const translations = {
   en: {
     settings: "Settings",
+    account: "Account",
+    logout: "Log out",
     comingSoon: "Coming soon...",
     terms: "Terms of Use",
     privacy: "Privacy Policy",
@@ -59,6 +62,8 @@ const translations = {
   },
   zh: {
     settings: "設定",
+    account: "帳號",
+    logout: "登出",
     comingSoon: "敬請期待...",
     terms: "使用條款",
     privacy: "隱私政策",
@@ -102,6 +107,194 @@ function getToday() {
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+function SplashScreen({ navigation }) {
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+        <Image source={require('./assets/logo.png')} style={{ width: 140, height: 140, marginBottom: 16 }} resizeMode="contain" />
+        <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#3d3d4e', marginBottom: 48, letterSpacing: 1 }}>Too Doo List</Text>
+        <View style={{ width: 260 }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#6c63ff',
+              borderRadius: 12,
+              paddingVertical: 16,
+              width: '100%',
+              alignItems: 'center',
+              marginBottom: 18,
+              shadowColor: '#6c63ff',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 5,
+              elevation: 3,
+            }}
+            onPress={() => navigation.navigate('MainTabs')}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 19, letterSpacing: 0.5 }}>Quick Start</Text>
+          </TouchableOpacity>
+
+        </View>
+      </View>
+      <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
+        <Text style={{ color: '#888', fontSize: 13, textAlign: 'center' }}>
+          By continuing, you agree to our
+          <Text
+            style={{ color: '#6c63ff', fontWeight: 'bold' }}
+            onPress={() => navigation.navigate('Terms')}
+          > Terms of Use</Text>
+          {' '}and
+          <Text
+            style={{ color: '#6c63ff', fontWeight: 'bold' }}
+            onPress={() => navigation.navigate('Privacy')}
+          > Privacy Policy</Text>
+          .
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function LoginScreen({ navigation }) {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
+      <TouchableOpacity
+        style={{ position: 'absolute', top: 36, left: 16, flexDirection: 'row', alignItems: 'center', padding: 8, zIndex: 10 }}
+        onPress={() => { if (navigation.canGoBack()) navigation.goBack(); }}
+        hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+      >
+        <MaterialIcons name="arrow-back" size={28} color="#6c63ff" />
+        <Text style={{ color: '#6c63ff', fontSize: 18, marginLeft: 4 }}>Back</Text>
+      </TouchableOpacity>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+        <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#6c63ff', marginBottom: 32 }}>Login</Text>
+        <View style={{ width: 260 }}>
+          <Text style={{ marginBottom: 4, color: '#3d3d4e', fontWeight: '600', fontSize: 15 }}>Email</Text>
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            style={{ borderWidth: 1, borderColor: '#bbb', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16, backgroundColor: '#fafafa' }}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <Text style={{ marginBottom: 4, color: '#3d3d4e', fontWeight: '600', fontSize: 15 }}>Password</Text>
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            style={{ borderWidth: 1, borderColor: '#bbb', borderRadius: 8, padding: 12, marginBottom: 20, fontSize: 16, backgroundColor: '#fafafa' }}
+            secureTextEntry
+          />
+          <TouchableOpacity
+            style={{ backgroundColor: '#6c63ff', borderRadius: 8, paddingVertical: 14, alignItems: 'center', marginBottom: 12 }}
+            onPress={() => {/* TODO: Implement login logic */}}
+          >
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 18 }}>Login</Text>
+          </TouchableOpacity>
+          
+        </View>
+      </View>
+      <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
+        <Text style={{ color: '#888', fontSize: 13, textAlign: 'center' }}>
+          By continuing, you agree to our
+          <Text
+            style={{ color: '#6c63ff', fontWeight: 'bold' }}
+            onPress={() => navigation.navigate('Terms')}
+          > Terms of Use</Text>
+          {' '}and
+          <Text
+            style={{ color: '#6c63ff', fontWeight: 'bold' }}
+            onPress={() => navigation.navigate('Privacy')}
+          > Privacy Policy</Text>
+          .
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function SignupScreen({ navigation }) {
+  const [username, setUsername] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
+      <TouchableOpacity
+        style={{ position: 'absolute', top: 36, left: 16, flexDirection: 'row', alignItems: 'center', padding: 8, zIndex: 10 }}
+        onPress={() => { if (navigation.canGoBack()) navigation.goBack(); }}
+        hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+      >
+        <MaterialIcons name="arrow-back" size={28} color="#6c63ff" />
+        <Text style={{ color: '#6c63ff', fontSize: 18, marginLeft: 4 }}>Back</Text>
+      </TouchableOpacity>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+        <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#6c63ff', marginBottom: 32 }}>Sign Up</Text>
+        <View style={{ width: 260 }}>
+          <Text style={{ marginBottom: 4, color: '#3d3d4e', fontWeight: '600', fontSize: 15 }}>Username</Text>
+          <TextInput
+            placeholder="Username"
+            value={username}
+            onChangeText={setUsername}
+            style={{ borderWidth: 1, borderColor: '#bbb', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16, backgroundColor: '#fafafa' }}
+            autoCapitalize="none"
+          />
+          <Text style={{ marginBottom: 4, color: '#3d3d4e', fontWeight: '600', fontSize: 15 }}>Email</Text>
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            style={{ borderWidth: 1, borderColor: '#bbb', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16, backgroundColor: '#fafafa' }}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <Text style={{ marginBottom: 4, color: '#3d3d4e', fontWeight: '600', fontSize: 15 }}>Password</Text>
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            style={{ borderWidth: 1, borderColor: '#bbb', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16, backgroundColor: '#fafafa' }}
+            secureTextEntry
+          />
+          <Text style={{ marginBottom: 4, color: '#3d3d4e', fontWeight: '600', fontSize: 15 }}>Confirm Password</Text>
+          <TextInput
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            style={{ borderWidth: 1, borderColor: '#bbb', borderRadius: 8, padding: 12, marginBottom: 20, fontSize: 16, backgroundColor: '#fafafa' }}
+            secureTextEntry
+          />
+          <TouchableOpacity
+            style={{ backgroundColor: '#6c63ff', borderRadius: 8, paddingVertical: 14, alignItems: 'center', marginBottom: 12 }}
+            onPress={() => {/* TODO: Implement signup logic */}}
+          >
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 18 }}>Sign Up</Text>
+          </TouchableOpacity>
+          
+        </View>
+      </View>
+      <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
+        <Text style={{ color: '#888', fontSize: 13, textAlign: 'center' }}>
+          By continuing, you agree to our
+          <Text
+            style={{ color: '#6c63ff', fontWeight: 'bold' }}
+            onPress={() => navigation.navigate('Terms')}
+          > Terms of Use</Text>
+          {' '}and
+          <Text
+            style={{ color: '#6c63ff', fontWeight: 'bold' }}
+            onPress={() => navigation.navigate('Privacy')}
+          > Privacy Policy</Text>
+          .
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+
 function TermsScreen() {
   const { t } = useContext(LanguageContext);
   const navigation = useNavigation();
@@ -120,6 +313,7 @@ function TermsScreen() {
           </Svg>
         </TouchableOpacity>
         <Text style={{ fontSize: 22, color: '#222', fontWeight: 'bold', letterSpacing: 0.5, textAlign: 'left', marginLeft: 4 }}>{t.terms}</Text>
+        
       </View>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         {/* Simple Hourglass Illustration */}
@@ -132,6 +326,7 @@ function TermsScreen() {
           <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
         </Svg>
         <Text style={{ fontSize: 18, color: '#888' }}>{t.comingSoon}</Text>
+        
       </View>
     </SafeAreaView>
   );
@@ -155,6 +350,7 @@ function PrivacyScreen() {
           </Svg>
         </TouchableOpacity>
         <Text style={{ fontSize: 22, color: '#222', fontWeight: 'bold', letterSpacing: 0.5, textAlign: 'left', marginLeft: 4 }}>{t.privacy}</Text>
+        
       </View>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         {/* Simple Hourglass Illustration */}
@@ -167,6 +363,7 @@ function PrivacyScreen() {
           <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
         </Svg>
         <Text style={{ fontSize: 18, color: '#888' }}>{t.comingSoon}</Text>
+        
       </View>
     </SafeAreaView>
   );
@@ -192,8 +389,18 @@ function SettingScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: 'rgb(247, 247, 250)' }}>
       <View style={{ backgroundColor: 'rgb(247, 247, 250)', height: 64, justifyContent: 'center' }}>
         <Text style={{ fontSize: 22, color: '#222', fontWeight: 'bold', letterSpacing: 0.5, textAlign: 'left', paddingLeft: 24 }}>{t.settings}</Text>
+        
       </View>
       <View style={{ flex: 1, paddingHorizontal: 0, backgroundColor: 'rgb(247, 247, 250)' }}>
+        {/* Account Section Title */}
+        <Text style={{ color: '#666', fontSize: 15, fontWeight: 'bold', marginLeft: 28, marginTop: 18, marginBottom: 2, letterSpacing: 0.5 }}>{t.account}</Text>
+        {/* Account Info Card */}
+        <View style={{ backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 8, marginBottom: 0, padding: 20, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
+          <Text style={{ color: '#222', fontSize: 16, marginBottom: 10 }}>User Name</Text>
+<Text style={{ color: '#666', fontSize: 15, marginBottom: 0 }}>
+  anonymous {/* TODO: Replace with real user name if available */}
+</Text>
+        </View>
         {/* General Section Title */}
         <Text style={{ color: '#666', fontSize: 15, fontWeight: 'bold', marginLeft: 28, marginTop: 18, marginBottom: 2, letterSpacing: 0.5 }}>{t.general}</Text>
         {/* Language selection block */}
@@ -227,8 +434,10 @@ function SettingScreen() {
             >
               <Text style={{ color: language === 'zh' ? '#fff' : '#222', fontWeight: 'bold' }}>{t.chinese}</Text>
             </TouchableOpacity>
-          </View>
-        </View>
+  
+      </View>
+
+      </View>
         {/* Legal Section Title */}
         <Text style={{ color: '#666', fontSize: 15, fontWeight: 'bold', marginLeft: 28, marginTop: 18, marginBottom: 2, letterSpacing: 0.5 }}>{t.legal}</Text>
         {/* Links */}
@@ -256,7 +465,8 @@ function SettingScreen() {
   <Line x1={9} y1={9} x2={3} y2={14} stroke="#bbb" strokeWidth={2} strokeLinecap="round" />
 </Svg>
           </TouchableOpacity>
-        </View>
+
+      </View>
       </View>
 
       <Modal
@@ -271,11 +481,13 @@ function SettingScreen() {
             <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 8, paddingVertical: 6, paddingHorizontal: 18, backgroundColor: '#111', borderRadius: 8 }}>
               <Text style={{ color: '#fff', fontSize: 16 }}>{t.cancel}</Text>
             </TouchableOpacity>
-          </View>
+  
+      </View>
         </TouchableOpacity>
       </Modal>
       <View style={{ alignItems: 'center', marginBottom: 18, backgroundColor: 'rgb(247, 247, 250)', paddingVertical: 8 }}>
         <Text style={{ color: '#aaa', fontSize: 14 }}>{t.version} 1.0.0</Text>
+        
       </View>
     </SafeAreaView>
   );
@@ -448,7 +660,8 @@ const [showTimePicker, setShowTimePicker] = useState(false);
       weeks.push(
         <View key={`week-${week}`} style={styles.calendarWeekRow}>
           {weekDates}
-        </View>
+
+      </View>
       );
     }
 
@@ -456,7 +669,8 @@ const [showTimePicker, setShowTimePicker] = useState(false);
       <PanGestureHandler onHandlerStateChange={handleVerticalGesture}>
         <View>
           {weeks}
-        </View>
+
+      </View>
       </PanGestureHandler>
     );
   };
@@ -492,8 +706,10 @@ const [showTimePicker, setShowTimePicker] = useState(false);
             ]}>
               {isInRange ? dateObj.getDate() : ''}
             </Text>
-          </View>
-        </View>
+  
+      </View>
+
+      </View>
       );
     };
 
@@ -523,23 +739,45 @@ const [showTimePicker, setShowTimePicker] = useState(false);
     );
   };
 
-  const renderTask = ({ item }) => (
+  const toggleTaskChecked = (task) => {
+  const dayTasks = tasks[task.date] ? [...tasks[task.date]] : [];
+  const updatedTasks = dayTasks.map(t => t.id === task.id ? { ...t, checked: !t.checked } : t);
+  setTasks({ ...tasks, [task.date]: updatedTasks });
+  AsyncStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ ...tasks, [task.date]: updatedTasks }));
+};
+
+const renderTask = ({ item }) => (
+  <View style={styles.taskItemRow}>
     <TouchableOpacity
-      style={styles.taskItem}
+      style={styles.checkbox}
+      onPress={() => toggleTaskChecked(item)}
+      activeOpacity={0.7}
+    >
+      {item.checked ? (
+        <MaterialIcons name="check-box" size={24} color="#6c63ff" />
+      ) : (
+        <MaterialIcons name="check-box-outline-blank" size={24} color="#bbb" />
+      )}
+    </TouchableOpacity>
+    <TouchableOpacity
+      style={[styles.taskItem, { flex: 1 }]}
       onPress={() => openEditTask(item)}
       onLongPress={() => startMoveTask(item)}
+      activeOpacity={0.7}
     >
       <View style={{ width: 60, alignItems: 'flex-start', justifyContent: 'center', marginRight: 8 }}>
         <Text style={{ color: '#6c63ff', fontWeight: 'bold', fontSize: 15 }}>
           {item.time ? item.time : '--:--'}
         </Text>
+        
       </View>
-      <Text style={styles.taskText}>{item.text}</Text>
+      <Text style={[styles.taskText, item.checked && styles.taskTextChecked]}>{item.text}</Text>
       {moveMode && taskToMove && taskToMove.id === item.id && (
         <Text style={styles.moveHint}>{t.moveHint}</Text>
       )}
     </TouchableOpacity>
-  );
+  </View>
+);
 
   // Helper to get previous/next day in YYYY-MM-DD
   const getAdjacentDate = (dateStr, diff) => {
@@ -553,10 +791,10 @@ const [showTimePicker, setShowTimePicker] = useState(false);
     const { translationX, translationY, state } = nativeEvent;
     // Only trigger on gesture end (state === 5 for END) and minimal vertical movement
     if (state === 5 && Math.abs(translationY) < 20) {
-      if (translationX < -15) {
+      if (translationX < -5) {
         // Swipe left, go to next day
         setSelectedDate(getAdjacentDate(selectedDate, 1));
-      } else if (translationX > 15) {
+      } else if (translationX > 5) {
         // Swipe right, go to previous day
         setSelectedDate(getAdjacentDate(selectedDate, -1));
       }
@@ -570,9 +808,9 @@ const [showTimePicker, setShowTimePicker] = useState(false);
       <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]} activeOffsetX={[-50, 50]}>
         <View style={[styles.taskArea, { flex: 1 }]}>
           <View style={[styles.taskAreaContent, { flex: 1, overflow: 'hidden' }]}>
-            <View style={styles.tasksHeaderRow}>
-              <Text style={styles.tasksHeader}>{selectedDate}</Text>
-            </View>
+            <View style={[styles.tasksHeaderRow, { paddingLeft: 0, paddingHorizontal: 0, marginLeft: 4 }]}> 
+  <Text style={[styles.tasksHeader, { textAlign: 'left', paddingLeft: 0, marginLeft: 4 }]}>{selectedDate}</Text>
+</View>
 
             {/* Floating Add Button */}
             <TouchableOpacity
@@ -585,7 +823,8 @@ const [showTimePicker, setShowTimePicker] = useState(false);
   <Line x1="16" y1="6" x2="16" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
   <Line x1="6" y1="16" x2="26" y2="16" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
 </Svg>
-              </View>
+      
+      </View>
             </TouchableOpacity>
 
             {dayTasks.length === 0 ? (
@@ -597,7 +836,8 @@ const [showTimePicker, setShowTimePicker] = useState(false);
                   <Circle cx="32" cy="16" r="6" fill="#e0e0e0" />
                 </Svg>
                 <Text style={styles.noTaskText}>{t.noTasks}</Text>
-              </View>
+      
+      </View>
             ) : (
               <View style={{ flex: 1 }}>
                 <FlatList
@@ -607,10 +847,13 @@ const [showTimePicker, setShowTimePicker] = useState(false);
                   contentContainerStyle={[styles.tasksScrollContent, { paddingBottom: 32 }]}
                   showsVerticalScrollIndicator={false}
                 />
-              </View>
+      
+      </View>
             )}
-          </View>
-        </View>
+  
+      </View>
+
+      </View>
       </PanGestureHandler>
     );
   };
@@ -628,12 +871,19 @@ const [showTimePicker, setShowTimePicker] = useState(false);
         onPress={() => setModalVisible(false)}
       >
         <View
-          style={styles.modalContent}
-          onClick={e => e.stopPropagation && e.stopPropagation()}
-        >
-          <Text style={styles.modalTitle}>
-            {editingTask ? t.editTask : t.createTask}
-          </Text>
+            style={styles.modalContent}
+            onClick={e => e.stopPropagation && e.stopPropagation()}
+          >
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <MaterialIcons name="close" size={28} color="#888" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>
+              {editingTask ? t.editTask : t.createTask}
+            </Text>
           <View style={{ marginBottom: 12 }}>
             <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 4 }}>{'Time'}</Text>
             {Platform.OS === 'web' ? (
@@ -678,40 +928,36 @@ const [showTimePicker, setShowTimePicker] = useState(false);
     )}
   </TouchableOpacity>
 )}
-            <Text style={{ color: '#888', fontSize: 12, marginTop: 2 }}>Format: 24-hour (e.g. 15:30)</Text>
-          </View>
-          <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 4 }}>Task</Text>
-          <TextInput
-            style={styles.input}
-            value={taskText}
-            onChangeText={setTaskText}
-            placeholder={t.addTask}
-            placeholderTextColor="#888"
-            autoFocus
-          />
-          <View style={styles.modalButtons}>
-            <TouchableOpacity
-              style={[styles.saveButton, { marginRight: 4 }]}
-              onPress={saveTask}
-            >
-              <Text style={styles.saveButtonText}>{t.save}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.cancelButton, { marginRight: editingTask ? 4 : 0 }]}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>{t.cancel}</Text>
-            </TouchableOpacity>
-            {editingTask && (
+            <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 4 }}>Task</Text>
+            <TextInput
+              style={styles.input}
+              value={taskText}
+              onChangeText={setTaskText}
+              placeholder={t.addTask}
+              placeholderTextColor="#888"
+              autoFocus
+            />
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => deleteTask(editingTask)}
+                style={[styles.saveButton, { marginRight: 4 }]}
+                onPress={saveTask}
               >
-                <Text style={styles.deleteButtonText}>{t.delete}</Text>
+                <Text style={styles.saveButtonText}>{t.save}</Text>
               </TouchableOpacity>
-            )}
-          </View>
-        </View>
+              {editingTask && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteTask(editingTask)}
+                >
+                  <Text style={styles.deleteButtonText}>{t.delete}</Text>
+                </TouchableOpacity>
+              )}
+    
+      </View>
+  
+      </View>
+
+      </View>
       </TouchableOpacity>
     </Modal>
   );
@@ -760,6 +1006,7 @@ const [showTimePicker, setShowTimePicker] = useState(false);
         <Text style={styles.currentMonthTitle}>
           {visibleYear} {monthNames[visibleMonth]}
         </Text>
+        
       </View>
     </View>
   );
@@ -773,7 +1020,8 @@ const [showTimePicker, setShowTimePicker] = useState(false);
             {t.weekDays.map((d, i) => (
               <Text key={i} style={styles.weekDayText}>{d}</Text>
             ))}
-          </View>
+  
+      </View>
           <View>
             <PanGestureHandler onHandlerStateChange={handleVerticalGesture}>
               <View>
@@ -784,13 +1032,17 @@ const [showTimePicker, setShowTimePicker] = useState(false);
                 >
                   {renderCalendar()}
                 </ScrollView>
-              </View>
+      
+      </View>
             </PanGestureHandler>
-          </View>
-        </View>
+  
+      </View>
+
+      </View>
         <View style={styles.taskAreaContainer}>
           {renderTaskArea()}
-        </View>
+
+      </View>
         {renderModal()}
       </GestureHandlerRootView>
     </SafeAreaView>
@@ -798,6 +1050,22 @@ const [showTimePicker, setShowTimePicker] = useState(false);
 }
 
 export default function App() {
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const setTitle = () => { document.title = 'Too Doo List'; };
+      setTitle();
+      const observer = new MutationObserver(() => {
+        if (document.title !== 'Too Doo List') {
+          document.title = 'Too Doo List';
+        }
+      });
+      const titleTag = document.querySelector('title');
+      if (titleTag) {
+        observer.observe(titleTag, { childList: true });
+      }
+      return () => observer.disconnect();
+    }
+  }, []);
   // Always set browser tab title on web
   React.useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -855,7 +1123,8 @@ export default function App() {
             return (
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <MaterialIcons name={iconName} size={size} color={color} />
-              </View>
+      
+      </View>
             );
           },
           tabBarActiveTintColor: '#111',
@@ -891,10 +1160,14 @@ export default function App() {
           }
         }}
       >
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="Terms" component={TermsScreen} />
           <Stack.Screen name="Privacy" component={PrivacyScreen} />
+          <Stack.Screen name="ComingSoon" component={require('./ComingSoonScreen').default} />
         </Stack.Navigator>
       </NavigationContainer>
     </LanguageContext.Provider>
@@ -904,10 +1177,25 @@ export default function App() {
 // ...
 
 const styles = StyleSheet.create({
+  taskItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  checkbox: {
+    marginRight: 2,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  taskTextChecked: {
+    textDecorationLine: 'line-through',
+    color: '#bbb',
+  },
   fabAddButton: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: 8,
     zIndex: 10,
     borderRadius: 32,
     backgroundColor: '#6c63ff',
@@ -1268,16 +1556,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 15,
   },
-  cancelButton: {
-    backgroundColor: "#eee",
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  cancelButtonText: {
-    color: "#3d3d4e",
-    fontWeight: "700",
-    fontSize: 15,
+  modalCloseButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 20,
+    padding: 6,
   },
   deleteButton: {
     backgroundColor: "#ff5a5f",
