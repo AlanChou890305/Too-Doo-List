@@ -550,13 +550,13 @@ const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Handler for horizontal swipe in task area
   const handleTaskAreaGesture = ({ nativeEvent }) => {
-    const { translationX, state } = nativeEvent;
-    // Only trigger on gesture end (state === 5 for END)
-    if (state === 5) {
-      if (translationX < -1) {
+    const { translationX, translationY, state } = nativeEvent;
+    // Only trigger on gesture end (state === 5 for END) and minimal vertical movement
+    if (state === 5 && Math.abs(translationY) < 20) {
+      if (translationX < -30) {
         // Swipe left, go to next day
         setSelectedDate(getAdjacentDate(selectedDate, 1));
-      } else if (translationX > 1) {
+      } else if (translationX > 30) {
         // Swipe right, go to previous day
         setSelectedDate(getAdjacentDate(selectedDate, -1));
       }
@@ -572,19 +572,22 @@ const [showTimePicker, setShowTimePicker] = useState(false);
           <View style={[styles.taskAreaContent, { flex: 1, overflow: 'hidden' }]}>
             <View style={styles.tasksHeaderRow}>
               <Text style={styles.tasksHeader}>{selectedDate}</Text>
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => openAddTask(selectedDate)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.addButtonIcon}>
-                  <Svg width={20} height={20} viewBox="0 0 24 24">
-                    <Line x1="12" y1="4" x2="12" y2="20" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
-                    <Line x1="4" y1="12" x2="20" y2="12" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
-                  </Svg>
-                </View>
-              </TouchableOpacity>
             </View>
+
+            {/* Floating Add Button */}
+            <TouchableOpacity
+              style={styles.fabAddButton}
+              onPress={() => openAddTask(selectedDate)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.addButtonIcon}>
+                <Svg width={32} height={32} viewBox="0 0 32 32" style={{ display: 'flex', alignSelf: 'center', justifyContent: 'center' }}>
+  <Line x1="16" y1="6" x2="16" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
+  <Line x1="6" y1="16" x2="26" y2="16" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
+</Svg>
+              </View>
+            </TouchableOpacity>
+
             {dayTasks.length === 0 ? (
               <View style={styles.noTaskContainer}>
                 <Svg width={64} height={64} viewBox="0 0 64 64" style={{ marginBottom: 12 }}>
@@ -901,6 +904,23 @@ export default function App() {
 // ...
 
 const styles = StyleSheet.create({
+  fabAddButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    zIndex: 10,
+    borderRadius: 32,
+    backgroundColor: '#6c63ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 64,
+    height: 64,
+    shadowColor: '#6c63ff',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 7,
+  },
   // ...
   // Removed bottomMenuBar style, handled by Tab.Navigator now
 
@@ -1146,8 +1166,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   addButtonIcon: {
-    width: 24,
-    height: 24,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
