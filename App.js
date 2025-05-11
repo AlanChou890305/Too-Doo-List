@@ -553,10 +553,10 @@ const [showTimePicker, setShowTimePicker] = useState(false);
     const { translationX, translationY, state } = nativeEvent;
     // Only trigger on gesture end (state === 5 for END) and minimal vertical movement
     if (state === 5 && Math.abs(translationY) < 20) {
-      if (translationX < -30) {
+      if (translationX < -15) {
         // Swipe left, go to next day
         setSelectedDate(getAdjacentDate(selectedDate, 1));
-      } else if (translationX > 30) {
+      } else if (translationX > 15) {
         // Swipe right, go to previous day
         setSelectedDate(getAdjacentDate(selectedDate, -1));
       }
