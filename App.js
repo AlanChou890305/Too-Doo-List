@@ -567,7 +567,7 @@ const [showTimePicker, setShowTimePicker] = useState(false);
     const dayTasks = tasks[selectedDate] || [];
     console.log('RenderTaskArea dayTasks:', dayTasks);
     return (
-      <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]} activeOffsetX={[-20, 20]}>
+      <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]} activeOffsetX={[-50, 50]}>
         <View style={[styles.taskArea, { flex: 1 }]}>
           <View style={[styles.taskAreaContent, { flex: 1, overflow: 'hidden' }]}>
             <View style={styles.tasksHeaderRow}>
@@ -830,6 +830,13 @@ export default function App() {
   if (loadingLang) return null;
 
   function MainTabs() {
+    React.useEffect(() => {
+      if (typeof document !== 'undefined') {
+        setTimeout(() => {
+          document.title = 'Too Doo List';
+        }, 0);
+      }
+    });
     return (
       <Tab.Navigator
         initialRouteName="Calendar"
@@ -874,7 +881,13 @@ export default function App() {
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      <NavigationContainer>
+      <NavigationContainer
+        onStateChange={() => {
+          if (typeof document !== 'undefined') {
+            document.title = 'Too Doo List';
+          }
+        }}
+      >
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="Terms" component={TermsScreen} />
@@ -926,6 +939,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 8,
     paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#bbbbbb',
   },
   // Scroll container
   calendarDivider: {
