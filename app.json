@@ -4,7 +4,7 @@
     "slug": "Too-Doo-List",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -30,7 +30,17 @@
           "publicUrl": "."
         }
       },
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/favicon.ico",
+      "meta": [
+        { "property": "og:title", "content": "Too Doo List" },
+        { "property": "og:description", "content": "Too Doo List is a smart, simple, and organized to-do list app to help you manage your daily tasks efficiently. Stay productive and never miss a task again!" },
+        { "property": "og:image", "content": "./assets/logo.png" },
+        { "property": "og:type", "content": "website" },
+        { "name": "twitter:card", "content": "summary_large_image" },
+        { "name": "twitter:title", "content": "Too Doo List" },
+        { "name": "twitter:description", "content": "Too Doo List is a smart, simple, and organized to-do list app to help you manage your daily tasks efficiently. Stay productive and never miss a task again!" },
+        { "name": "twitter:image", "content": "./assets/logo.png" }
+      ],
       "name": "Too Doo List",
       "description": "Too Doo List is a smart, simple, and organized to-do list app to help you manage your daily tasks efficiently. Stay productive and never miss a task again!"
     },
