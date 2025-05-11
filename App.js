@@ -20,6 +20,8 @@ import { GestureHandlerRootView, PanGestureHandler, State } from "react-native-g
 import { Swipeable } from "react-native-gesture-handler";
 // import { MaterialIcons } from '@expo/vector-icons'; // Already imported above
 import Svg, { Rect, Line, Circle, Path, Ellipse } from 'react-native-svg';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -295,6 +297,8 @@ function CalendarScreen({ navigation, route }) {
   const [visibleMonth, setVisibleMonth] = useState(new Date(getCurrentDate()).getMonth());
   const [visibleYear, setVisibleYear] = useState(new Date(getCurrentDate()).getFullYear());
   const [taskText, setTaskText] = useState("");
+const [taskTime, setTaskTime] = useState("");
+const [showTimePicker, setShowTimePicker] = useState(false);
   const scrollViewRef = useRef(null);
 
   useEffect(() => {
@@ -339,6 +343,7 @@ function CalendarScreen({ navigation, route }) {
   const openAddTask = (date) => {
     setEditingTask(null);
     setTaskText("");
+    setTaskTime("");
     setSelectedDate(date);
     setModalVisible(true);
   };
@@ -347,6 +352,7 @@ function CalendarScreen({ navigation, route }) {
     console.log('Open edit task:', task);
     setEditingTask(task);
     setTaskText(task.text);
+    setTaskTime(task.time || "");
     setSelectedDate(task.date);
     setModalVisible(true);
   };
@@ -357,11 +363,12 @@ function CalendarScreen({ navigation, route }) {
     if (editingTask) {
       dayTasks = dayTasks.map((t) =>
         t.id === editingTask.id
-          ? { ...t, text: taskText, date: selectedDate }
+          ? { time: taskTime, id: t.id, text: taskText, date: selectedDate }
           : t
       );
     } else {
       dayTasks.push({
+        time: taskTime,
         id: Date.now().toString(),
         text: taskText,
         date: selectedDate,
@@ -371,6 +378,7 @@ function CalendarScreen({ navigation, route }) {
     setModalVisible(false);
     setEditingTask(null);
     setTaskText("");
+    setTaskTime("");
   };
 
   const deleteTask = (task) => {
@@ -384,6 +392,7 @@ function CalendarScreen({ navigation, route }) {
     setModalVisible(false);
     setEditingTask(null);
     setTaskText("");
+    setTaskTime("");
     console.log('Deleted task', task.id);
     console.log('Tasks after delete:', newTasks);
   };
@@ -520,6 +529,11 @@ function CalendarScreen({ navigation, route }) {
       onPress={() => openEditTask(item)}
       onLongPress={() => startMoveTask(item)}
     >
+      <View style={{ width: 60, alignItems: 'flex-start', justifyContent: 'center', marginRight: 8 }}>
+        <Text style={{ color: '#6c63ff', fontWeight: 'bold', fontSize: 15 }}>
+          {item.time ? item.time : '--:--'}
+        </Text>
+      </View>
       <Text style={styles.taskText}>{item.text}</Text>
       {moveMode && taskToMove && taskToMove.id === item.id && (
         <Text style={styles.moveHint}>{t.moveHint}</Text>
@@ -554,12 +568,8 @@ function CalendarScreen({ navigation, route }) {
     console.log('RenderTaskArea dayTasks:', dayTasks);
     return (
       <PanGestureHandler onHandlerStateChange={handleTaskAreaGesture} activeOffsetY={[-20, 20]} activeOffsetX={[-20, 20]}>
-        <View style={styles.taskArea}>
-          <View style={[styles.taskAreaContent, {
-            flexGrow: 1,
-            maxHeight: Dimensions.get('window').height * 0.38, // Adjust as needed for your layout
-            overflow: 'hidden',
-          }]}>
+        <View style={[styles.taskArea, { flex: 1 }]}>
+          <View style={[styles.taskAreaContent, { flex: 1, overflow: 'hidden' }]}>
             <View style={styles.tasksHeaderRow}>
               <Text style={styles.tasksHeader}>{selectedDate}</Text>
               <TouchableOpacity
@@ -586,13 +596,15 @@ function CalendarScreen({ navigation, route }) {
                 <Text style={styles.noTaskText}>{t.noTasks}</Text>
               </View>
             ) : (
-              <FlatList
-                data={dayTasks}
-                keyExtractor={item => item.id}
-                renderItem={renderTask}
-                contentContainerStyle={styles.tasksScrollContent}
-                showsVerticalScrollIndicator={false}
-              />
+              <View style={{ flex: 1 }}>
+                <FlatList
+                  data={dayTasks.slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''))}
+                  keyExtractor={item => item.id}
+                  renderItem={renderTask}
+                  contentContainerStyle={[styles.tasksScrollContent, { paddingBottom: 32 }]}
+                  showsVerticalScrollIndicator={false}
+                />
+              </View>
             )}
           </View>
         </View>
@@ -612,10 +624,60 @@ function CalendarScreen({ navigation, route }) {
         activeOpacity={1}
         onPress={() => setModalVisible(false)}
       >
-        <View style={styles.modalContent}>
+        <View
+          style={styles.modalContent}
+          onClick={e => e.stopPropagation && e.stopPropagation()}
+        >
           <Text style={styles.modalTitle}>
             {editingTask ? t.editTask : t.createTask}
           </Text>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 4 }}>{'Time'}</Text>
+            {Platform.OS === 'web' ? (
+  <View
+    style={[styles.input, { padding: 0, marginBottom: 0, height: 48, flexDirection: 'row', alignItems: 'center' }]}
+    onClick={e => e.stopPropagation && e.stopPropagation()}
+  >
+    <input
+      type="time"
+      value={taskTime}
+      onChange={e => setTaskTime(e.target.value)}
+      onBlur={() => setShowTimePicker(false)}
+      style={{ border: 'none', fontSize: 16, width: '100%', background: 'transparent', color: taskTime ? '#222' : '#888' }}
+      onClick={e => e.stopPropagation()}
+    />
+  </View>
+) : (
+  <TouchableOpacity
+    style={[styles.input, { justifyContent: 'center', height: 48, marginBottom: 0 }]}
+    onPress={() => setShowTimePicker(true)}
+    activeOpacity={0.7}
+  >
+    <Text style={{ fontSize: 16, color: taskTime ? '#222' : '#888' }}>
+      {taskTime ? taskTime : 'Select time'}
+    </Text>
+    {showTimePicker && (
+      <DateTimePicker
+        value={taskTime ? new Date(`2020-01-01T${taskTime}:00`) : new Date()}
+        mode="time"
+        is24Hour={true}
+        display="spinner"
+        onChange={(event, selectedDate) => {
+          setShowTimePicker(false);
+          if (event.type === 'set' && selectedDate) {
+            const hours = selectedDate.getHours().toString().padStart(2, '0');
+            const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+            setTaskTime(`${hours}:${minutes}`);
+          }
+        }}
+        style={{ backgroundColor: '#fff' }}
+      />
+    )}
+  </TouchableOpacity>
+)}
+            <Text style={{ color: '#888', fontSize: 12, marginTop: 2 }}>Format: 24-hour (e.g. 15:30)</Text>
+          </View>
+          <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 4 }}>Task</Text>
           <TextInput
             style={styles.input}
             value={taskText}
@@ -732,9 +794,13 @@ function CalendarScreen({ navigation, route }) {
   );
 }
 
-export default App;
-
-function App() {
+export default function App() {
+  // Always set browser tab title on web
+  React.useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.title = 'Too Doo List';
+    }
+  }, []);
   const [language, setLanguageState] = useState("en");
   const [loadingLang, setLoadingLang] = useState(true);
 

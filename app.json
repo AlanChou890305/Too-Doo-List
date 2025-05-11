@@ -33,12 +33,12 @@
       "favicon": "./assets/favicon.ico",
       "meta": [
         { "property": "og:title", "content": "Too Doo List" },
-        { "property": "og:description", "content": "Too Doo List is a smart, simple, and organized to-do list app to help you manage your daily tasks efficiently. Stay productive and never miss a task again!" },
+        { "property": "og:description", "content": "Too Doo List: a simple, smart, and organized to-do list app to help you manage your daily life. Stay on top of your tasks and boost your productivity!" },
         { "property": "og:image", "content": "./assets/logo.png" },
         { "property": "og:type", "content": "website" },
         { "name": "twitter:card", "content": "summary_large_image" },
         { "name": "twitter:title", "content": "Too Doo List" },
-        { "name": "twitter:description", "content": "Too Doo List is a smart, simple, and organized to-do list app to help you manage your daily tasks efficiently. Stay productive and never miss a task again!" },
+        { "name": "twitter:description", "content": "Too Doo List: a simple, smart, and organized to-do list app to help you manage your daily life. Stay on top of your tasks and boost your productivity!" },
         { "name": "twitter:image", "content": "./assets/logo.png" }
       ],
       "name": "Too Doo List",
