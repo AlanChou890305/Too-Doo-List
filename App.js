@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
+import Svg, { Path, Circle, Rect, Line } from 'react-native-svg'; // Added Line for <Line /> elements
 import ReactGA from "react-ga4";
+import * as AuthSession from 'expo-auth-session';
+import { supabase } from './supabaseClient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -20,7 +23,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GestureHandlerRootView, PanGestureHandler, State } from "react-native-gesture-handler";
 import { Swipeable } from "react-native-gesture-handler";
 // import { MaterialIcons } from '@expo/vector-icons'; // Already imported above
-import Svg, { Rect, Line, Circle, Path, Ellipse } from 'react-native-svg';
+// Svg and subcomponents are now imported from 'react-native-svg'
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
@@ -35,6 +39,7 @@ const LANGUAGE_STORAGE_KEY = "LANGUAGE_STORAGE_KEY";
 const translations = {
   en: {
     settings: "Settings",
+    userName: "User Name",
     account: "Account",
     logout: "Log out",
     comingSoon: "Coming soon...",
@@ -62,6 +67,7 @@ const translations = {
   },
   zh: {
     settings: "設定",
+    userName: "使用者名稱",
     account: "帳號",
     logout: "登出",
     comingSoon: "敬請期待...",
@@ -131,6 +137,45 @@ function SplashScreen({ navigation }) {
             onPress={() => navigation.navigate('MainTabs')}
           >
             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 19, letterSpacing: 0.5 }}>Quick Start</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#fff',
+              borderColor: '#dadada',
+              borderWidth: 1,
+              borderRadius: 4,
+              paddingVertical: 12,
+              justifyContent: 'center',
+              marginBottom: 10,
+              width: '100%',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 2,
+              elevation: 1,
+            }}
+            onPress={async () => {
+              const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
+              const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: redirectUri },
+              });
+              if (error) {
+                Alert.alert('Login error', error.message);
+              }
+            }}
+          >
+            <Image
+              source={require('./assets/google-logo.png')}
+              style={{ width: 24, height: 24, marginRight: 8 }}
+              resizeMode="contain"
+            />
+            <Text style={{ color: '#4285F4', fontWeight: 'bold', fontSize: 16 }}>
+              Sign in with Google
+            </Text>
           </TouchableOpacity>
 
         </View>
@@ -325,7 +370,24 @@ function TermsScreen() {
           <Ellipse cx={28} cy={28} rx={5} ry={3} fill="#FFD580" />
           <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
         </Svg>
-        <Text style={{ fontSize: 18, color: '#888' }}>{t.comingSoon}</Text>
+        <ScrollView style={{ paddingHorizontal: 24 }} contentContainerStyle={{ paddingBottom: 40 }}>
+  <Text style={{ fontSize: 18, color: '#444', fontWeight: 'bold', marginBottom: 12 }}>
+    Terms of Use
+  </Text>
+  <Text style={{ fontSize: 15, color: '#444', marginBottom: 10 }}>
+    Welcome to Too-Doo List. By using this application, you agree to the following terms and conditions:
+  </Text>
+  <Text style={{ fontSize: 15, color: '#444', marginBottom: 10 }}>
+    1. You are responsible for maintaining the confidentiality of your device and any information stored within the app.{"\n"}
+    2. All content you create or manage within the app remains your responsibility.{"\n"}
+    3. The app is provided "as is" without warranties of any kind, either express or implied.{"\n"}
+    4. We are not liable for any loss of data, productivity, or other damages arising from the use of this app.{"\n"}
+    5. You agree not to use the app for any unlawful or prohibited activities.
+  </Text>
+  <Text style={{ fontSize: 14, color: '#888', marginTop: 12 }}>
+    For questions regarding these terms, please contact support.
+  </Text>
+</ScrollView>
         
       </View>
     </SafeAreaView>
@@ -362,7 +424,23 @@ function PrivacyScreen() {
           <Ellipse cx={28} cy={28} rx={5} ry={3} fill="#FFD580" />
           <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
         </Svg>
-        <Text style={{ fontSize: 18, color: '#888' }}>{t.comingSoon}</Text>
+        <ScrollView style={{ paddingHorizontal: 24 }} contentContainerStyle={{ paddingBottom: 40 }}>
+  <Text style={{ fontSize: 18, color: '#444', fontWeight: 'bold', marginBottom: 12 }}>
+    Privacy Policy
+  </Text>
+  <Text style={{ fontSize: 15, color: '#444', marginBottom: 10 }}>
+    Your privacy is important to us. This policy explains how information is handled in Too-Doo List:
+  </Text>
+  <Text style={{ fontSize: 15, color: '#444', marginBottom: 10 }}>
+    1. All data you enter is stored locally on your device and is not transmitted to any external server.{"\n"}
+    2. We do not collect, access, or share your personal information.{"\n"}
+    3. You are responsible for managing and securing your own data on your device.{"\n"}
+    4. The app does not use third-party analytics or advertising services.
+  </Text>
+  <Text style={{ fontSize: 14, color: '#888', marginTop: 12 }}>
+    If you have questions about this policy, please contact support.
+  </Text>
+</ScrollView>
         
       </View>
     </SafeAreaView>
@@ -373,6 +451,25 @@ function SettingScreen() {
   const { language, setLanguage, t } = useContext(LanguageContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [userName, setUserName] = useState('Anonymous');
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const getName = async () => {
+      const loginType = await AsyncStorage.getItem('loginType');
+      if (loginType === 'google') {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.user_metadata && user.user_metadata.name) {
+          setUserName(user.user_metadata.name);
+        } else {
+          setUserName('Google User');
+        }
+      } else {
+        setUserName('Anonymous');
+      }
+    };
+    getName();
+  }, []);
 
 
   const openModal = (text) => {
@@ -384,7 +481,6 @@ function SettingScreen() {
 
 
 
-  const navigation = useNavigation();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'rgb(247, 247, 250)' }}>
       <View style={{ backgroundColor: 'rgb(247, 247, 250)', height: 64, justifyContent: 'center' }}>
@@ -396,9 +492,9 @@ function SettingScreen() {
         <Text style={{ color: '#666', fontSize: 15, fontWeight: 'bold', marginLeft: 28, marginTop: 18, marginBottom: 2, letterSpacing: 0.5 }}>{t.account}</Text>
         {/* Account Info Card */}
         <View style={{ backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 8, marginBottom: 0, padding: 20, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
-          <Text style={{ color: '#222', fontSize: 16, marginBottom: 10 }}>User Name</Text>
+          <Text style={{ color: '#222', fontSize: 16, marginBottom: 10 }}>{t.userName}</Text>
 <Text style={{ color: '#666', fontSize: 15, marginBottom: 0 }}>
-  anonymous {/* TODO: Replace with real user name if available */}
+  {userName}
 </Text>
         </View>
         {/* General Section Title */}
@@ -791,10 +887,10 @@ const renderTask = ({ item }) => (
     const { translationX, translationY, state } = nativeEvent;
     // Only trigger on gesture end (state === 5 for END) and minimal vertical movement
     if (state === 5 && Math.abs(translationY) < 20) {
-      if (translationX < -5) {
+      if (translationX < -1) {
         // Swipe left, go to next day
         setSelectedDate(getAdjacentDate(selectedDate, 1));
-      } else if (translationX > 5) {
+      } else if (translationX > 1) {
         // Swipe right, go to previous day
         setSelectedDate(getAdjacentDate(selectedDate, -1));
       }
@@ -888,7 +984,7 @@ const renderTask = ({ item }) => (
             <Text style={{ fontSize: 15, fontWeight: '600', marginBottom: 4 }}>{'Time'}</Text>
             {Platform.OS === 'web' ? (
   <View
-    style={[styles.input, { padding: 0, marginBottom: 0, height: 48, flexDirection: 'row', alignItems: 'center' }]}
+    style={[styles.input, { padding: 0, marginBottom: 24, height: 48, flexDirection: 'row', alignItems: 'center' }]}
     onClick={e => e.stopPropagation && e.stopPropagation()}
   >
     <input
@@ -902,7 +998,7 @@ const renderTask = ({ item }) => (
   </View>
 ) : (
   <TouchableOpacity
-    style={[styles.input, { justifyContent: 'center', height: 48, marginBottom: 0 }]}
+    style={[styles.input, { justifyContent: 'center', height: 48, marginBottom: 24 }]}
     onPress={() => setShowTimePicker(true)}
     activeOpacity={0.7}
   >
@@ -1081,7 +1177,9 @@ export default function App() {
       document.title = "Too Doo List";
     }
     ReactGA.initialize("G-FDKFB5F7VX");
-    ReactGA.send({ hitType: "pageview", page: window.location.pathname });
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
+      ReactGA.send({ hitType: "pageview", page: window.location.pathname });
+    }
     // Load language from AsyncStorage
     AsyncStorage.getItem(LANGUAGE_STORAGE_KEY).then((lang) => {
       if (lang && (lang === 'en' || lang === 'zh')) {
