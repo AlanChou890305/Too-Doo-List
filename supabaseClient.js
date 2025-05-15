@@ -1,6 +1,38 @@
 import { createClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
-const supabaseUrl = 'https://wswsuxoaxbrjxuvvsojo.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzd3N1eG9heGJyanh1dnZzb2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5Nzg2MTIsImV4cCI6MjA2MjU1NDYxMn0.GmJQCUcBMaDuamfPyaiHl6ZzXviECzocnu5rkJMg1rY';
+// Fallback to hardcoded values if environment variables are not set
+// IMPORTANT: These should ONLY be used for local development
+const supabaseUrl = 
+  process.env.REACT_NATIVE_SUPABASE_URL || 
+  'https://wswsuxoaxbrjxuvvsojo.supabase.co';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseAnonKey = 
+  process.env.REACT_NATIVE_SUPABASE_ANON_KEY || 
+  'fallback-key-do-not-use-in-production';
+
+// Web-specific configuration
+const webConfig = {
+  auth: {
+    persistSession: true,
+    storage: window.localStorage,
+  },
+};
+
+// Mobile-specific configuration
+const mobileConfig = {};
+
+// Validate Supabase configuration
+if (supabaseUrl.includes('fallback') || supabaseAnonKey.includes('fallback')) {
+  console.warn(
+    'WARNING: Using fallback Supabase credentials. ' + 
+    'Please set REACT_NATIVE_SUPABASE_URL and REACT_NATIVE_SUPABASE_ANON_KEY environment variables.'
+  );
+}
+
+// Platform-specific Supabase client initialization
+export const supabase = createClient(
+  supabaseUrl, 
+  supabaseAnonKey, 
+  Platform.OS === 'web' ? webConfig : mobileConfig
+);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
-import Svg, { Path, Circle, Rect, Line } from 'react-native-svg'; // Added Line for <Line /> elements
+import Svg, { Path, Circle, Rect, Line, Ellipse } from 'react-native-svg';
 import ReactGA from "react-ga4";
 import * as AuthSession from 'expo-auth-session';
 import { supabase } from './supabaseClient';
@@ -158,13 +158,104 @@ function SplashScreen({ navigation }) {
               elevation: 1,
             }}
             onPress={async () => {
-              const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
-              const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: redirectUri },
-              });
-              if (error) {
-                Alert.alert('Login error', error.message);
+              try {
+                // Set login type in AsyncStorage
+                await AsyncStorage.setItem('loginType', 'google');
+
+                // Check if we're already authenticated
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'MainTabs' }],
+                  });
+                  return;
+                }
+
+                // Web-specific handling
+                if (Platform.OS === 'web') {
+                  // Check for access token in URL hash
+                  const hash = window.location.hash;
+                  if (hash.includes('access_token')) {
+                    // Extract access token
+                    const params = new URLSearchParams(hash.substring(1));
+                    const accessToken = params.get('access_token');
+                    const refreshToken = params.get('refresh_token');
+                    
+                    if (accessToken) {
+                      try {
+                        // Manually set the session
+                        const { error } = await supabase.auth.setSession({
+                          access_token: accessToken,
+                          refresh_token: refreshToken || undefined
+                        });
+
+                        if (error) {
+                          console.error('Session set error:', error);
+                          Alert.alert('Login Error', error.message);
+                          return;
+                        }
+
+                        // Clear the hash to prevent repeated processing
+                        window.history.replaceState(null, '', window.location.pathname);
+
+                        // Navigate to MainTabs
+                        navigation.reset({
+                          index: 0,
+                          routes: [{ name: 'MainTabs' }],
+                        });
+                      } catch (setSessionError) {
+                        console.error('Session set catch error:', setSessionError);
+                        Alert.alert('Login Error', 'Could not establish session.');
+                      }
+                      return;
+                    }
+                  }
+                }
+
+                // Perform OAuth sign-in
+                const redirectUri = Platform.OS === 'web' 
+                  ? window.location.origin + '/' 
+                  : AuthSession.makeRedirectUri({ useProxy: true });
+
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: { 
+                    redirectTo: redirectUri,
+                    scopes: 'email profile'
+                  },
+                });
+
+                if (error) {
+                  Alert.alert('Login Error', error.message);
+                  return;
+                }
+
+                // Listen for authentication state changes
+                const { data: authListener } = supabase.auth.onAuthStateChange(
+                  async (event, session) => {
+                    if (event === 'SIGNED_IN' && session) {
+                      // Remove the listener to prevent multiple navigations
+                      authListener.subscription.unsubscribe();
+
+                      // Navigate to MainTabs
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'MainTabs' }],
+                      });
+                    }
+                  }
+                );
+
+                // Fallback timeout
+                setTimeout(() => {
+                  authListener.subscription.unsubscribe();
+                  Alert.alert('Login Error', 'Authentication timed out.');
+                }, 30000); // 30 seconds timeout
+
+              } catch (catchError) {
+                console.error('Authentication error:', catchError);
+                Alert.alert('Error', 'An unexpected error occurred during sign-in.');
               }
             }}
           >
@@ -456,15 +547,24 @@ function SettingScreen() {
 
   useEffect(() => {
     const getName = async () => {
-      const loginType = await AsyncStorage.getItem('loginType');
-      if (loginType === 'google') {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.user_metadata && user.user_metadata.name) {
-          setUserName(user.user_metadata.name);
+      try {
+        const loginType = await AsyncStorage.getItem('loginType');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (loginType === 'google' && session) {
+          // Try to get name from different possible sources
+          const userName = 
+            session.user?.user_metadata?.name || 
+            session.user?.email?.split('@')[0] || 
+            session.user?.email || 
+            'Google User';
+          
+          setUserName(userName);
         } else {
-          setUserName('Google User');
+          setUserName('Anonymous');
         }
-      } else {
+      } catch (error) {
+        console.error('Error retrieving user name:', error);
         setUserName('Anonymous');
       }
     };
