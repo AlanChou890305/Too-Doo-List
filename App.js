@@ -114,26 +114,134 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const SplashScreen = ({ navigation }) => {
-  const handleGoogleSignIn = async () => {
-    try {
-      console.group('Google Authentication');
-      console.log('Starting Google authentication');
+  useEffect(() => {
+    const authListener = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.warn('CRITICAL: Auth State Change Event', {
+          event,
+          session,
+          navigationAvailable: !!navigation
+        });
+        
+        if (event === 'SIGNED_IN' && session) {
+          try {
+            // Verify user session with extensive logging
+            console.warn('VERBOSE: Verifying user session');
+            const { data: { user }, error } = await supabase.auth.getUser();
+            
+            console.warn('VERBOSE: User Verification Result', {
+              user: user ? { id: user.id, email: user.email } : null,
+              error
+            });
 
-      // Determine the correct redirect URI for different platforms
+            if (error || !user) {
+              console.error('CRITICAL: User verification error', error);
+              return;
+            }
+
+            // Navigate to MainTabs with additional logging
+            console.warn('CRITICAL: Attempting to navigate to MainTabs/Calendar', {
+              navigationObject: !!navigation,
+              navigationMethods: navigation ? Object.keys(navigation) : 'N/A'
+            });
+            
+            // Try multiple navigation methods with extensive logging
+            if (navigation) {
+              try {
+                // Attempt reset navigation
+                console.warn('VERBOSE: Attempting navigation.reset()');
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'MainTabs', params: { screen: 'Calendar' } }],
+                });
+                console.warn('VERBOSE: navigation.reset() successful');
+              } catch (resetError) {
+                console.error('CRITICAL: Reset navigation failed', {
+                  errorMessage: resetError.message,
+                  errorStack: resetError.stack
+                });
+
+                try {
+                  // Fallback to navigate method
+                  console.warn('VERBOSE: Attempting navigation.navigate()');
+                  navigation.navigate('MainTabs', { screen: 'Calendar' });
+                  console.warn('VERBOSE: navigation.navigate() successful');
+                } catch (navigateError) {
+                  console.error('CRITICAL: Navigate method failed', {
+                    errorMessage: navigateError.message,
+                    errorStack: navigateError.stack
+                  });
+                }
+              }
+            } else {
+              console.error('CRITICAL: Navigation object is undefined');
+            }
+          } catch (navigationError) {
+            console.error('CRITICAL: Comprehensive navigation error', {
+              errorMessage: navigationError.message,
+              errorStack: navigationError.stack,
+              navigationMethods: navigation ? Object.keys(navigation) : 'N/A'
+            });
+          }
+        }
+      }
+    );
+
+    // Cleanup subscription
+    return () => {
+      try {
+        authListener.data.subscription.unsubscribe();
+      } catch (error) {
+        console.error('Error unsubscribing from auth listener', error);
+      }
+    };
+  }, [navigation]);
+
+  const handleGoogleSignIn = async () => {
+    console.group('Google Authentication');
+    try {
+      console.warn('VERBOSE: Starting Google authentication process');
+
+      // Extensive client validation
+      if (!supabase) {
+        console.error('CRITICAL: Supabase client is NOT initialized');
+        throw new Error('Supabase client is not initialized');
+      }
+
+      // Comprehensive environment logging
+      console.log('VERBOSE: Platform and Environment Details', {
+        platform: Platform,
+        windowLocation: window.location,
+        navigatorInfo: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform
+        },
+        supabaseConfig: {
+          url: supabase.supabaseUrl,
+          authMethods: Object.keys(supabase.auth)
+        }
+      });
+
+      // Redirect URI determination with extensive logging
       const redirectUri = Platform.select({
-        web: window.location.origin + '/',
+        web: `${window.location.origin}/`,
         default: AuthSession.makeRedirectUri({ 
           useProxy: true,
           scheme: 'exp://localhost:8081' 
         })
       });
 
-      console.log('Redirect URI:', redirectUri);
+      console.warn(`VERBOSE: Computed Redirect URI: ${redirectUri}`);
 
-      // Check for existing session first
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log('Existing session found, navigating to MainTabs');
+      // Session check with verbose logging
+      const sessionResult = await supabase.auth.getSession();
+      console.log('VERBOSE: Session Check Result', {
+        session: sessionResult.data?.session,
+        error: sessionResult.error
+      });
+
+      if (sessionResult.data?.session) {
+        console.warn('VERBOSE: Existing session found, navigating to MainTabs');
         navigation.reset({
           index: 0,
           routes: [{ name: 'MainTabs' }],
@@ -141,26 +249,51 @@ const SplashScreen = ({ navigation }) => {
         return;
       }
 
-      // Initiate OAuth sign-in
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Detailed OAuth configuration
+      const oauthConfig = {
         provider: 'google',
         options: { 
           redirectTo: redirectUri,
           scopes: 'email profile',
-          ...(Platform.OS === 'web' && {
+          ...(Platform.OS === 'web' ? {
             skipBrowserRedirect: false,
             persistSession: true
-          })
-        },
+          } : {})
+        }
+      };
+
+      console.warn('VERBOSE: OAuth Configuration', JSON.stringify(oauthConfig, null, 2));
+
+      // Validate redirect URI
+      if (!oauthConfig.options.redirectTo) {
+        console.error('CRITICAL: Invalid redirect URI');
+        throw new Error('Invalid redirect URI');
+      }
+
+      // Attempt OAuth sign-in with maximum logging
+      console.warn('VERBOSE: Initiating OAuth Sign-in');
+      const oauthResult = await supabase.auth.signInWithOAuth(oauthConfig);
+
+      console.warn('VERBOSE: OAuth Sign-in Complete', {
+        data: oauthResult.data,
+        error: oauthResult.error
       });
 
-      if (error) {
-        console.error('OAuth Sign-in Error:', error);
-        Alert.alert('Login Error', error.message);
+      if (oauthResult.error) {
+        console.error('CRITICAL: OAuth Sign-in Failed', {
+          errorDetails: oauthResult.error,
+          fullErrorObject: JSON.stringify(oauthResult.error, null, 2)
+        });
+        Alert.alert('Login Error', oauthResult.error.message || 'Unknown OAuth error');
       }
     } catch (error) {
-      console.error('Authentication error:', error);
-      Alert.alert('Error', 'An unexpected error occurred during sign-in.');
+      console.error('CRITICAL: Comprehensive Authentication Error', {
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack,
+        fullErrorObject: JSON.stringify(error, null, 2)
+      });
+      Alert.alert('Error', error.message || 'An unexpected error occurred during sign-in.');
     } finally {
       console.groupEnd();
     }
