@@ -1071,7 +1071,7 @@ const renderTask = ({ item }) => (
       }
     }
   };
-
+ 
   const goToNextMonth = () => {
     let newMonth = visibleMonth + 1;
     let newYear = visibleYear;
