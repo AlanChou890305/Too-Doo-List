@@ -1,14 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
-// Fallback to hardcoded values if environment variables are not set
-// IMPORTANT: These should ONLY be used for local development
+// Use Expo public environment variables
 const supabaseUrl = 
-  process.env.REACT_NATIVE_SUPABASE_URL || 
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 
   'https://wswsuxoaxbrjxuvvsojo.supabase.co';
 
 const supabaseAnonKey = 
-  process.env.REACT_NATIVE_SUPABASE_ANON_KEY || 
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
   'fallback-key-do-not-use-in-production';
 
 // Web-specific configuration

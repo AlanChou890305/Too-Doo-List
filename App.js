@@ -113,7 +113,59 @@ function getToday() {
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-function SplashScreen({ navigation }) {
+const SplashScreen = ({ navigation }) => {
+  const handleGoogleSignIn = async () => {
+    try {
+      console.group('Google Authentication');
+      console.log('Starting Google authentication');
+
+      // Determine the correct redirect URI for different platforms
+      const redirectUri = Platform.select({
+        web: window.location.origin + '/',
+        default: AuthSession.makeRedirectUri({ 
+          useProxy: true,
+          scheme: 'exp://localhost:8081' 
+        })
+      });
+
+      console.log('Redirect URI:', redirectUri);
+
+      // Check for existing session first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log('Existing session found, navigating to MainTabs');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }],
+        });
+        return;
+      }
+
+      // Initiate OAuth sign-in
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { 
+          redirectTo: redirectUri,
+          scopes: 'email profile',
+          ...(Platform.OS === 'web' && {
+            skipBrowserRedirect: false,
+            persistSession: true
+          })
+        },
+      });
+
+      if (error) {
+        console.error('OAuth Sign-in Error:', error);
+        Alert.alert('Login Error', error.message);
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      Alert.alert('Error', 'An unexpected error occurred during sign-in.');
+    } finally {
+      console.groupEnd();
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
@@ -157,107 +209,7 @@ function SplashScreen({ navigation }) {
               shadowRadius: 2,
               elevation: 1,
             }}
-            onPress={async () => {
-              try {
-                // Set login type in AsyncStorage
-                await AsyncStorage.setItem('loginType', 'google');
-
-                // Check if we're already authenticated
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'MainTabs' }],
-                  });
-                  return;
-                }
-
-                // Web-specific handling
-                if (Platform.OS === 'web') {
-                  // Check for access token in URL hash
-                  const hash = window.location.hash;
-                  if (hash.includes('access_token')) {
-                    // Extract access token
-                    const params = new URLSearchParams(hash.substring(1));
-                    const accessToken = params.get('access_token');
-                    const refreshToken = params.get('refresh_token');
-                    
-                    if (accessToken) {
-                      try {
-                        // Manually set the session
-                        const { error } = await supabase.auth.setSession({
-                          access_token: accessToken,
-                          refresh_token: refreshToken || undefined
-                        });
-
-                        if (error) {
-                          console.error('Session set error:', error);
-                          Alert.alert('Login Error', error.message);
-                          return;
-                        }
-
-                        // Clear the hash to prevent repeated processing
-                        window.history.replaceState(null, '', window.location.pathname);
-
-                        // Navigate to MainTabs
-                        navigation.reset({
-                          index: 0,
-                          routes: [{ name: 'MainTabs' }],
-                        });
-                      } catch (setSessionError) {
-                        console.error('Session set catch error:', setSessionError);
-                        Alert.alert('Login Error', 'Could not establish session.');
-                      }
-                      return;
-                    }
-                  }
-                }
-
-                // Perform OAuth sign-in
-                const redirectUri = Platform.OS === 'web' 
-                  ? window.location.origin + '/' 
-                  : AuthSession.makeRedirectUri({ useProxy: true });
-
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                  provider: 'google',
-                  options: { 
-                    redirectTo: redirectUri,
-                    scopes: 'email profile'
-                  },
-                });
-
-                if (error) {
-                  Alert.alert('Login Error', error.message);
-                  return;
-                }
-
-                // Listen for authentication state changes
-                const { data: authListener } = supabase.auth.onAuthStateChange(
-                  async (event, session) => {
-                    if (event === 'SIGNED_IN' && session) {
-                      // Remove the listener to prevent multiple navigations
-                      authListener.subscription.unsubscribe();
-
-                      // Navigate to MainTabs
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'MainTabs' }],
-                      });
-                    }
-                  }
-                );
-
-                // Fallback timeout
-                setTimeout(() => {
-                  authListener.subscription.unsubscribe();
-                  Alert.alert('Login Error', 'Authentication timed out.');
-                }, 30000); // 30 seconds timeout
-
-              } catch (catchError) {
-                console.error('Authentication error:', catchError);
-                Alert.alert('Error', 'An unexpected error occurred during sign-in.');
-              }
-            }}
+            onPress={handleGoogleSignIn}
           >
             <Image
               source={require('./assets/google-logo.png')}
@@ -268,7 +220,6 @@ function SplashScreen({ navigation }) {
               Sign in with Google
             </Text>
           </TouchableOpacity>
-
         </View>
       </View>
       <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
