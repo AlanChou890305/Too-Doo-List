@@ -4,12 +4,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+jspm_packages/
 
-# Build
+# Build artifacts
 build/
 dist/
-.expo/
-.expo-shared/
+web-build/
+
+# Generated files
+manifest.json
 
 # Environment variables
 .env
@@ -18,6 +21,7 @@ dist/
 .env.test.local
 .env.production.local
 .env.backup
+.env.*.local
 
 # IDE
 .vscode/
@@ -25,6 +29,10 @@ dist/
 *.swp
 *.swo
 *~
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+*.code-workspace
 
 # OS
 .DS_Store
@@ -51,9 +59,6 @@ coverage/
 
 # nyc test coverage
 .nyc_output
-
-# Dependency directories
-jspm_packages/
 
 # Optional npm cache directory
 .npm
@@ -85,7 +90,6 @@ jspm_packages/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/
@@ -105,6 +109,7 @@ temp/
 # Expo
 .expo/
 .expo-shared/
+expo-env.d.ts
 
 # EAS
 .easignore
@@ -141,5 +146,19 @@ web-build/
 # Testing
 coverage/
 
-# Misc
+# React Native specific
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.keystore
+*.hprof
+
+# TypeScript
 *.tsbuildinfo
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+*.lock

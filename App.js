@@ -70,9 +70,11 @@ const translations = {
     legal: "Legal",
     calendar: "Calendar",
     noTasks: "No tasks for this day.",
-    addTask: "Enter a new task...",
+    addTask: "What needs to be done?",
     createTask: "Create task",
     editTask: "Edit task",
+    taskPlaceholder: "Enter your task here...",
+    timePlaceholder: "Select time",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
@@ -100,6 +102,15 @@ const translations = {
     signOutSuccess: "Successfully signed out!",
     alreadySignedOut: "You are already signed out.",
     signOutError: "Failed to sign out. Please try again.",
+    accountType: "Account Type",
+    googleAccount: "Google Account",
+    signOut: "Sign Out",
+    selectTime: "Select Time",
+    hour: "Hour",
+    minute: "Min",
+    done: "Done",
+    time: "Time",
+    today: "Today",
   },
   zh: {
     settings: "設定",
@@ -114,9 +125,11 @@ const translations = {
     legal: "法律",
     calendar: "行事曆",
     noTasks: "這天沒有任務。",
-    addTask: "輸入新任務...",
+    addTask: "需要做什麼？",
     createTask: "新增任務",
     editTask: "編輯任務",
+    taskPlaceholder: "在這裡輸入您的任務...",
+    timePlaceholder: "選擇時間",
     save: "儲存",
     cancel: "取消",
     delete: "刪除",
@@ -144,6 +157,15 @@ const translations = {
     signOutSuccess: "成功登出！",
     alreadySignedOut: "您已經登出。",
     signOutError: "登出失敗。請再試一次。",
+    accountType: "帳號類型",
+    googleAccount: "Google 帳號",
+    signOut: "登出",
+    selectTime: "選擇時間",
+    hour: "時",
+    minute: "分",
+    done: "完成",
+    time: "時間",
+    today: "今天",
   },
 };
 
@@ -321,6 +343,28 @@ const SplashScreen = ({ navigation }) => {
           await handleOAuthCallback();
           return;
         }
+      } else {
+        // For mobile, check if we have a session after OAuth
+        try {
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession();
+          if (error) {
+            console.error("Error checking session:", error);
+          } else if (session) {
+            console.warn(
+              "Mobile: Session found after OAuth, navigating to main app"
+            );
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MainTabs" }],
+            });
+            return;
+          }
+        } catch (error) {
+          console.error("Error in mobile session check:", error);
+        }
       }
 
       // If not an auth callback, check for existing session
@@ -333,33 +377,21 @@ const SplashScreen = ({ navigation }) => {
     // Initial check for session or auth callback
     checkInitialUrl();
 
-    // Add a fallback check after a short delay for web OAuth
-    if (Platform.OS === "web") {
-      const fallbackCheck = setTimeout(async () => {
-        console.warn("Fallback: Checking session after delay");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session) {
-          console.warn("Fallback: Session found, navigating to main app");
-          navigateToMainApp();
-        }
-      }, 2000);
-
-      return () => {
-        clearTimeout(fallbackCheck);
-        if (subscription?.remove) {
-          subscription.remove();
-        } else if (subscription) {
-          // Fallback for older React Native versions
-          Linking.removeEventListener("url", handleDeepLink);
-        }
-        cleanupAuthSubscription();
-      };
-    }
+    // Add a fallback check after a short delay for OAuth
+    const fallbackCheck = setTimeout(async () => {
+      console.warn("Fallback: Checking session after delay");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        console.warn("Fallback: Session found, navigating to main app");
+        navigateToMainApp();
+      }
+    }, 3000);
 
     // Cleanup
     return () => {
+      clearTimeout(fallbackCheck);
       if (subscription?.remove) {
         subscription.remove();
       } else if (subscription) {
@@ -412,7 +444,7 @@ const SplashScreen = ({ navigation }) => {
       const redirectUrl =
         Platform.OS === "web"
           ? `${window.location.origin}/auth/callback`
-          : Linking.createURL("auth/callback");
+          : "too-doo-list://auth/callback";
       console.warn("VERBOSE: Using redirect URL:", redirectUrl);
 
       // Start the OAuth flow
@@ -424,7 +456,7 @@ const SplashScreen = ({ navigation }) => {
             access_type: "offline",
             prompt: "select_account",
           },
-          skipBrowserRedirect: false, // Let Supabase handle the redirect
+          skipBrowserRedirect: Platform.OS !== "web", // Skip browser redirect on mobile
         },
       });
 
@@ -554,34 +586,6 @@ const SplashScreen = ({ navigation }) => {
           Too Doo List
         </Text>
         <View style={{ width: 260 }}>
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#6c63ff",
-              borderRadius: 12,
-              paddingVertical: 16,
-              width: "100%",
-              alignItems: "center",
-              marginBottom: 18,
-              shadowColor: "#6c63ff",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.15,
-              shadowRadius: 5,
-              elevation: 3,
-            }}
-            onPress={() => navigation.navigate("MainTabs")}
-          >
-            <Text
-              style={{
-                color: "#fff",
-                fontWeight: "bold",
-                fontSize: 19,
-                letterSpacing: 0.5,
-              }}
-            >
-              Quick Start
-            </Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={{
               flexDirection: "row",
@@ -1371,24 +1375,27 @@ function SettingScreen() {
   const { language, setLanguage, t } = useContext(LanguageContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [userName, setUserName] = useState("Anonymous");
+  const [userName, setUserName] = useState("User");
+  const [userProfile, setUserProfile] = useState(null);
+  const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const getName = async () => {
+    const getUserProfile = async () => {
       try {
-        const userProfile = await UserService.getUserProfile();
-        if (userProfile) {
-          setUserName(userProfile.name);
+        const profile = await UserService.getUserProfile();
+        if (profile) {
+          setUserProfile(profile);
+          setUserName(profile.name);
         } else {
-          setUserName("Anonymous");
+          setUserName("User");
         }
       } catch (error) {
-        console.error("Error retrieving user name:", error);
-        setUserName("Anonymous");
+        console.error("Error retrieving user profile:", error);
+        setUserName("User");
       }
     };
-    getName();
+    getUserProfile();
   }, []);
 
   const openModal = (text) => {
@@ -1418,12 +1425,13 @@ function SettingScreen() {
           {t.settings}
         </Text>
       </View>
-      <View
+      <ScrollView
         style={{
           flex: 1,
           paddingHorizontal: 0,
           backgroundColor: "rgb(247, 247, 250)",
         }}
+        showsVerticalScrollIndicator={false}
       >
         {/* Account Section Title */}
         <Text
@@ -1454,12 +1462,54 @@ function SettingScreen() {
             elevation: 2,
           }}
         >
-          <Text style={{ color: "#222", fontSize: 16, marginBottom: 10 }}>
-            {t.userName}
-          </Text>
-          <Text style={{ color: "#666", fontSize: 15, marginBottom: 0 }}>
-            {userName}
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 15,
+            }}
+          >
+            {userProfile?.avatar_url && (
+              <Image
+                source={{ uri: userProfile.avatar_url }}
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  marginRight: 15,
+                }}
+              />
+            )}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: "#222",
+                  fontSize: 16,
+                  marginBottom: 5,
+                  fontWeight: "600",
+                }}
+              >
+                {userProfile?.name || userName}
+              </Text>
+              <Text style={{ color: "#666", fontSize: 14, marginBottom: 0 }}>
+                {userProfile?.email || "No email available"}
+              </Text>
+            </View>
+          </View>
+          <View
+            style={{
+              borderTopWidth: 1,
+              borderTopColor: "#f0f0f0",
+              paddingTop: 15,
+            }}
+          >
+            <Text style={{ color: "#888", fontSize: 12, marginBottom: 5 }}>
+              {t.accountType}
+            </Text>
+            <Text style={{ color: "#6c63ff", fontSize: 14, fontWeight: "500" }}>
+              {t.googleAccount}
+            </Text>
+          </View>
         </View>
         {/* General Section Title */}
         <Text
@@ -1483,59 +1533,100 @@ function SettingScreen() {
             marginHorizontal: 20,
             marginTop: 8,
             marginBottom: 0,
-            padding: 20,
+            overflow: "hidden",
             shadowColor: "#000",
-            shadowOpacity: 0.04,
-            shadowRadius: 8,
-            elevation: 2,
+            shadowOpacity: 0.03,
+            shadowRadius: 6,
+            elevation: 1,
           }}
         >
-          <Text style={{ color: "#222", fontSize: 16, marginBottom: 10 }}>
-            {t.language}
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <TouchableOpacity
+          <TouchableOpacity
+            onPress={() => {
+              setLanguageDropdownVisible(!languageDropdownVisible);
+            }}
+            activeOpacity={0.6}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+            }}
+          >
+            <Text style={{ color: "#222", fontSize: 16 }}>{t.language}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={{ color: "#666", fontSize: 14, marginRight: 8 }}>
+                {language === "en" ? t.english : t.chinese}
+              </Text>
+              <MaterialIcons
+                name={
+                  languageDropdownVisible
+                    ? "keyboard-arrow-up"
+                    : "keyboard-arrow-down"
+                }
+                size={20}
+                color="#bbb"
+                style={{ marginLeft: 6 }}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {languageDropdownVisible && (
+            <View
               style={{
-                backgroundColor: language === "en" ? "#222" : "#eee",
-                paddingVertical: 8,
-                paddingHorizontal: 18,
-                borderRadius: 8,
-                marginRight: 10,
-                borderWidth: language === "en" ? 0 : 1,
-                borderColor: "#ddd",
+                borderTopWidth: 1,
+                borderTopColor: "#f0f0f0",
+                backgroundColor: "#f8f9fa",
               }}
-              onPress={() => setLanguage("en")}
             >
-              <Text
+              <TouchableOpacity
+                onPress={() => {
+                  setLanguage("en");
+                  setLanguageDropdownVisible(false);
+                }}
+                activeOpacity={0.6}
                 style={{
-                  color: language === "en" ? "#fff" : "#222",
-                  fontWeight: "bold",
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  backgroundColor:
+                    language === "en" ? "#e3f2fd" : "transparent",
                 }}
               >
-                {t.english}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                backgroundColor: language === "zh" ? "#222" : "#eee",
-                paddingVertical: 8,
-                paddingHorizontal: 18,
-                borderRadius: 8,
-                borderWidth: language === "zh" ? 0 : 1,
-                borderColor: "#ddd",
-              }}
-              onPress={() => setLanguage("zh")}
-            >
-              <Text
+                <Text
+                  style={{
+                    color: language === "en" ? "#1976d2" : "#666",
+                    fontSize: 15,
+                    fontWeight: language === "en" ? "600" : "400",
+                  }}
+                >
+                  {t.english}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setLanguage("zh");
+                  setLanguageDropdownVisible(false);
+                }}
+                activeOpacity={0.6}
                 style={{
-                  color: language === "zh" ? "#fff" : "#222",
-                  fontWeight: "bold",
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  backgroundColor:
+                    language === "zh" ? "#e3f2fd" : "transparent",
                 }}
               >
-                {t.chinese}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  style={{
+                    color: language === "zh" ? "#1976d2" : "#666",
+                    fontSize: 15,
+                    fontWeight: language === "zh" ? "600" : "400",
+                  }}
+                >
+                  {t.chinese}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         {/* Legal Section Title */}
         <Text
@@ -1636,7 +1727,102 @@ function SettingScreen() {
             </Svg>
           </TouchableOpacity>
         </View>
-      </View>
+
+        {/* Sign Out and Version Section */}
+        <View
+          style={{
+            marginHorizontal: 20,
+            marginTop: 8,
+            marginBottom: 20,
+            padding: 20,
+          }}
+        >
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                // Check if we're already on Splash screen
+                if (navigation.canGoBack()) {
+                  // Close any modals first
+                  setModalVisible(false);
+                  // Go back to main tabs
+                  navigation.goBack();
+                  // Wait a bit before showing the modal
+                  setTimeout(() => setModalVisible(true), 100);
+                }
+
+                console.log("Attempting to sign out...");
+
+                // Check if we have a valid session
+                const {
+                  data: { session },
+                } = await supabase.auth.getSession();
+                console.log("Current session:", session);
+
+                if (!session) {
+                  setModalText(
+                    t.alreadySignedOut || "You are already signed out."
+                  );
+                  setModalVisible(true);
+                  return;
+                }
+
+                // Try to sign out
+                const { error } = await supabase.auth.signOut();
+
+                if (error) {
+                  console.error("Sign out error:", error);
+                  throw error;
+                }
+
+                console.log("Sign out successful");
+                setModalText(t.signOutSuccess || "Successfully signed out!");
+                setModalVisible(true);
+
+                // Force a re-render of the app
+                console.log("Forcing re-render...");
+                setModalVisible(false);
+                setTimeout(() => setModalVisible(true), 100);
+              } catch (error) {
+                console.error("Error signing out:", error);
+                console.error("Error details:", {
+                  message: error?.message,
+                  name: error?.name,
+                  code: error?.code,
+                  stack: error?.stack,
+                });
+
+                // Show detailed error message
+                const errorMessage =
+                  error?.message || "Failed to sign out. Please try again.";
+                setModalText(t.signOutError || errorMessage);
+                setModalVisible(true);
+              }
+            }}
+            style={{
+              backgroundColor: "#fff",
+              paddingVertical: 12,
+              paddingHorizontal: 24,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: "#e0e0e0",
+              alignItems: "center",
+              marginBottom: 16,
+              shadowColor: "#000",
+              shadowOpacity: 0.03,
+              shadowRadius: 4,
+              elevation: 1,
+              width: "100%",
+            }}
+          >
+            <Text style={{ color: "#e74c3c", fontSize: 16, fontWeight: "600" }}>
+              {t.signOut || "Sign Out"}
+            </Text>
+          </TouchableOpacity>
+          <Text style={{ color: "#aaa", fontSize: 14, textAlign: "center" }}>
+            {t.version} 1.0.0
+          </Text>
+        </View>
+      </ScrollView>
 
       <Modal
         visible={modalVisible}
@@ -1681,107 +1867,6 @@ function SettingScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
-      <View
-        style={{
-          alignItems: "center",
-          marginBottom: 18,
-          backgroundColor: "rgb(247, 247, 250)",
-          paddingVertical: 8,
-        }}
-      >
-        <TouchableOpacity
-          onPress={async () => {
-            try {
-              // Check if we're already on Splash screen
-              if (navigation.canGoBack()) {
-                // Close any modals first
-                setModalVisible(false);
-                // Go back to main tabs
-                navigation.goBack();
-                // Wait a bit before showing the modal
-                setTimeout(() => setModalVisible(true), 100);
-              }
-
-              console.log("Attempting to sign out...");
-
-              // Check if we have a valid session
-              const {
-                data: { session },
-              } = await supabase.auth.getSession();
-              console.log("Current session:", session);
-
-              if (!session) {
-                setModalText(
-                  t.alreadySignedOut || "You are already signed out."
-                );
-                setModalVisible(true);
-                return;
-              }
-
-              // Try to sign out
-              const { error } = await supabase.auth.signOut();
-
-              if (error) {
-                console.error("Sign out error:", error);
-                throw error;
-              }
-
-              console.log("Successfully signed out");
-
-              // Clear session data from AsyncStorage
-              await AsyncStorage.multiRemove(["loginType", "session"]);
-
-              // Reset navigation
-              console.log("Resetting navigation...");
-              const resetAction = StackActions.replace("Splash");
-              navigation.dispatch(resetAction);
-
-              // Show success message
-              setModalText(t.signOutSuccess || "Successfully signed out!");
-              setModalVisible(true);
-
-              // Force a re-render of the app
-              console.log("Forcing re-render...");
-              setModalVisible(false);
-              setTimeout(() => setModalVisible(true), 100);
-            } catch (error) {
-              console.error("Error signing out:", error);
-              console.error("Error details:", {
-                message: error?.message,
-                name: error?.name,
-                code: error?.code,
-                stack: error?.stack,
-              });
-
-              // Show detailed error message
-              const errorMessage =
-                error?.message || "Failed to sign out. Please try again.";
-              setModalText(t.signOutError || errorMessage);
-              setModalVisible(true);
-            }
-          }}
-          style={{
-            backgroundColor: "#fff",
-            paddingVertical: 12,
-            paddingHorizontal: 24,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: "#e0e0e0",
-            marginBottom: 16,
-            width: "80%",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOpacity: 0.03,
-            shadowRadius: 4,
-            elevation: 1,
-          }}
-        >
-          <Text style={{ color: "#e74c3c", fontSize: 16, fontWeight: "600" }}>
-            {t.signOut || "Sign Out"}
-          </Text>
-        </TouchableOpacity>
-        <Text style={{ color: "#aaa", fontSize: 14 }}>{t.version} 1.0.0</Text>
-      </View>
     </SafeAreaView>
   );
 }
@@ -1811,13 +1896,72 @@ function CalendarScreen({ navigation, route }) {
   const [timePickerVisible, setTimePickerVisible] = useState(false);
   const [tempHour, setTempHour] = useState("00");
   const [tempMinute, setTempMinute] = useState("00");
+  const hourScrollRef = useRef(null);
+  const minuteScrollRef = useRef(null);
+
+  // 當時間選擇器打開時，滾動到正確位置
+  useEffect(() => {
+    if (timePickerVisible && Platform.OS === "web") {
+      setTimeout(() => {
+        if (hourScrollRef.current) {
+          hourScrollRef.current.scrollTo({
+            y: parseInt(tempHour) * 34,
+            animated: false,
+          });
+        }
+        if (minuteScrollRef.current) {
+          minuteScrollRef.current.scrollTo({
+            y: parseInt(tempMinute) * 34,
+            animated: false,
+          });
+        }
+      }, 100);
+    }
+  }, [timePickerVisible, tempHour, tempMinute]);
+
+  // 處理小時滾動事件
+  const handleHourScroll = (event) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(scrollY / 34);
+    const newHour = Math.max(0, Math.min(23, index));
+    // 只有當滾動到完全不同的位置時才更新
+    if (Math.abs(parseInt(tempHour) - newHour) >= 1) {
+      setTempHour(newHour.toString().padStart(2, "0"));
+    }
+  };
+
+  // 處理分鐘滾動事件
+  const handleMinuteScroll = (event) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(scrollY / 34);
+    const newMinute = Math.max(0, Math.min(59, index));
+    // 只有當滾動到完全不同的位置時才更新
+    if (Math.abs(parseInt(tempMinute) - newMinute) >= 1) {
+      setTempMinute(newMinute.toString().padStart(2, "0"));
+    }
+  };
   const scrollViewRef = useRef(null);
 
   // Load tasks from Supabase
   useEffect(() => {
     const loadTasks = async () => {
       try {
+        // 首先檢查用戶認證狀態
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
+        console.log("Current user:", user);
+        console.log("Auth error:", authError);
+
+        if (!user) {
+          console.warn("No authenticated user found");
+          setTasks({});
+          return;
+        }
+
         const tasksData = await TaskService.getTasks();
+        console.log("Loaded tasks:", tasksData);
         setTasks(tasksData);
       } catch (error) {
         console.error("Error loading tasks:", error);
@@ -1872,7 +2016,7 @@ function CalendarScreen({ navigation, route }) {
   const openEditTask = (task) => {
     console.log("Open edit task:", task);
     setEditingTask(task);
-    setTaskText(task.text);
+    setTaskText(task.title);
     setTaskTime(task.time || "");
     setSelectedDate(task.date);
     setModalVisible(true);
@@ -1888,20 +2032,20 @@ function CalendarScreen({ navigation, route }) {
       if (editingTask) {
         // Update existing task
         await TaskService.updateTask(editingTask.id, {
-          text: taskText,
+          title: taskText,
           time: taskTime,
           date: selectedDate,
         });
 
         dayTasks = dayTasks.map((t) =>
           t.id === editingTask.id
-            ? { ...t, text: taskText, time: taskTime, date: selectedDate }
+            ? { ...t, title: taskText, time: taskTime, date: selectedDate }
             : t
         );
       } else {
         // Create new task
         newTask = await TaskService.addTask({
-          text: taskText,
+          title: taskText,
           time: taskTime,
           date: selectedDate,
           checked: false,
@@ -1951,16 +2095,28 @@ function CalendarScreen({ navigation, route }) {
     Alert.alert(t.moveTask, t.moveTaskAlert);
   };
 
-  const moveTaskToDate = (task, toDate) => {
+  const moveTaskToDate = async (task, toDate) => {
     if (task.date === toDate) return;
     if (task.date !== selectedDate) return;
-    const fromTasks = tasks[selectedDate] ? [...tasks[selectedDate]] : [];
-    const toTasks = tasks[toDate] ? [...tasks[toDate]] : [];
-    const filteredTasks = fromTasks.filter((t) => t.id !== task.id);
-    toTasks.push({ ...task });
-    setTasks({ ...tasks, [selectedDate]: filteredTasks, [toDate]: toTasks });
-    setMoveMode(false);
-    setTaskToMove(null);
+
+    try {
+      // 更新任務的日期到數據庫
+      await TaskService.updateTask(task.id, { date: toDate });
+
+      // 更新本地狀態
+      const fromTasks = tasks[selectedDate] ? [...tasks[selectedDate]] : [];
+      const toTasks = tasks[toDate] ? [...tasks[toDate]] : [];
+      const filteredTasks = fromTasks.filter((t) => t.id !== task.id);
+      const updatedTask = { ...task, date: toDate };
+      toTasks.push(updatedTask);
+      setTasks({ ...tasks, [selectedDate]: filteredTasks, [toDate]: toTasks });
+
+      setMoveMode(false);
+      setTaskToMove(null);
+    } catch (error) {
+      console.error("Error moving task:", error);
+      Alert.alert("Error", "Failed to move task. Please try again.");
+    }
   };
 
   const renderCalendar = () => {
@@ -2117,13 +2273,9 @@ function CalendarScreen({ navigation, route }) {
         onLongPress={() => startMoveTask(item)}
         activeOpacity={0.7}
       >
-        <View style={{ flex: 1 }}>
-          <Text
-            style={[styles.taskText, item.checked && styles.taskTextChecked]}
-          >
-            {item.text}
-          </Text>
-        </View>
+        <Text style={[styles.taskText, item.checked && styles.taskTextChecked]}>
+          {item.title}
+        </Text>
         {item.time && <Text style={styles.taskTimeRight}>{item.time}</Text>}
         {moveMode && taskToMove && taskToMove.id === item.id && (
           <Text style={styles.moveHint}>{t.moveHint}</Text>
@@ -2305,22 +2457,55 @@ function CalendarScreen({ navigation, route }) {
             </Text>
           </View>
           <View style={{ marginBottom: 12 }}>
+            {/* Task Text Input - 移到最前面並設為 autoFocus */}
             <View style={{ marginBottom: 20 }}>
-              <Text style={styles.label}>Time</Text>
+              <Text style={styles.label}>
+                Task <Text style={{ color: "#ff4444" }}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={taskText}
+                onChangeText={setTaskText}
+                placeholder={t.addTask}
+                placeholderTextColor="#888"
+                autoFocus={true}
+                returnKeyType="next"
+                onSubmitEditing={() => {
+                  // 當用戶按 Enter 時，可以選擇時間或直接保存
+                  if (taskText.trim()) {
+                    // 如果有時間就保存，沒有就顯示時間選擇器
+                    if (!taskTime) {
+                      const now = new Date();
+                      setTempHour(now.getHours().toString().padStart(2, "0"));
+                      setTempMinute(
+                        now.getMinutes().toString().padStart(2, "0")
+                      );
+                      setTimePickerVisible(true);
+                    }
+                  }
+                }}
+              />
+            </View>
+
+            {/* Time Selection */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={styles.label}>{t.time}</Text>
               <TouchableOpacity
                 onPress={() => {
+                  // 初始化時間選擇器
                   if (taskTime) {
                     const [hour, minute] = taskTime.split(":");
                     setTempHour(hour || "00");
                     setTempMinute(minute || "00");
                   } else {
+                    // 預設為當前時間
                     const now = new Date();
                     setTempHour(now.getHours().toString().padStart(2, "0"));
                     setTempMinute(now.getMinutes().toString().padStart(2, "0"));
                   }
                   setTimePickerVisible(true);
                 }}
-                style={styles.timeInput}
+                style={[styles.timeInput, taskTime && styles.timeInputSelected]}
                 activeOpacity={0.7}
               >
                 <Text
@@ -2329,9 +2514,13 @@ function CalendarScreen({ navigation, route }) {
                     taskTime && styles.timeInputTextFilled,
                   ]}
                 >
-                  {taskTime || "Select time"}
+                  {taskTime || t.timePlaceholder}
                 </Text>
-                <MaterialIcons name="access-time" size={20} color="#6c63ff" />
+                <MaterialIcons
+                  name="access-time"
+                  size={20}
+                  color={taskTime ? "#6c63ff" : "#999"}
+                />
               </TouchableOpacity>
             </View>
             {timePickerVisible && (
@@ -2341,192 +2530,158 @@ function CalendarScreen({ navigation, route }) {
                 onRequestClose={() => setTimePickerVisible(false)}
                 animationType="slide"
               >
-                <SafeAreaView style={styles.timePickerModal}>
-                  <View style={styles.timePickerContent}>
-                    <View
-                      style={[
-                        styles.timePickerHeader,
-                        { alignItems: "center", borderBottomWidth: 0 },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.timePickerTitle,
-                          {
-                            fontSize: 20,
-                            fontWeight: "700",
-                            color: "#6c63ff",
-                            letterSpacing: 1,
-                          },
-                        ]}
+                <View style={styles.nativeTimePickerOverlay}>
+                  <View style={styles.nativeTimePickerContainer}>
+                    <View style={styles.nativeTimePickerHeader}>
+                      <TouchableOpacity
+                        onPress={() => setTimePickerVisible(false)}
+                        style={styles.nativeTimePickerCancel}
                       >
-                        Select Time
+                        <Text style={styles.nativeTimePickerCancelText}>
+                          {t.cancel}
+                        </Text>
+                      </TouchableOpacity>
+                      <Text style={styles.nativeTimePickerTitle}>
+                        {t.selectTime}
                       </Text>
-                    </View>
-                    <View style={styles.timePickerBody}>
-                      <View style={styles.timeWheelContainer}>
-                        <View style={styles.timeWheel}>
-                          <FlatList
-                            data={Array.from({ length: 24 }, (_, i) =>
-                              i.toString().padStart(2, "0")
-                            )}
-                            keyExtractor={(item) => `hour-${item}`}
-                            style={{ height: 200, width: 80 }}
-                            showsVerticalScrollIndicator={false}
-                            snapToInterval={40}
-                            decelerationRate="fast"
-                            initialScrollIndex={parseInt(tempHour) || 0}
-                            getItemLayout={(_, index) => ({
-                              length: 40,
-                              offset: 40 * index,
-                              index,
-                            })}
-                            contentContainerStyle={{
-                              alignItems: "center",
-                              paddingVertical: 80,
-                            }}
-                            onMomentumScrollEnd={({ nativeEvent }) => {
-                              const index = Math.round(
-                                nativeEvent.contentOffset.y / 40
-                              );
-                              setTempHour(index.toString().padStart(2, "0"));
-                            }}
-                            renderItem={({ item }) => (
-                              <View
-                                style={[
-                                  styles.timeWheelItem,
-                                  tempHour === item &&
-                                    styles.timeWheelItemSelected,
-                                ]}
-                              >
-                                <Text
-                                  style={[
-                                    styles.timeWheelText,
-                                    tempHour === item &&
-                                      styles.timeWheelTextSelected,
-                                  ]}
-                                >
-                                  {item}
-                                </Text>
-                              </View>
-                            )}
-                          />
-                          <View
-                            style={styles.timeWheelHighlight}
-                            pointerEvents="none"
-                          />
-                        </View>
-                        <Text style={styles.timeSeparator}>:</Text>
-                        <View style={styles.timeWheel}>
-                          <FlatList
-                            data={Array.from({ length: 60 }, (_, i) =>
-                              i.toString().padStart(2, "0")
-                            )}
-                            keyExtractor={(item) => `min-${item}`}
-                            style={{ height: 200, width: 80 }}
-                            showsVerticalScrollIndicator={false}
-                            snapToInterval={40}
-                            decelerationRate="fast"
-                            initialScrollIndex={parseInt(tempMinute) || 0}
-                            getItemLayout={(_, index) => ({
-                              length: 40,
-                              offset: 40 * index,
-                              index,
-                            })}
-                            contentContainerStyle={{
-                              alignItems: "center",
-                              paddingVertical: 80,
-                            }}
-                            onMomentumScrollEnd={({ nativeEvent }) => {
-                              const index = Math.round(
-                                nativeEvent.contentOffset.y / 40
-                              );
-                              setTempMinute(index.toString().padStart(2, "0"));
-                            }}
-                            renderItem={({ item }) => (
-                              <View
-                                style={[
-                                  styles.timeWheelItem,
-                                  tempMinute === item &&
-                                    styles.timeWheelItemSelected,
-                                ]}
-                              >
-                                <Text
-                                  style={[
-                                    styles.timeWheelText,
-                                    tempMinute === item &&
-                                      styles.timeWheelTextSelected,
-                                  ]}
-                                >
-                                  {item}
-                                </Text>
-                              </View>
-                            )}
-                          />
-                          <View
-                            style={styles.timeWheelHighlight}
-                            pointerEvents="none"
-                          />
-                        </View>
-                      </View>
-                      <View
-                        style={[
-                          styles.timePickerActions,
-                          { justifyContent: "center" },
-                        ]}
+                      <TouchableOpacity
+                        onPress={() => {
+                          const selectedTime = new Date();
+                          selectedTime.setHours(parseInt(tempHour));
+                          selectedTime.setMinutes(parseInt(tempMinute));
+                          setTaskTime(`${tempHour}:${tempMinute}`);
+                          setTimePickerVisible(false);
+                        }}
+                        style={styles.nativeTimePickerDone}
                       >
-                        <TouchableOpacity
-                          style={[
-                            styles.doneButton,
-                            {
-                              minWidth: 100,
-                              borderRadius: 20,
-                              backgroundColor: "#6c63ff",
-                              alignItems: "center",
-                            },
-                          ]}
-                          onPress={() => {
-                            setTaskTime(`${tempHour}:${tempMinute}`);
-                            setTimePickerVisible(false);
+                        <Text style={styles.nativeTimePickerDoneText}>
+                          {t.done}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.nativeTimePickerBody}>
+                      {Platform.OS === "web" ? (
+                        <View style={styles.webTimePicker}>
+                          <View style={styles.webTimePickerContainer}>
+                            <View style={styles.webTimePickerColumn}>
+                              <Text style={styles.webTimePickerLabel}>
+                                小時
+                              </Text>
+                              <ScrollView
+                                ref={hourScrollRef}
+                                style={styles.webTimePickerList}
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={
+                                  styles.webTimePickerContent
+                                }
+                                onScroll={handleHourScroll}
+                                scrollEventThrottle={200}
+                              >
+                                {Array.from({ length: 24 }, (_, i) => (
+                                  <TouchableOpacity
+                                    key={i}
+                                    style={[
+                                      styles.webTimePickerItem,
+                                      parseInt(tempHour) === i &&
+                                        styles.webTimePickerItemSelected,
+                                    ]}
+                                    onPress={() =>
+                                      setTempHour(i.toString().padStart(2, "0"))
+                                    }
+                                  >
+                                    <Text
+                                      style={[
+                                        styles.webTimePickerText,
+                                        parseInt(tempHour) === i &&
+                                          styles.webTimePickerTextSelected,
+                                      ]}
+                                    >
+                                      {i.toString().padStart(2, "0")}
+                                    </Text>
+                                  </TouchableOpacity>
+                                ))}
+                              </ScrollView>
+                            </View>
+                            <Text style={styles.webTimeSeparator}>:</Text>
+                            <View style={styles.webTimePickerColumn}>
+                              <Text style={styles.webTimePickerLabel}>
+                                分鐘
+                              </Text>
+                              <ScrollView
+                                ref={minuteScrollRef}
+                                style={styles.webTimePickerList}
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={
+                                  styles.webTimePickerContent
+                                }
+                                onScroll={handleMinuteScroll}
+                                scrollEventThrottle={200}
+                              >
+                                {Array.from({ length: 60 }, (_, i) => (
+                                  <TouchableOpacity
+                                    key={i}
+                                    style={[
+                                      styles.webTimePickerItem,
+                                      parseInt(tempMinute) === i &&
+                                        styles.webTimePickerItemSelected,
+                                    ]}
+                                    onPress={() =>
+                                      setTempMinute(
+                                        i.toString().padStart(2, "0")
+                                      )
+                                    }
+                                  >
+                                    <Text
+                                      style={[
+                                        styles.webTimePickerText,
+                                        parseInt(tempMinute) === i &&
+                                          styles.webTimePickerTextSelected,
+                                      ]}
+                                    >
+                                      {i.toString().padStart(2, "0")}
+                                    </Text>
+                                  </TouchableOpacity>
+                                ))}
+                              </ScrollView>
+                            </View>
+                          </View>
+                        </View>
+                      ) : (
+                        <DateTimePicker
+                          value={
+                            new Date(
+                              2024,
+                              0,
+                              1,
+                              parseInt(tempHour) || 0,
+                              parseInt(tempMinute) || 0
+                            )
+                          }
+                          mode="time"
+                          display="spinner"
+                          onChange={(event, selectedDate) => {
+                            if (event.type === "set" && selectedDate) {
+                              const hours = selectedDate
+                                .getHours()
+                                .toString()
+                                .padStart(2, "0");
+                              const minutes = selectedDate
+                                .getMinutes()
+                                .toString()
+                                .padStart(2, "0");
+                              setTempHour(hours);
+                              setTempMinute(minutes);
+                            }
                           }}
-                        >
-                          <Text
-                            style={[
-                              styles.doneButtonText,
-                              {
-                                color: "#fff",
-                                fontWeight: "700",
-                                fontSize: 16,
-                              },
-                            ]}
-                          >
-                            Done
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
+                          style={styles.dateTimePicker}
+                        />
+                      )}
                     </View>
                   </View>
-                </SafeAreaView>
+                </View>
               </Modal>
             )}
-            <Text style={{ fontSize: 15, fontWeight: "600", marginBottom: 4 }}>
-              Task
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={taskText}
-              onChangeText={setTaskText}
-              placeholder={t.addTask}
-              placeholderTextColor="#888"
-              autoFocus
-            />
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.saveButton, { marginRight: 4 }]}
-                onPress={saveTask}
-              >
-                <Text style={styles.saveButtonText}>{t.save}</Text>
-              </TouchableOpacity>
               {editingTask && (
                 <TouchableOpacity
                   style={styles.deleteButton}
@@ -2535,6 +2690,9 @@ function CalendarScreen({ navigation, route }) {
                   <Text style={styles.deleteButtonText}>{t.delete}</Text>
                 </TouchableOpacity>
               )}
+              <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
+                <Text style={styles.saveButtonText}>{t.save}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2582,16 +2740,21 @@ function CalendarScreen({ navigation, route }) {
   const monthNames = t.months;
   const header = (
     <View style={styles.fixedHeader}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-start",
-        }}
-      >
+      <View style={styles.headerContainer}>
         <Text style={styles.currentMonthTitle}>
           {visibleYear} {monthNames[visibleMonth]}
         </Text>
+        <TouchableOpacity
+          style={styles.todayButton}
+          onPress={() => {
+            const today = getCurrentDate();
+            setSelectedDate(today);
+            setVisibleMonth(new Date(today).getMonth());
+            setVisibleYear(new Date(today).getFullYear());
+          }}
+        >
+          <Text style={styles.todayButtonText}>{t.today}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -2878,9 +3041,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     textAlign: "left",
-    marginBottom: 10,
-    marginLeft: 16,
-    marginTop: 10,
   },
   weekDaysHeader: {
     flexDirection: "row",
@@ -2999,7 +3159,7 @@ const styles = StyleSheet.create({
   },
   taskDot: {
     position: "absolute",
-    bottom: 1,
+    bottom: 2,
     width: 6,
     height: 6,
     borderRadius: 3,
@@ -3027,9 +3187,8 @@ const styles = StyleSheet.create({
   },
   noTaskContainer: {
     flex: 1,
-    justifyContent: "flex-start",
+    justifyContent: "center",
     alignItems: "center",
-    paddingTop: 48,
   },
   selectedDate: {
     // No background color, just text color change
@@ -3119,6 +3278,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     minHeight: 40,
+    marginTop: 8,
     marginBottom: 8,
     marginHorizontal: 12,
     borderWidth: 1,
@@ -3150,23 +3310,442 @@ const styles = StyleSheet.create({
     color: "#3d3d4e",
   },
   timeInput: {
-    height: 48,
+    height: 50,
     justifyContent: "space-between",
     alignItems: "center",
     flexDirection: "row",
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    backgroundColor: "#fff",
-    borderRadius: 8,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
     paddingHorizontal: 16,
+  },
+  timeInputSelected: {
+    borderColor: "#6c63ff",
+    backgroundColor: "#f0f0ff",
   },
   timeInputText: {
     fontSize: 16,
     color: "#888",
+    flex: 1,
   },
   timeInputTextFilled: {
     color: "#222",
     fontWeight: "500",
+  },
+  timePickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  timePickerContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    width: "90%",
+    maxWidth: 400,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  timePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  timePickerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#333",
+  },
+  timePickerCloseButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  timePickerBody: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  timeWheelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timeWheel: {
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  timeWheelLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  timeWheelList: {
+    height: 200,
+    width: 80,
+  },
+  timeWheelContent: {
+    alignItems: "center",
+    paddingVertical: 75,
+  },
+  timeSeparator: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#6c63ff",
+    marginHorizontal: 10,
+  },
+  timeWheelItem: {
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  timeWheelItemSelected: {
+    backgroundColor: "#6c63ff",
+  },
+  timeWheelText: {
+    fontSize: 18,
+    color: "#666",
+    fontWeight: "500",
+  },
+  timeWheelTextSelected: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  timeWheelHighlight: {
+    position: "absolute",
+    top: 75,
+    left: 0,
+    right: 0,
+    height: 50,
+    backgroundColor: "rgba(108, 99, 255, 0.1)",
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#6c63ff",
+  },
+  timePickerActions: {
+    flexDirection: "row",
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  doneButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  doneButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  simpleTimePickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  simpleTimePickerContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  simpleTimePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  simpleTimePickerCancel: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  simpleTimePickerCancelText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  simpleTimePickerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  simpleTimePickerDone: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  simpleTimePickerDoneText: {
+    fontSize: 16,
+    color: "#6c63ff",
+    fontWeight: "600",
+  },
+  simpleTimePickerBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  simpleTimeInputs: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  simpleTimeInput: {
+    alignItems: "center",
+    flex: 1,
+  },
+  simpleTimeLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
+  },
+  simpleTimeTextInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 18,
+    textAlign: "center",
+    width: 80,
+    backgroundColor: "#f9f9f9",
+  },
+  simpleTimeSeparator: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#6c63ff",
+    marginHorizontal: 20,
+  },
+  timeInputContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  timeInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timeNumberInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 18,
+    width: 60,
+    backgroundColor: "#f9f9f9",
+  },
+  timeColon: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#666",
+    marginHorizontal: 10,
+  },
+  timePickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  timePickerContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  timePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  timePickerCancel: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  timePickerCancelText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  timePickerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  timePickerDone: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  timePickerDoneText: {
+    fontSize: 16,
+    color: "#6c63ff",
+    fontWeight: "600",
+  },
+  timePickerBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  timeWheelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timeWheel: {
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  timeWheelList: {
+    height: 200,
+    width: 80,
+  },
+  timeWheelContent: {
+    alignItems: "center",
+    paddingVertical: 75,
+  },
+  timeWheelItem: {
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  timeWheelItemSelected: {
+    backgroundColor: "#6c63ff",
+  },
+  timeWheelText: {
+    fontSize: 18,
+    color: "#666",
+    fontWeight: "500",
+  },
+  timeWheelTextSelected: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  timeWheelHighlight: {
+    position: "absolute",
+    top: 75,
+    left: 0,
+    right: 0,
+    height: 50,
+    backgroundColor: "rgba(108, 99, 255, 0.1)",
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#6c63ff",
+  },
+  timeSeparator: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#6c63ff",
+    marginHorizontal: 10,
+  },
+  spinnerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  spinnerContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    width: 280,
+    alignItems: "center",
+  },
+  spinnerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 20,
+  },
+  spinnerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  spinnerColumn: {
+    alignItems: "center",
+    flex: 1,
+  },
+  spinnerLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
+  },
+  spinner: {
+    height: 120,
+    width: 60,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    backgroundColor: "#f9f9f9",
+  },
+  spinnerList: {
+    flex: 1,
+  },
+  spinnerContent: {
+    paddingVertical: 40,
+  },
+  spinnerItem: {
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  spinnerText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  spinnerColon: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#666",
+    marginHorizontal: 10,
+  },
+  spinnerButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  spinnerCancel: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginRight: 8,
+    borderRadius: 8,
+    backgroundColor: "#f5f5f5",
+    alignItems: "center",
+  },
+  spinnerCancelText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  spinnerDone: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginLeft: 8,
+    borderRadius: 8,
+    backgroundColor: "#6c63ff",
+    alignItems: "center",
+  },
+  spinnerDoneText: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "600",
   },
   taskTimeRight: {
     fontSize: 14,
@@ -3239,13 +3818,15 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginRight: 10,
+    paddingVertical: 12,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    backgroundColor: "#f8f9fa",
   },
   cancelButtonText: {
     color: "#666",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "500",
   },
   timePickerContent: {
@@ -3337,9 +3918,10 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 16,
+    alignItems: "center",
+    marginTop: 20,
     paddingHorizontal: 0,
-    gap: 4, // Add gap if supported by React Native version
+    gap: 12,
   },
   buttonGroup: {
     flexDirection: "row",
@@ -3349,12 +3931,14 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: "#6c63ff",
     borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    minWidth: 80,
+    alignItems: "center",
   },
   saveButtonText: {
     color: "#fff",
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 15,
   },
   modalCloseButton: {
@@ -3365,17 +3949,362 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   deleteButton: {
-    backgroundColor: "#ff5a5f",
+    backgroundColor: "transparent",
     borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    alignItems: "center",
   },
   deleteButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 15,
+    color: "#ff5a5f",
+    fontWeight: "500",
+    fontSize: 14,
   },
   taskContent: {
     flex: 1,
+  },
+  taskUserInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  userAvatar: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: 6,
+  },
+  userDisplayName: {
+    fontSize: 12,
+    color: "#888",
+    fontStyle: "italic",
+  },
+  // 簡化時間選擇器樣式
+  simpleTimePickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  simpleTimePickerContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  simpleTimePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  simpleTimePickerCancel: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  simpleTimePickerCancelText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  simpleTimePickerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  simpleTimePickerDone: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  simpleTimePickerDoneText: {
+    fontSize: 16,
+    color: "#6c63ff",
+    fontWeight: "600",
+  },
+  simpleTimePickerBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  simpleTimeWheelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  simpleTimeWheel: {
+    height: 200,
+    width: 80,
+    marginHorizontal: 10,
+  },
+  simpleTimeWheelContent: {
+    alignItems: "center",
+    paddingVertical: 75,
+  },
+  simpleTimeWheelItem: {
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  simpleTimeWheelItemSelected: {
+    backgroundColor: "#6c63ff",
+  },
+  simpleTimeWheelText: {
+    fontSize: 18,
+    color: "#666",
+    fontWeight: "500",
+  },
+  simpleTimeWheelTextSelected: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  simpleTimeSeparator: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#6c63ff",
+    marginHorizontal: 10,
+  },
+  // 原生時間選擇器樣式
+  nativeTimePickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  nativeTimePickerContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  nativeTimePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  nativeTimePickerCancel: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  nativeTimePickerCancelText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  nativeTimePickerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  nativeTimePickerDone: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  nativeTimePickerDoneText: {
+    fontSize: 16,
+    color: "#6c63ff",
+    fontWeight: "600",
+  },
+  nativeTimePickerBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    alignItems: "center",
+  },
+  nativeDateTimePicker: {
+    width: 200,
+    height: 200,
+  },
+  // 簡化的時間選擇器樣式
+  timePickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  timePickerContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  timePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  timePickerCancel: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  timePickerCancelText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  timePickerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  timePickerDone: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  timePickerDoneText: {
+    fontSize: 16,
+    color: "#6c63ff",
+    fontWeight: "600",
+  },
+  timePickerBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    alignItems: "center",
+  },
+  dateTimePicker: {
+    width: 200,
+    height: 200,
+  },
+  // Web 時間選擇器樣式
+  webTimePicker: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
+  webTimePickerRow: {
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  webTimePickerLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 10,
+  },
+  webTimePickerColumn: {
+    height: 200,
+    width: 60,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  webTimePickerContent: {
+    alignItems: "center",
+    paddingVertical: 84, // 讓當前時間顯示在中間
+  },
+  webTimePickerItem: {
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 1,
+    borderRadius: 4,
+  },
+  webTimePickerItemSelected: {
+    backgroundColor: "#6c63ff",
+  },
+  webTimePickerText: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "500",
+  },
+  webTimePickerTextSelected: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  webTimeSeparator: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#6c63ff",
+    marginHorizontal: 15,
+  },
+  webTimePickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
+  webTimePickerColumn: {
+    alignItems: "center",
+    marginHorizontal: 15,
+  },
+  webTimePickerLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 10,
+  },
+  webTimePickerList: {
+    height: 200,
+    width: 80,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  webTimePickerContent: {
+    paddingVertical: 85, // 讓中間的項目居中顯示
+  },
+  webTimePickerItem: {
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 1,
+    borderRadius: 6,
+    marginHorizontal: 4,
+  },
+  webTimePickerItemSelected: {
+    backgroundColor: "#6c63ff",
+  },
+  webTimePickerText: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "500",
+  },
+  webTimePickerTextSelected: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  webTimeSeparator: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#6c63ff",
+    marginHorizontal: 10,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  todayButton: {
+    backgroundColor: "#6c63ff",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+  },
+  todayButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "500",
   },
 });
