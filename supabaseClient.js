@@ -5,13 +5,15 @@ import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Supabase configuration
-const supabaseUrl =
-  process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  "https://wswsuxoaxbrjxuvvsojo.supabase.co";
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabaseAnonKey =
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indzd3N1eG9heGJyanh1dnZzb2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU3OTQ2NzgsImV4cCI6MjAzMTM3MDY3OH0.6Xq1T2kQ4Q4Q4Q4Q4Q4Q4Q4Q4Q4Q4Q4Q4Q4Q4Q4Q4";
+// Validate required environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Missing required environment variables: EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY"
+  );
+}
 
 // Create a custom storage handler for React Native
 const createStorage = () => {
@@ -53,12 +55,8 @@ const commonConfig = {
 };
 
 // Validate Supabase configuration
-if (supabaseUrl.includes("fallback") || supabaseAnonKey.includes("fallback")) {
-  console.warn(
-    "WARNING: Using fallback Supabase credentials. " +
-      "Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY environment variables."
-  );
-}
+// Log successful configuration
+console.log("Supabase client initialized with environment variables");
 
 // Initialize Supabase client
 const supabase = createClient(supabaseUrl, supabaseAnonKey, commonConfig);
