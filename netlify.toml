@@ -1,0 +1,39 @@
+[build]
+  # Build command for Expo web
+  command = "npx expo export --platform web --output-dir dist"
+  
+  # Output directory for Expo web build
+  publish = "dist"
+  
+  # Environment variables
+  [build.environment]
+    NODE_VERSION = "18"
+    EXPO_PUBLIC_SUPABASE_URL = "https://qerosiozltqrbehctxdn.supabase.co"
+    EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlcm9zaW96bHRxcmJlaGN0eGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NTQyNzAsImV4cCI6MjA3NTIzMDI3MH0.gEzTwpl79HbrQ0KeYRvEji45vdI7SbOhZVc_wpih91E"
+
+# Redirect rules for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache service worker
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
