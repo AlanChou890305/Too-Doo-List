@@ -30,7 +30,7 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 
 1. **Clone the repo:**
    ```bash
-   git clone https://github.com/Cty0305/Too-Doo-List.git
+   git clone https://github.com/AlanChou890305/Too-Doo-List.git
    cd Too-Doo-List
    ```
 
