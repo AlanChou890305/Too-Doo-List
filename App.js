@@ -192,13 +192,18 @@ const SplashScreen = ({ navigation }) => {
     // Handle OAuth callback if this is a redirect from OAuth
     const handleOAuthCallback = async () => {
       try {
+        console.warn("OAuth callback: Starting callback handling");
+        console.warn("OAuth callback: Current URL:", window.location.href);
+        
         // First, try to get the session from the URL if this is an OAuth callback
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error("Error getting session:", error);
+          console.error("OAuth callback: Error getting session:", error);
           return;
         }
+
+        console.warn("OAuth callback: Session data:", data);
 
         if (data?.session) {
           console.warn("OAuth callback: User session found");
@@ -209,15 +214,17 @@ const SplashScreen = ({ navigation }) => {
           } = await supabase.auth.getUser();
 
           if (userError || !user) {
-            console.error("Failed to get user after OAuth:", userError);
+            console.error("OAuth callback: Failed to get user after OAuth:", userError);
             return;
           }
 
           console.warn("OAuth callback: User verified, navigating to main app");
           navigateToMainApp();
+        } else {
+          console.warn("OAuth callback: No session found in callback");
         }
       } catch (error) {
-        console.error("Error handling OAuth callback:", error);
+        console.error("OAuth callback: Error handling OAuth callback:", error);
       }
     };
 
@@ -507,9 +514,10 @@ const SplashScreen = ({ navigation }) => {
       // Use the correct redirect URL for Expo
       const redirectUrl =
         Platform.OS === "web"
-          ? `${window.location.origin}/auth/callback`
+          ? "https://too-doo-list-app-20251005.netlify.app/auth/callback"
           : "too-doo-list://auth/callback";
       console.warn("VERBOSE: Using redirect URL:", redirectUrl);
+      console.warn("VERBOSE: Current origin:", window.location.origin);
 
       // Debug: Log current window location for web
       if (Platform.OS === "web") {
