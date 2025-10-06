@@ -194,12 +194,98 @@ const SplashScreen = ({ navigation }) => {
       try {
         console.warn("OAuth callback: Starting callback handling");
         console.warn("OAuth callback: Current URL:", window.location.href);
-        
-        // First, try to get the session from the URL if this is an OAuth callback
-        const { data, error } = await supabase.auth.getSession();
 
-        if (error) {
-          console.error("OAuth callback: Error getting session:", error);
+        // Check for OAuth errors in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthError = urlParams.get("error");
+        const errorDescription = urlParams.get("error_description");
+
+        if (oauthError) {
+          console.error("OAuth callback: OAuth error detected:", {
+            error: oauthError,
+            errorCode: urlParams.get("error_code"),
+            errorDescription: decodeURIComponent(errorDescription || ""),
+          });
+
+          // Handle specific database error
+          if (
+            oauthError === "server_error" &&
+            errorDescription?.includes("Database error saving new user")
+          ) {
+            console.error(
+              "OAuth callback: Database error - new user cannot be saved"
+            );
+
+            // Try to handle the error gracefully by attempting to create user settings manually
+            try {
+              console.log("Attempting to handle user creation manually...");
+              // The user might still be authenticated even if database setup failed
+              const {
+                data: { user },
+              } = await supabase.auth.getUser();
+              if (user) {
+                console.log(
+                  "User is authenticated, attempting to create user settings..."
+                );
+                // Try to create user settings manually
+                const { error: settingsError } = await supabase
+                  .from("user_settings")
+                  .upsert({
+                    user_id: user.id,
+                    language: "en",
+                    theme: "light",
+                    notifications_enabled: true,
+                  });
+
+                if (settingsError) {
+                  console.error(
+                    "Failed to create user settings:",
+                    settingsError
+                  );
+                  console.error("Settings error details:", {
+                    message: settingsError.message,
+                    details: settingsError.details,
+                    hint: settingsError.hint,
+                    code: settingsError.code,
+                  });
+                  alert(
+                    "Account created but some settings could not be saved. You can continue using the app."
+                  );
+                } else {
+                  console.log("User settings created successfully");
+                  alert(
+                    "Account created successfully! Welcome to Too-Doo-List!"
+                  );
+                }
+
+                // Navigate to main app even if there were some issues
+                navigateToMainApp();
+                return;
+              }
+            } catch (manualError) {
+              console.error("Manual user creation failed:", manualError);
+            }
+
+            alert(
+              "Unable to create new user account. Please contact support or try with a different Google account."
+            );
+            return;
+          }
+
+          // Handle other OAuth errors
+          alert(
+            `Authentication error: ${decodeURIComponent(
+              errorDescription || oauthError
+            )}`
+          );
+          return;
+        }
+
+        // First, try to get the session from the URL if this is an OAuth callback
+        const { data, sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("OAuth callback: Error getting session:", sessionError);
           return;
         }
 
@@ -214,7 +300,10 @@ const SplashScreen = ({ navigation }) => {
           } = await supabase.auth.getUser();
 
           if (userError || !user) {
-            console.error("OAuth callback: Failed to get user after OAuth:", userError);
+            console.error(
+              "OAuth callback: Failed to get user after OAuth:",
+              userError
+            );
             return;
           }
 
@@ -222,6 +311,55 @@ const SplashScreen = ({ navigation }) => {
           navigateToMainApp();
         } else {
           console.warn("OAuth callback: No session found in callback");
+
+          // Add fallback mechanisms for incognito mode or session issues
+          console.log("Attempting fallback session recovery...");
+
+          // Try to get session with a delay (sometimes it takes time to propagate)
+          setTimeout(async () => {
+            try {
+              const { data: fallbackData, error: fallbackError } =
+                await supabase.auth.getSession();
+              if (fallbackData?.session) {
+                console.log("Fallback: Session found after delay");
+                navigateToMainApp();
+                return;
+              }
+
+              // Try one more time with getUser
+              const {
+                data: { user },
+                error: userError,
+              } = await supabase.auth.getUser();
+              if (user && !userError) {
+                console.log("Fallback: User found after delay");
+                navigateToMainApp();
+                return;
+              }
+
+              console.log("Fallback: No session found");
+            } catch (fallbackError) {
+              console.error("Fallback session recovery failed:", fallbackError);
+            }
+          }, 2000);
+
+          // Try again after 5 seconds
+          setTimeout(async () => {
+            try {
+              const {
+                data: { user },
+                error: userError,
+              } = await supabase.auth.getUser();
+              if (user && !userError) {
+                console.log("Final fallback: User found");
+                navigateToMainApp();
+                return;
+              }
+              console.log("Final fallback: No session found");
+            } catch (finalError) {
+              console.error("Final fallback failed:", finalError);
+            }
+          }, 5000);
         }
       } catch (error) {
         console.error("OAuth callback: Error handling OAuth callback:", error);
@@ -512,12 +650,31 @@ const SplashScreen = ({ navigation }) => {
       }
 
       // Use the correct redirect URL for Expo
-      const redirectUrl =
-        Platform.OS === "web"
-          ? "https://too-doo-list-app-20251005.netlify.app/auth/callback"
-          : "too-doo-list://auth/callback";
+      const getRedirectUrl = () => {
+        if (Platform.OS !== "web") {
+          return "too-doo-list://auth/callback";
+        }
+
+        // For web, determine the appropriate redirect URL
+        const currentOrigin = window.location.origin;
+        console.warn("VERBOSE: Current origin:", currentOrigin);
+
+        // Check if we're in development (localhost)
+        if (currentOrigin.includes("localhost")) {
+          return `${currentOrigin}/auth/callback`;
+        }
+
+        // Check if we're on the production Netlify domain
+        if (currentOrigin.includes("netlify.app")) {
+          return `${currentOrigin}/auth/callback`;
+        }
+
+        // Fallback to the configured production URL
+        return "https://too-doo-list-app-20251005.netlify.app/auth/callback";
+      };
+
+      const redirectUrl = getRedirectUrl();
       console.warn("VERBOSE: Using redirect URL:", redirectUrl);
-      console.warn("VERBOSE: Current origin:", window.location.origin);
 
       // Debug: Log current window location for web
       if (Platform.OS === "web") {
@@ -743,6 +900,26 @@ function LoginScreen({ navigation }) {
     try {
       setLoading(true);
       console.log("Starting Google Sign In...");
+
+      // Check if user is in incognito mode and warn them
+      if (Platform.OS === "web") {
+        try {
+          // Test if localStorage is available (incognito mode often restricts this)
+          const testKey = "__incognito_test__";
+          localStorage.setItem(testKey, "test");
+          localStorage.removeItem(testKey);
+        } catch (error) {
+          console.warn("Possible incognito mode detected");
+          const proceed = confirm(
+            "You appear to be using incognito/private browsing mode. " +
+              "Google Sign-In may not work properly in this mode. " +
+              "Would you like to continue anyway?"
+          );
+          if (!proceed) {
+            return;
+          }
+        }
+      }
 
       // Use the correct scheme from app.json
       const redirectUrl = AuthSession.makeRedirectUri({
