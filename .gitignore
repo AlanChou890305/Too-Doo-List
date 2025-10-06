@@ -14,6 +14,9 @@ web-build/
 # Generated files
 manifest.json
 
+# Database setup files (may contain sensitive schema info)
+*.sql
+
 # Environment variables
 .env
 .env.local

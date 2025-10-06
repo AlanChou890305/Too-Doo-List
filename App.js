@@ -71,12 +71,13 @@ const translations = {
     calendar: "Calendar",
     noTasks: "No tasks for this day.",
     addTask: "What needs to be done?",
-    createTask: "Create task",
-    editTask: "Edit task",
+    createTask: "Create Task",
+    editTask: "Edit Task",
     taskPlaceholder: "Enter your task here...",
     timePlaceholder: "Select time",
     link: "Link",
     linkPlaceholder: "Add a link",
+    taskLabel: "Task",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
@@ -211,6 +212,7 @@ const translations = {
     timePlaceholder: "選擇時間",
     link: "連結",
     linkPlaceholder: "添加連結",
+    taskLabel: "任務",
     save: "儲存",
     cancel: "取消",
     delete: "刪除",
@@ -1735,11 +1737,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          • You may create an account using Google Single Sign-On (SSO){"\n"}•
-          You are responsible for maintaining the confidentiality of your
-          account{"\n"}• You agree to provide accurate and complete information
-          {"\n"}• You are responsible for all activities that occur under your
-          account
+          {t.termsAccountsText}
         </Text>
 
         <Text
@@ -1750,7 +1748,7 @@ function TermsScreen() {
             marginBottom: 8,
           }}
         >
-          4. User Content and Data
+          {t.termsContent}
         </Text>
         <Text
           style={{
@@ -1760,10 +1758,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          • You retain ownership of all content you create within the app
-          {"\n"}• You are solely responsible for your content and data{"\n"}• We
-          do not claim ownership of your personal tasks or information
-          {"\n"}• You grant us necessary permissions to provide the service
+          {t.termsContentText}
         </Text>
 
         <Text
@@ -1774,7 +1769,7 @@ function TermsScreen() {
             marginBottom: 8,
           }}
         >
-          5. Acceptable Use
+          {t.termsAcceptableUse}
         </Text>
         <Text
           style={{
@@ -1784,11 +1779,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          You agree not to:{"\n"}• Use the app for any unlawful purpose or in
-          violation of any laws{"\n"}• Attempt to gain unauthorized access to
-          the app or its systems{"\n"}• Interfere with or disrupt the app's
-          functionality{"\n"}• Create content that is harmful, offensive, or
-          violates others' rights
+          {t.termsAcceptableUseText}
         </Text>
 
         <Text
@@ -1799,7 +1790,7 @@ function TermsScreen() {
             marginBottom: 8,
           }}
         >
-          6. Privacy and Data Protection
+          {t.termsPrivacy}
         </Text>
         <Text
           style={{
@@ -1809,10 +1800,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          Your privacy is important to us. Please review our Privacy Policy to
-          understand how we collect, use, and protect your information. By using
-          the app, you consent to the collection and use of information as
-          described in our Privacy Policy.
+          {t.termsPrivacyText}
         </Text>
 
         <Text
@@ -1823,7 +1811,7 @@ function TermsScreen() {
             marginBottom: 8,
           }}
         >
-          7. Service Availability
+          {t.termsAvailability}
         </Text>
         <Text
           style={{
@@ -1833,10 +1821,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          • We strive to maintain high service availability but cannot guarantee
-          uninterrupted access{"\n"}• We may perform maintenance that
-          temporarily affects service{"\n"}• We reserve the right to modify or
-          discontinue the service at any time
+          {t.termsAvailabilityText}
         </Text>
 
         <Text
@@ -1847,7 +1832,7 @@ function TermsScreen() {
             marginBottom: 8,
           }}
         >
-          8. Limitation of Liability
+          {t.termsLiability}
         </Text>
         <Text
           style={{
@@ -1857,10 +1842,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          The app is provided "as is" without warranties of any kind. We shall
-          not be liable for any direct, indirect, incidental, special, or
-          consequential damages resulting from the use or inability to use the
-          app.
+          {t.termsLiabilityText}
         </Text>
 
         <Text
@@ -1871,7 +1853,7 @@ function TermsScreen() {
             marginBottom: 8,
           }}
         >
-          9. Changes to Terms
+          {t.termsChanges}
         </Text>
         <Text
           style={{
@@ -1881,9 +1863,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          We reserve the right to modify these terms at any time. Changes will
-          be effective immediately upon posting. Your continued use of the app
-          constitutes acceptance of the modified terms.
+          {t.termsChangesText}
         </Text>
 
         <Text
@@ -1894,7 +1874,7 @@ function TermsScreen() {
             marginBottom: 8,
           }}
         >
-          10. Contact Information
+          {t.termsContact}
         </Text>
         <Text
           style={{
@@ -1904,8 +1884,7 @@ function TermsScreen() {
             lineHeight: 22,
           }}
         >
-          If you have any questions about these Terms of Use, please contact us
-          through the app's support channels.
+          {t.termsContactText}
         </Text>
 
         <Text
@@ -1917,8 +1896,7 @@ function TermsScreen() {
             fontStyle: "italic",
           }}
         >
-          By using To Do, you acknowledge that you have read, understood, and
-          agree to be bound by these Terms of Use.
+          {t.termsAcknowledgment}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -3487,11 +3465,11 @@ function CalendarScreen({ navigation, route }) {
               {editingTask ? t.editTask : t.createTask}
             </Text>
           </View>
-          <View style={{ marginBottom: 12 }}>
+          <View style={{ marginBottom: 24 }}>
             {/* Task Text Input - 移到最前面並設為 autoFocus */}
             <View style={{ marginBottom: 20 }}>
               <Text style={styles.label}>
-                Task <Text style={{ color: "#ff4444" }}>*</Text>
+                {t.taskLabel} <Text style={{ color: "#ff4444" }}>*</Text>
               </Text>
               <TextInput
                 style={styles.input}
@@ -3536,7 +3514,7 @@ function CalendarScreen({ navigation, route }) {
                   accessibilityLabel="Task link input"
                   accessibilityHint="Enter a URL link for this task"
                 />
-                {taskLink && (
+                {taskLink && editingTask && (
                   <TouchableOpacity
                     onPress={() => {
                       const url = taskLink.startsWith("http")
@@ -4434,6 +4412,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     paddingVertical: 0,
+    height: 50,
   },
   linkPreviewButton: {
     padding: 8,
@@ -5033,7 +5012,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: 12,
+    marginBottom: 24,
   },
   input: {
     borderWidth: 1,
@@ -5043,13 +5022,11 @@ const styles = StyleSheet.create({
     height: 50,
     fontSize: 16,
     backgroundColor: "#f9f9f9",
-    marginBottom: 16,
   },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 20,
     paddingHorizontal: 0,
     gap: 12,
   },
