@@ -245,14 +245,26 @@ const SplashScreen = ({ navigation }) => {
 
         if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
           try {
-            // Get the current session
-            const {
-              data: { session: currentSession },
-              error: sessionError,
-            } = await supabase.auth.getSession();
+            // If we already have a session from the event, use it
+            let currentSession = session;
 
-            if (sessionError || !currentSession) {
-              console.error("Error getting current session:", sessionError);
+            // If no session from event, try to get it
+            if (!currentSession) {
+              const {
+                data: { session: fetchedSession },
+                error: sessionError,
+              } = await supabase.auth.getSession();
+
+              if (sessionError) {
+                console.error("Error getting current session:", sessionError);
+                return;
+              }
+
+              currentSession = fetchedSession;
+            }
+
+            if (!currentSession) {
+              console.warn("No session available after auth state change");
               return;
             }
 
@@ -272,6 +284,13 @@ const SplashScreen = ({ navigation }) => {
           } catch (error) {
             console.error("Error in auth state change handler:", error);
           }
+        } else if (event === "SIGNED_OUT") {
+          console.log("User signed out, resetting to splash screen");
+          // Navigate back to splash screen when user signs out
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Splash" }],
+          });
         }
       });
 
@@ -377,21 +396,66 @@ const SplashScreen = ({ navigation }) => {
     // Initial check for session or auth callback
     checkInitialUrl();
 
-    // Add a fallback check after a short delay for OAuth
-    const fallbackCheck = setTimeout(async () => {
-      console.warn("Fallback: Checking session after delay");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        console.warn("Fallback: Session found, navigating to main app");
-        navigateToMainApp();
+    // Add multiple fallback checks for OAuth
+    const fallbackChecks = [
+      setTimeout(async () => {
+        console.warn("Fallback 1: Checking session after 2 seconds");
+        await checkSessionAndNavigate();
+      }, 2000),
+
+      setTimeout(async () => {
+        console.warn("Fallback 2: Checking session after 5 seconds");
+        await checkSessionAndNavigate();
+      }, 5000),
+
+      setTimeout(async () => {
+        console.warn("Fallback 3: Final session check after 10 seconds");
+        await checkSessionAndNavigate();
+      }, 10000),
+    ];
+
+    const checkSessionAndNavigate = async () => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("Fallback: Error getting session:", sessionError);
+          return;
+        }
+
+        if (session) {
+          console.warn("Fallback: Session found, verifying user...");
+          // Verify the user before navigating
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+
+          if (userError || !user) {
+            console.error("Fallback: User verification failed:", userError);
+            return;
+          }
+
+          console.warn("Fallback: User verified, navigating to main app");
+          navigateToMainApp();
+          return true; // Success
+        } else {
+          console.warn("Fallback: No session found");
+          return false;
+        }
+      } catch (error) {
+        console.error("Fallback: Error in session check:", error);
+        return false;
       }
-    }, 3000);
+    };
 
     // Cleanup
     return () => {
-      clearTimeout(fallbackCheck);
+      // Clear all fallback timeouts
+      fallbackChecks.forEach((timeoutId) => clearTimeout(timeoutId));
       if (subscription?.remove) {
         subscription.remove();
       } else if (subscription) {
@@ -447,6 +511,15 @@ const SplashScreen = ({ navigation }) => {
           : "too-doo-list://auth/callback";
       console.warn("VERBOSE: Using redirect URL:", redirectUrl);
 
+      // Debug: Log current window location for web
+      if (Platform.OS === "web") {
+        console.warn("VERBOSE: Current window location:", {
+          origin: window.location.origin,
+          href: window.location.href,
+          pathname: window.location.pathname,
+        });
+      }
+
       // Start the OAuth flow
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -467,6 +540,7 @@ const SplashScreen = ({ navigation }) => {
 
       if (data?.url) {
         console.warn("VERBOSE: Opening auth URL in browser");
+        console.warn("VERBOSE: Auth URL:", data.url);
         if (Platform.OS === "web") {
           // For web, we need to redirect to the auth URL
           console.warn("VERBOSE: Redirecting to:", data.url);
@@ -1778,10 +1852,14 @@ function SettingScreen() {
                 setModalText(t.signOutSuccess || "Successfully signed out!");
                 setModalVisible(true);
 
-                // Force a re-render of the app
-                console.log("Forcing re-render...");
-                setModalVisible(false);
-                setTimeout(() => setModalVisible(true), 100);
+                // Navigate back to splash screen after logout
+                setTimeout(() => {
+                  setModalVisible(false);
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "Splash" }],
+                  });
+                }, 1500); // Show success message for 1.5 seconds then navigate
               } catch (error) {
                 console.error("Error signing out:", error);
                 console.error("Error details:", {
@@ -1904,14 +1982,16 @@ function CalendarScreen({ navigation, route }) {
     if (timePickerVisible && Platform.OS === "web") {
       setTimeout(() => {
         if (hourScrollRef.current) {
+          // 滾動到中間位置，讓用戶可以向兩個方向滾動
           hourScrollRef.current.scrollTo({
-            y: parseInt(tempHour) * 34,
+            y: (parseInt(tempHour) + 2 * 24) * 34, // 從第三個循環開始
             animated: false,
           });
         }
         if (minuteScrollRef.current) {
+          // 滾動到中間位置，讓用戶可以向兩個方向滾動
           minuteScrollRef.current.scrollTo({
-            y: parseInt(tempMinute) * 34,
+            y: (parseInt(tempMinute) + 2 * 60) * 34, // 從第三個循環開始
             animated: false,
           });
         }
@@ -1922,8 +2002,9 @@ function CalendarScreen({ navigation, route }) {
   // 處理小時滾動事件
   const handleHourScroll = (event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
-    const index = Math.round(scrollY / 34);
-    const newHour = Math.max(0, Math.min(23, index));
+    const itemHeight = 34;
+    const index = Math.round(scrollY / itemHeight);
+    const newHour = index % 24; // 使用模運算實現循環
     // 只有當滾動到完全不同的位置時才更新
     if (Math.abs(parseInt(tempHour) - newHour) >= 1) {
       setTempHour(newHour.toString().padStart(2, "0"));
@@ -1933,8 +2014,9 @@ function CalendarScreen({ navigation, route }) {
   // 處理分鐘滾動事件
   const handleMinuteScroll = (event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
-    const index = Math.round(scrollY / 34);
-    const newMinute = Math.max(0, Math.min(59, index));
+    const itemHeight = 34;
+    const index = Math.round(scrollY / itemHeight);
+    const newMinute = index % 60; // 使用模運算實現循環
     // 只有當滾動到完全不同的位置時才更新
     if (Math.abs(parseInt(tempMinute) - newMinute) >= 1) {
       setTempMinute(newMinute.toString().padStart(2, "0"));
@@ -2576,30 +2658,37 @@ function CalendarScreen({ navigation, route }) {
                                 }
                                 onScroll={handleHourScroll}
                                 scrollEventThrottle={200}
+                                pagingEnabled={false}
+                                decelerationRate="fast"
                               >
-                                {Array.from({ length: 24 }, (_, i) => (
-                                  <TouchableOpacity
-                                    key={i}
-                                    style={[
-                                      styles.webTimePickerItem,
-                                      parseInt(tempHour) === i &&
-                                        styles.webTimePickerItemSelected,
-                                    ]}
-                                    onPress={() =>
-                                      setTempHour(i.toString().padStart(2, "0"))
-                                    }
-                                  >
-                                    <Text
+                                {/* 添加額外的項目來實現循環效果 */}
+                                {Array.from({ length: 5 }, (_, cycle) =>
+                                  Array.from({ length: 24 }, (_, i) => (
+                                    <TouchableOpacity
+                                      key={`${cycle}-${i}`}
                                       style={[
-                                        styles.webTimePickerText,
+                                        styles.webTimePickerItem,
                                         parseInt(tempHour) === i &&
-                                          styles.webTimePickerTextSelected,
+                                          styles.webTimePickerItemSelected,
                                       ]}
+                                      onPress={() =>
+                                        setTempHour(
+                                          i.toString().padStart(2, "0")
+                                        )
+                                      }
                                     >
-                                      {i.toString().padStart(2, "0")}
-                                    </Text>
-                                  </TouchableOpacity>
-                                ))}
+                                      <Text
+                                        style={[
+                                          styles.webTimePickerText,
+                                          parseInt(tempHour) === i &&
+                                            styles.webTimePickerTextSelected,
+                                        ]}
+                                      >
+                                        {i.toString().padStart(2, "0")}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  ))
+                                )}
                               </ScrollView>
                             </View>
                             <Text style={styles.webTimeSeparator}>:</Text>
@@ -2616,32 +2705,37 @@ function CalendarScreen({ navigation, route }) {
                                 }
                                 onScroll={handleMinuteScroll}
                                 scrollEventThrottle={200}
+                                pagingEnabled={false}
+                                decelerationRate="fast"
                               >
-                                {Array.from({ length: 60 }, (_, i) => (
-                                  <TouchableOpacity
-                                    key={i}
-                                    style={[
-                                      styles.webTimePickerItem,
-                                      parseInt(tempMinute) === i &&
-                                        styles.webTimePickerItemSelected,
-                                    ]}
-                                    onPress={() =>
-                                      setTempMinute(
-                                        i.toString().padStart(2, "0")
-                                      )
-                                    }
-                                  >
-                                    <Text
+                                {/* 添加額外的項目來實現循環效果 */}
+                                {Array.from({ length: 5 }, (_, cycle) =>
+                                  Array.from({ length: 60 }, (_, i) => (
+                                    <TouchableOpacity
+                                      key={`${cycle}-${i}`}
                                       style={[
-                                        styles.webTimePickerText,
+                                        styles.webTimePickerItem,
                                         parseInt(tempMinute) === i &&
-                                          styles.webTimePickerTextSelected,
+                                          styles.webTimePickerItemSelected,
                                       ]}
+                                      onPress={() =>
+                                        setTempMinute(
+                                          i.toString().padStart(2, "0")
+                                        )
+                                      }
                                     >
-                                      {i.toString().padStart(2, "0")}
-                                    </Text>
-                                  </TouchableOpacity>
-                                ))}
+                                      <Text
+                                        style={[
+                                          styles.webTimePickerText,
+                                          parseInt(tempMinute) === i &&
+                                            styles.webTimePickerTextSelected,
+                                        ]}
+                                      >
+                                        {i.toString().padStart(2, "0")}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  ))
+                                )}
                               </ScrollView>
                             </View>
                           </View>
