@@ -48,6 +48,7 @@ export class TaskService {
           id: task.id,
           title: task.title,
           time: task.time,
+          link: task.link,
           date: task.date,
           checked: task.checked,
           user: {
@@ -101,6 +102,7 @@ export class TaskService {
           id: task.id,
           title: task.title,
           time: task.time,
+          link: task.link,
           date: task.date,
           checked: task.checked,
           user: {
@@ -136,6 +138,7 @@ export class TaskService {
         user_id: user.id,
         title: task.title,
         time: task.time || null,
+        link: task.link || null,
         date: task.date,
         checked: task.checked || false,
       });
@@ -161,6 +164,7 @@ export class TaskService {
         user_display_name: userDisplayName,
         title: task.title,
         time: task.time || null,
+        link: task.link || null,
         date: task.date,
         checked: task.checked || false,
         priority: task.priority || "medium",
@@ -204,6 +208,7 @@ export class TaskService {
         id: data.id,
         title: data.title,
         time: data.time,
+        link: data.link,
         date: data.date,
         checked: data.checked,
       };
@@ -252,6 +257,7 @@ export class TaskService {
         id: data.id,
         title: data.title,
         time: data.time,
+        link: data.link,
         date: data.date,
         checked: data.checked,
       };

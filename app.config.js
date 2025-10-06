@@ -1,9 +1,9 @@
 module.exports = {
   expo: {
-    name: "Too Doo List",
+    name: "To Do",
     slug: "too-doo-list",
     version: "1.0.0",
-    description: "Smart Task Management & Productivity App with Google SSO",
+    description: "Simple and intuitive task management app with Google SSO",
     main: "node_modules/expo/AppEntry.js",
     orientation: "portrait",
     userInterfaceStyle: "light",
@@ -49,44 +49,44 @@ module.exports = {
         {
           name: "description",
           content:
-            "Too Doo List - Smart Task Management App with Google SSO. Organize your daily tasks, boost productivity, and achieve your goals with our intuitive calendar-based to-do list app.",
+            "To Do - Simple and intuitive task management app with Google SSO. Organize your daily tasks, boost productivity, and achieve your goals with our clean and easy-to-use to-do list app.",
         },
         {
           name: "keywords",
           content:
             "task management, to-do list, productivity app, calendar, Google SSO, task organizer, daily planner, goal tracking",
         },
-        { name: "author", content: "Too Doo List Team" },
+        { name: "author", content: "To Do Team" },
         { name: "viewport", content: "width=device-width, initial-scale=1.0" },
         {
           property: "og:title",
-          content: "Too Doo List - Smart Task Management & Productivity App",
+          content: "To Do - Simple Task Management App",
         },
         {
           property: "og:description",
           content:
-            "Transform your productivity with Too Doo List! A modern, intuitive task management app featuring Google SSO, calendar integration, and smart organization tools. Stay focused, achieve more, and never miss a deadline again.",
+            "Transform your productivity with To Do! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
         },
         { property: "og:image", content: "./assets/logo.png" },
         { property: "og:type", content: "website" },
         { property: "og:url", content: "https://too-doo-list.netlify.app" },
-        { property: "og:site_name", content: "Too Doo List" },
+        { property: "og:site_name", content: "To Do" },
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: "Too Doo List - Smart Task Management & Productivity App",
+          content: "To Do - Simple Task Management App",
         },
         {
           name: "twitter:description",
           content:
-            "Transform your productivity with Too Doo List! A modern, intuitive task management app featuring Google SSO, calendar integration, and smart organization tools. Stay focused, achieve more, and never miss a deadline again.",
+            "Transform your productivity with To Do! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
         },
         { name: "twitter:image", content: "./assets/logo.png" },
         { name: "twitter:creator", content: "@TooDooList" },
         { name: "theme-color", content: "#6c63ff" },
         { name: "apple-mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-        { name: "apple-mobile-web-app-title", content: "Too Doo List" },
+        { name: "apple-mobile-web-app-title", content: "To Do" },
       ],
     },
 

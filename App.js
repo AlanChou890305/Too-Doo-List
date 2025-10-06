@@ -75,6 +75,8 @@ const translations = {
     editTask: "Edit task",
     taskPlaceholder: "Enter your task here...",
     timePlaceholder: "Select time",
+    link: "Link",
+    linkPlaceholder: "Add a link",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
@@ -99,12 +101,89 @@ const translations = {
       "December",
     ],
     weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    signOutSuccess: "Successfully signed out!",
-    alreadySignedOut: "You are already signed out.",
-    signOutError: "Failed to sign out. Please try again.",
+    logoutSuccess: "Successfully logged out!",
+    alreadyLoggedOut: "You are already logged out.",
+    logoutError: "Failed to log out. Please try again.",
     accountType: "Account Type",
+    // Terms of Use translations
+    termsTitle: "Terms of Use",
+    termsLastUpdated: "Last updated:",
+    termsAcceptance: "1. Acceptance of Terms",
+    termsAcceptanceText:
+      'By accessing and using To Do ("the App"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.',
+    termsDescription: "2. Description of Service",
+    termsDescriptionText:
+      "To Do is a task management application that allows users to create, organize, and manage their daily tasks and schedules. The app provides calendar integration, Google Single Sign-On authentication, and task organization features.",
+    termsAccounts: "3. User Accounts and Authentication",
+    termsAccountsText:
+      "• You may create an account using Google Single Sign-On (SSO)\n• You are responsible for maintaining the confidentiality of your account\n• You agree to provide accurate and complete information\n• You are responsible for all activities that occur under your account",
+    termsContent: "4. User Content and Data",
+    termsContentText:
+      "• You retain ownership of all content you create within the app\n• You are solely responsible for your content and data\n• We do not claim ownership of your personal tasks or information\n• You grant us necessary permissions to provide the service",
+    termsAcceptableUse: "5. Acceptable Use",
+    termsAcceptableUseText:
+      "You agree not to:\n• Use the app for any unlawful purpose or in violation of any laws\n• Attempt to gain unauthorized access to the app or its systems\n• Interfere with or disrupt the app's functionality\n• Create content that is harmful, offensive, or violates others' rights",
+    termsPrivacy: "6. Privacy and Data Protection",
+    termsPrivacyText:
+      "Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information. By using the app, you consent to the collection and use of information as described in our Privacy Policy.",
+    termsAvailability: "7. Service Availability",
+    termsAvailabilityText:
+      "• We strive to maintain high service availability but cannot guarantee uninterrupted access\n• We may perform maintenance that temporarily affects service\n• We reserve the right to modify or discontinue the service at any time",
+    termsLiability: "8. Limitation of Liability",
+    termsLiabilityText:
+      'The app is provided "as is" without warranties of any kind. We shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the app.',
+    termsChanges: "9. Changes to Terms",
+    termsChangesText:
+      "We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting. Your continued use of the app constitutes acceptance of the modified terms.",
+    termsContact: "10. Contact Information",
+    termsContactText:
+      "If you have any questions about these Terms of Use, please contact us through the app's support channels.",
+    termsAcknowledgment:
+      "By using To Do, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use.",
+    // Privacy Policy translations
+    privacyTitle: "Privacy Policy",
+    privacyLastUpdated: "Last updated:",
+    privacyIntroduction: "1. Introduction",
+    privacyIntroductionText:
+      'To Do ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our task management application.',
+    privacyInformation: "2. Information We Collect",
+    privacyAccountInfo: "Account Information:",
+    privacyAccountInfoText:
+      "• Email address (via Google SSO)\n• Display name\n• Profile picture (if provided by Google)\n\nTask Data:\n• Task titles, descriptions, and content\n• Due dates and times\n• Task categories and priorities\n• Links and attachments\n\nUsage Data:\n• App usage patterns and preferences\n• Device information and settings",
+    privacyUse: "3. How We Use Your Information",
+    privacyUseText:
+      "We use your information to:\n• Provide and maintain the app's functionality\n• Sync your tasks across devices\n• Improve our services and user experience\n• Provide customer support\n• Ensure security and prevent fraud",
+    privacyStorage: "4. Data Storage and Security",
+    privacyStorageText:
+      "• Your data is stored securely using Supabase cloud infrastructure\n• We implement industry-standard security measures\n• Data is encrypted in transit and at rest\n• Access to your data is restricted to authorized personnel only\n• We regularly review and update our security practices",
+    privacySharing: "5. Data Sharing and Disclosure",
+    privacySharingText:
+      "We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:\n• With your explicit consent\n• To comply with legal obligations\n• To protect our rights and prevent fraud\n• With service providers who assist in app operations (under strict confidentiality agreements)",
+    privacyThirdParty: "6. Third-Party Services",
+    privacyThirdPartyText:
+      "Our app integrates with:\n• Google: For authentication via Google SSO\n• Supabase: For secure data storage and backend services\n\nThese services have their own privacy policies, which we encourage you to review.",
+    privacyRights: "7. Your Rights and Choices",
+    privacyRightsText:
+      "You have the right to:\n• Access your personal data\n• Correct inaccurate information\n• Delete your account and associated data\n• Export your task data\n• Opt out of certain data processing activities\n• Withdraw consent at any time",
+    privacyRetention: "8. Data Retention",
+    privacyRetentionText:
+      "• We retain your data for as long as your account is active\n• You can delete your account at any time through the app settings\n• Some data may be retained for legal or security purposes\n• Deleted data is permanently removed from our systems",
+    privacyChildren: "9. Children's Privacy",
+    privacyChildrenText:
+      "Our app is not intended for children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us immediately.",
+    privacyInternational: "10. International Data Transfers",
+    privacyInternationalText:
+      "Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your data in accordance with this Privacy Policy.",
+    privacyChanges: "11. Changes to This Policy",
+    privacyChangesText:
+      'We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy in the app and updating the "Last updated" date. Your continued use of the app after such changes constitutes acceptance of the updated policy.',
+    privacyContact: "12. Contact Us",
+    privacyContactText:
+      "If you have any questions about this Privacy Policy or our data practices, please contact us through the app's support channels or email us at privacy@todo-app.com.",
+    privacyAcknowledgment:
+      "By using To Do, you acknowledge that you have read and understood this Privacy Policy and agree to the collection, use, and disclosure of your information as described herein.",
     googleAccount: "Google Account",
-    signOut: "Sign Out",
+    logout: "Log out",
     selectTime: "Select Time",
     hour: "Hour",
     minute: "Min",
@@ -130,6 +209,8 @@ const translations = {
     editTask: "編輯任務",
     taskPlaceholder: "在這裡輸入您的任務...",
     timePlaceholder: "選擇時間",
+    link: "連結",
+    linkPlaceholder: "添加連結",
     save: "儲存",
     cancel: "取消",
     delete: "刪除",
@@ -154,12 +235,89 @@ const translations = {
       "十二月",
     ],
     weekDays: ["日", "一", "二", "三", "四", "五", "六"],
-    signOutSuccess: "成功登出！",
-    alreadySignedOut: "您已經登出。",
-    signOutError: "登出失敗。請再試一次。",
+    logoutSuccess: "成功登出！",
+    alreadyLoggedOut: "您已經登出。",
+    logoutError: "登出失敗。請再試一次。",
     accountType: "帳號類型",
+    // Terms of Use translations
+    termsTitle: "使用條款",
+    termsLastUpdated: "最後更新：",
+    termsAcceptance: "1. 條款接受",
+    termsAcceptanceText:
+      "通過訪問和使用 To Do（「應用程式」），您接受並同意受本協議條款的約束。如果您不同意遵守上述條款，請勿使用此服務。",
+    termsDescription: "2. 服務描述",
+    termsDescriptionText:
+      "To Do 是一個任務管理應用程式，允許用戶創建、組織和管理日常任務和日程安排。該應用程式提供日曆整合、Google 單一登入認證和任務組織功能。",
+    termsAccounts: "3. 用戶帳號和認證",
+    termsAccountsText:
+      "• 您可以使用 Google 單一登入（SSO）創建帳號\n• 您有責任維護帳號的機密性\n• 您同意提供準確和完整的信息\n• 您對帳號下發生的所有活動負責",
+    termsContent: "4. 用戶內容和數據",
+    termsContentText:
+      "• 您保留在應用程式中創建的所有內容的所有權\n• 您對自己的內容和數據負全責\n• 我們不聲稱擁有您的個人任務或信息的所有權\n• 您授予我們提供服務所需的必要權限",
+    termsAcceptableUse: "5. 可接受的使用",
+    termsAcceptableUseText:
+      "您同意不：\n• 將應用程式用於任何非法目的或違反任何法律\n• 嘗試未經授權訪問應用程式或其系統\n• 干擾或破壞應用程式的功能\n• 創建有害、冒犯性或侵犯他人權利的內容",
+    termsPrivacy: "6. 隱私和數據保護",
+    termsPrivacyText:
+      "您的隱私對我們很重要。請查看我們的隱私政策，了解我們如何收集、使用和保護您的信息。通過使用應用程式，您同意按照我們隱私政策中描述的方式收集和使用信息。",
+    termsAvailability: "7. 服務可用性",
+    termsAvailabilityText:
+      "• 我們努力維持高服務可用性，但無法保證不間斷的訪問\n• 我們可能會進行暫時影響服務的維護\n• 我們保留隨時修改或終止服務的權利",
+    termsLiability: "8. 責任限制",
+    termsLiabilityText:
+      "應用程式按「現狀」提供，不提供任何形式的保證。對於因使用或無法使用應用程式而導致的任何直接、間接、偶然、特殊或後果性損害，我們不承擔責任。",
+    termsChanges: "9. 條款變更",
+    termsChangesText:
+      "我們保留隨時修改這些條款的權利。變更將在發布後立即生效。您繼續使用應用程式即表示接受修改後的條款。",
+    termsContact: "10. 聯繫信息",
+    termsContactText:
+      "如果您對這些使用條款有任何疑問，請通過應用程式的支持渠道聯繫我們。",
+    termsAcknowledgment:
+      "通過使用 To Do，您確認已閱讀、理解並同意受這些使用條款的約束。",
+    // Privacy Policy translations
+    privacyTitle: "隱私政策",
+    privacyLastUpdated: "最後更新：",
+    privacyIntroduction: "1. 介紹",
+    privacyIntroductionText:
+      "To Do（「我們」、「我們的」或「我們」）致力於保護您的隱私。本隱私政策解釋了我們在您使用我們的任務管理應用程式時如何收集、使用、披露和保護您的信息。",
+    privacyInformation: "2. 我們收集的信息",
+    privacyAccountInfo: "帳號信息：",
+    privacyAccountInfoText:
+      "• 電子郵件地址（通過 Google SSO）\n• 顯示名稱\n• 個人資料圖片（如果由 Google 提供）\n\n任務數據：\n• 任務標題、描述和內容\n• 截止日期和時間\n• 任務類別和優先級\n• 連結和附件\n\n使用數據：\n• 應用程式使用模式和偏好\n• 設備信息和設置",
+    privacyUse: "3. 我們如何使用您的信息",
+    privacyUseText:
+      "我們使用您的信息來：\n• 提供和維護應用程式的功能\n• 跨設備同步您的任務\n• 改善我們的服務和用戶體驗\n• 提供客戶支持\n• 確保安全並防止欺詐",
+    privacyStorage: "4. 數據存儲和安全",
+    privacyStorageText:
+      "• 您的數據使用 Supabase 雲基礎設施安全存儲\n• 我們實施行業標準的安全措施\n• 數據在傳輸和靜止時都經過加密\n• 只有授權人員才能訪問您的數據\n• 我們定期審查和更新我們的安全實踐",
+    privacySharing: "5. 數據共享和披露",
+    privacySharingText:
+      "我們不出售、交易或出租您的個人信息給第三方。我們只在以下情況下共享您的信息：\n• 在您明確同意的情況下\n• 為了遵守法律義務\n• 為了保護我們的權利並防止欺詐\n• 與協助應用程式運營的服務提供商（在嚴格的保密協議下）",
+    privacyThirdParty: "6. 第三方服務",
+    privacyThirdPartyText:
+      "我們的應用程式整合了：\n• Google：用於通過 Google SSO 進行認證\n• Supabase：用於安全的數據存儲和後端服務\n\n這些服務有自己的隱私政策，我們鼓勵您查看。",
+    privacyRights: "7. 您的權利和選擇",
+    privacyRightsText:
+      "您有權：\n• 訪問您的個人數據\n• 更正不準確的信息\n• 刪除您的帳號和相關數據\n• 導出您的任務數據\n• 選擇退出某些數據處理活動\n• 隨時撤回同意",
+    privacyRetention: "8. 數據保留",
+    privacyRetentionText:
+      "• 我們在您的帳號活躍期間保留您的數據\n• 您可以隨時通過應用程式設置刪除您的帳號\n• 某些數據可能因法律或安全目的而保留\n• 已刪除的數據將從我們的系統中永久移除",
+    privacyChildren: "9. 兒童隱私",
+    privacyChildrenText:
+      "我們的應用程式不適用於 13 歲以下的兒童。我們不會故意收集 13 歲以下兒童的個人信息。如果您發現兒童向我們提供了個人信息，請立即聯繫我們。",
+    privacyInternational: "10. 國際數據傳輸",
+    privacyInternationalText:
+      "您的信息可能會被傳輸到您所在國家以外的國家並在那裡處理。我們確保有適當的保障措施來根據本隱私政策保護您的數據。",
+    privacyChanges: "11. 本政策的變更",
+    privacyChangesText:
+      "我們可能會不時更新本隱私政策。我們將通過在應用程式中發布新的隱私政策並更新「最後更新」日期來通知您任何變更。您在變更後繼續使用應用程式即表示接受更新後的政策。",
+    privacyContact: "12. 聯繫我們",
+    privacyContactText:
+      "如果您對本隱私政策或我們的數據實踐有任何疑問，請通過應用程式的支持渠道聯繫我們，或發送電子郵件至 privacy@todo-app.com。",
+    privacyAcknowledgment:
+      "通過使用 To Do，您確認已閱讀並理解本隱私政策，並同意按照此處描述的方式收集、使用和披露您的信息。",
     googleAccount: "Google 帳號",
-    signOut: "登出",
+    logout: "登出",
     selectTime: "選擇時間",
     hour: "時",
     minute: "分",
@@ -215,6 +373,12 @@ const SplashScreen = ({ navigation }) => {
             console.error(
               "OAuth callback: Database error - new user cannot be saved"
             );
+            console.error("Full OAuth error details:", {
+              error: oauthError,
+              errorCode: urlParams.get("error_code"),
+              errorDescription: decodeURIComponent(errorDescription || ""),
+              fullUrl: window.location.href,
+            });
 
             // Try to handle the error gracefully by attempting to create user settings manually
             try {
@@ -222,11 +386,20 @@ const SplashScreen = ({ navigation }) => {
               // The user might still be authenticated even if database setup failed
               const {
                 data: { user },
+                error: userError,
               } = await supabase.auth.getUser();
+
+              console.log("User authentication check:", { user, userError });
+
               if (user) {
                 console.log(
                   "User is authenticated, attempting to create user settings..."
                 );
+                console.log("User details:", {
+                  id: user.id,
+                  email: user.email,
+                  created_at: user.created_at,
+                });
                 // Try to create user settings manually
                 const { error: settingsError } = await supabase
                   .from("user_settings")
@@ -248,14 +421,30 @@ const SplashScreen = ({ navigation }) => {
                     hint: settingsError.hint,
                     code: settingsError.code,
                   });
+
+                  // Try to get more detailed error information
+                  console.error(
+                    "Full settings error object:",
+                    JSON.stringify(settingsError, null, 2)
+                  );
+
+                  // Check if user_settings table exists and is accessible
+                  const { data: tableCheck, error: tableError } = await supabase
+                    .from("user_settings")
+                    .select("id")
+                    .limit(1);
+
+                  console.log("Table accessibility check:", {
+                    tableCheck,
+                    tableError,
+                  });
+
                   alert(
                     "Account created but some settings could not be saved. You can continue using the app."
                   );
                 } else {
                   console.log("User settings created successfully");
-                  alert(
-                    "Account created successfully! Welcome to Too-Doo-List!"
-                  );
+                  alert("Account created successfully! Welcome to To Do!");
                 }
 
                 // Navigate to main app even if there were some issues
@@ -430,8 +619,8 @@ const SplashScreen = ({ navigation }) => {
             console.error("Error in auth state change handler:", error);
           }
         } else if (event === "SIGNED_OUT") {
-          console.log("User signed out, resetting to splash screen");
-          // Navigate back to splash screen when user signs out
+          console.log("User logged out, resetting to splash screen");
+          // Navigate back to splash screen when user logs out
           navigation.reset({
             index: 0,
             routes: [{ name: "Splash" }],
@@ -822,7 +1011,7 @@ const SplashScreen = ({ navigation }) => {
             letterSpacing: 1,
           }}
         >
-          Too Doo List
+          To Do
         </Text>
         <View style={{ width: 260 }}>
           <TouchableOpacity
@@ -884,7 +1073,7 @@ const SplashScreen = ({ navigation }) => {
             {" "}
             Privacy Policy
           </Text>
-          .
+          <Text>.</Text>
         </Text>
       </View>
     </SafeAreaView>
@@ -1194,7 +1383,7 @@ function LoginScreen({ navigation }) {
             {" "}
             Privacy Policy
           </Text>
-          .
+          <Text>.</Text>
         </Text>
       </View>
     </SafeAreaView>
@@ -1399,7 +1588,7 @@ function SignupScreen({ navigation }) {
             {" "}
             Privacy Policy
           </Text>
-          .
+          <Text>.</Text>
         </Text>
       </View>
     </SafeAreaView>
@@ -1410,7 +1599,11 @@ function TermsScreen() {
   const { t } = useContext(LanguageContext);
   const navigation = useNavigation();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "rgb(247, 247, 250)" }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "rgb(247, 247, 250)" }}
+      accessibilityViewIsModal={true}
+      accessibilityLabel="Terms of Use Screen"
+    >
       {/* Custom Header with Back Chevron */}
       <View
         style={{
@@ -1447,74 +1640,287 @@ function TermsScreen() {
             />
           </Svg>
         </TouchableOpacity>
+      </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 20,
+          paddingBottom: 40,
+          flexGrow: 1,
+        }}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+      >
         <Text
           style={{
-            fontSize: 22,
-            color: "#222",
+            fontSize: 20,
+            color: "#333",
             fontWeight: "bold",
-            letterSpacing: 0.5,
-            textAlign: "left",
-            marginLeft: 4,
+            marginBottom: 16,
+            textAlign: "center",
           }}
         >
-          {t.terms}
+          {t.termsTitle}
         </Text>
-      </View>
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        {/* Simple Hourglass Illustration */}
-        <Svg width={56} height={56} style={{ marginBottom: 12 }}>
-          <Rect x={18} y={10} width={20} height={4} rx={2} fill="#E0E0E0" />
-          <Rect x={18} y={42} width={20} height={4} rx={2} fill="#E0E0E0" />
-          <Path
-            d="M20 14 Q28 28 20 42"
-            stroke="#B0B0B0"
-            strokeWidth={2}
-            fill="none"
-          />
-          <Path
-            d="M36 14 Q28 28 36 42"
-            stroke="#B0B0B0"
-            strokeWidth={2}
-            fill="none"
-          />
-          <Ellipse cx={28} cy={28} rx={5} ry={3} fill="#FFD580" />
-          <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
-        </Svg>
-        <ScrollView
-          style={{ paddingHorizontal: 24 }}
-          contentContainerStyle={{ paddingBottom: 40 }}
+
+        <Text
+          style={{
+            fontSize: 14,
+            color: "#666",
+            marginBottom: 20,
+            textAlign: "center",
+          }}
         >
-          <Text
-            style={{
-              fontSize: 18,
-              color: "#444",
-              fontWeight: "bold",
-              marginBottom: 12,
-            }}
-          >
-            Terms of Use
-          </Text>
-          <Text style={{ fontSize: 15, color: "#444", marginBottom: 10 }}>
-            Welcome to Too-Doo List. By using this application, you agree to the
-            following terms and conditions:
-          </Text>
-          <Text style={{ fontSize: 15, color: "#444", marginBottom: 10 }}>
-            1. You are responsible for maintaining the confidentiality of your
-            device and any information stored within the app.{"\n"}
-            2. All content you create or manage within the app remains your
-            responsibility.{"\n"}
-            3. The app is provided "as is" without warranties of any kind,
-            either express or implied.{"\n"}
-            4. We are not liable for any loss of data, productivity, or other
-            damages arising from the use of this app.{"\n"}
-            5. You agree not to use the app for any unlawful or prohibited
-            activities.
-          </Text>
-          <Text style={{ fontSize: 14, color: "#888", marginTop: 12 }}>
-            For questions regarding these terms, please contact support.
-          </Text>
-        </ScrollView>
-      </View>
+          {t.termsLastUpdated} {new Date().toLocaleDateString()}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.termsAcceptance}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.termsAcceptanceText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.termsDescription}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.termsDescriptionText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.termsAccounts}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          • You may create an account using Google Single Sign-On (SSO){"\n"}•
+          You are responsible for maintaining the confidentiality of your
+          account{"\n"}• You agree to provide accurate and complete information
+          {"\n"}• You are responsible for all activities that occur under your
+          account
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          4. User Content and Data
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          • You retain ownership of all content you create within the app
+          {"\n"}• You are solely responsible for your content and data{"\n"}• We
+          do not claim ownership of your personal tasks or information
+          {"\n"}• You grant us necessary permissions to provide the service
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          5. Acceptable Use
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          You agree not to:{"\n"}• Use the app for any unlawful purpose or in
+          violation of any laws{"\n"}• Attempt to gain unauthorized access to
+          the app or its systems{"\n"}• Interfere with or disrupt the app's
+          functionality{"\n"}• Create content that is harmful, offensive, or
+          violates others' rights
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          6. Privacy and Data Protection
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          Your privacy is important to us. Please review our Privacy Policy to
+          understand how we collect, use, and protect your information. By using
+          the app, you consent to the collection and use of information as
+          described in our Privacy Policy.
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          7. Service Availability
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          • We strive to maintain high service availability but cannot guarantee
+          uninterrupted access{"\n"}• We may perform maintenance that
+          temporarily affects service{"\n"}• We reserve the right to modify or
+          discontinue the service at any time
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          8. Limitation of Liability
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          The app is provided "as is" without warranties of any kind. We shall
+          not be liable for any direct, indirect, incidental, special, or
+          consequential damages resulting from the use or inability to use the
+          app.
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          9. Changes to Terms
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          We reserve the right to modify these terms at any time. Changes will
+          be effective immediately upon posting. Your continued use of the app
+          constitutes acceptance of the modified terms.
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          10. Contact Information
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 20,
+            lineHeight: 22,
+          }}
+        >
+          If you have any questions about these Terms of Use, please contact us
+          through the app's support channels.
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 14,
+            color: "#888",
+            marginTop: 20,
+            textAlign: "center",
+            fontStyle: "italic",
+          }}
+        >
+          By using To Do, you acknowledge that you have read, understood, and
+          agree to be bound by these Terms of Use.
+        </Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1523,7 +1929,11 @@ function PrivacyScreen() {
   const { t } = useContext(LanguageContext);
   const navigation = useNavigation();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "rgb(247, 247, 250)" }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "rgb(247, 247, 250)" }}
+      accessibilityViewIsModal={true}
+      accessibilityLabel="Privacy Policy Screen"
+    >
       {/* Custom Header with Back Chevron */}
       <View
         style={{
@@ -1560,72 +1970,307 @@ function PrivacyScreen() {
             />
           </Svg>
         </TouchableOpacity>
+      </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 20,
+          paddingBottom: 40,
+          flexGrow: 1,
+        }}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+      >
         <Text
           style={{
-            fontSize: 22,
-            color: "#222",
+            fontSize: 20,
+            color: "#333",
             fontWeight: "bold",
-            letterSpacing: 0.5,
-            textAlign: "left",
-            marginLeft: 4,
+            marginBottom: 16,
+            textAlign: "center",
           }}
         >
-          {t.privacy}
+          {t.privacyTitle}
         </Text>
-      </View>
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        {/* Simple Hourglass Illustration */}
-        <Svg width={56} height={56} style={{ marginBottom: 12 }}>
-          <Rect x={18} y={10} width={20} height={4} rx={2} fill="#E0E0E0" />
-          <Rect x={18} y={42} width={20} height={4} rx={2} fill="#E0E0E0" />
-          <Path
-            d="M20 14 Q28 28 20 42"
-            stroke="#B0B0B0"
-            strokeWidth={2}
-            fill="none"
-          />
-          <Path
-            d="M36 14 Q28 28 36 42"
-            stroke="#B0B0B0"
-            strokeWidth={2}
-            fill="none"
-          />
-          <Ellipse cx={28} cy={28} rx={5} ry={3} fill="#FFD580" />
-          <Rect x={26} y={28} width={4} height={10} rx={2} fill="#FFD580" />
-        </Svg>
-        <ScrollView
-          style={{ paddingHorizontal: 24 }}
-          contentContainerStyle={{ paddingBottom: 40 }}
+
+        <Text
+          style={{
+            fontSize: 14,
+            color: "#666",
+            marginBottom: 20,
+            textAlign: "center",
+          }}
         >
-          <Text
-            style={{
-              fontSize: 18,
-              color: "#444",
-              fontWeight: "bold",
-              marginBottom: 12,
-            }}
-          >
-            Privacy Policy
-          </Text>
-          <Text style={{ fontSize: 15, color: "#444", marginBottom: 10 }}>
-            Your privacy is important to us. This policy explains how
-            information is handled in Too-Doo List:
-          </Text>
-          <Text style={{ fontSize: 15, color: "#444", marginBottom: 10 }}>
-            1. All data you enter is stored locally on your device and is not
-            transmitted to any external server.{"\n"}
-            2. We do not collect, access, or share your personal information.
-            {"\n"}
-            3. You are responsible for managing and securing your own data on
-            your device.{"\n"}
-            4. The app does not use third-party analytics or advertising
-            services.
-          </Text>
-          <Text style={{ fontSize: 14, color: "#888", marginTop: 12 }}>
-            If you have questions about this policy, please contact support.
-          </Text>
-        </ScrollView>
-      </View>
+          {t.privacyLastUpdated} {new Date().toLocaleDateString()}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyIntroduction}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyIntroductionText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyInformation}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          <Text style={{ fontWeight: "600" }}>{t.privacyAccountInfo}</Text>
+          {"\n"}
+          {t.privacyAccountInfoText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyUse}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyUseText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyStorage}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyStorageText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacySharing}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacySharingText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyThirdParty}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyThirdPartyText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyRights}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyRightsText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyRetention}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyRetentionText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyChildren}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyChildrenText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyInternational}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyInternationalText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyChanges}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 16,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyChangesText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: "#444",
+            fontWeight: "600",
+            marginBottom: 8,
+          }}
+        >
+          {t.privacyContact}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#444",
+            marginBottom: 20,
+            lineHeight: 22,
+          }}
+        >
+          {t.privacyContactText}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 14,
+            color: "#888",
+            marginTop: 20,
+            textAlign: "center",
+            fontStyle: "italic",
+          }}
+        >
+          {t.privacyAcknowledgment}
+        </Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1634,6 +2279,7 @@ function SettingScreen() {
   const { language, setLanguage, t } = useContext(LanguageContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [userName, setUserName] = useState("User");
   const [userProfile, setUserProfile] = useState(null);
   const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
@@ -1660,6 +2306,60 @@ function SettingScreen() {
   const openModal = (text) => {
     setModalText(text);
     setModalVisible(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      setLogoutModalVisible(false);
+      console.log("Attempting to log out...");
+
+      // Check if we have a valid session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      console.log("Current session:", session);
+
+      if (!session) {
+        setModalText(t.alreadyLoggedOut || "You are already logged out.");
+        setModalVisible(true);
+        return;
+      }
+
+      // Try to log out (using Supabase's signOut API)
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Log out error:", error);
+        throw error;
+      }
+
+      console.log("Log out successful");
+      setModalText(t.logoutSuccess || "Successfully logged out!");
+      setModalVisible(true);
+
+      // Navigate back to splash screen after logout
+      setTimeout(() => {
+        setModalVisible(false);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Splash" }],
+        });
+      }, 1500); // Show success message for 1.5 seconds then navigate
+    } catch (error) {
+      console.error("Error logging out:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        name: error?.name,
+        code: error?.code,
+        stack: error?.stack,
+      });
+
+      // Show detailed error message
+      const errorMessage =
+        error?.message || "Failed to log out. Please try again.";
+      setModalText(t.logoutError || errorMessage);
+      setModalVisible(true);
+    }
   };
 
   return (
@@ -1987,7 +2687,7 @@ function SettingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Sign Out and Version Section */}
+        {/* Log Out and Version Section */}
         <View
           style={{
             marginHorizontal: 20,
@@ -1997,69 +2697,8 @@ function SettingScreen() {
           }}
         >
           <TouchableOpacity
-            onPress={async () => {
-              try {
-                // Check if we're already on Splash screen
-                if (navigation.canGoBack()) {
-                  // Close any modals first
-                  setModalVisible(false);
-                  // Go back to main tabs
-                  navigation.goBack();
-                  // Wait a bit before showing the modal
-                  setTimeout(() => setModalVisible(true), 100);
-                }
-
-                console.log("Attempting to sign out...");
-
-                // Check if we have a valid session
-                const {
-                  data: { session },
-                } = await supabase.auth.getSession();
-                console.log("Current session:", session);
-
-                if (!session) {
-                  setModalText(
-                    t.alreadySignedOut || "You are already signed out."
-                  );
-                  setModalVisible(true);
-                  return;
-                }
-
-                // Try to sign out
-                const { error } = await supabase.auth.signOut();
-
-                if (error) {
-                  console.error("Sign out error:", error);
-                  throw error;
-                }
-
-                console.log("Sign out successful");
-                setModalText(t.signOutSuccess || "Successfully signed out!");
-                setModalVisible(true);
-
-                // Navigate back to splash screen after logout
-                setTimeout(() => {
-                  setModalVisible(false);
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: "Splash" }],
-                  });
-                }, 1500); // Show success message for 1.5 seconds then navigate
-              } catch (error) {
-                console.error("Error signing out:", error);
-                console.error("Error details:", {
-                  message: error?.message,
-                  name: error?.name,
-                  code: error?.code,
-                  stack: error?.stack,
-                });
-
-                // Show detailed error message
-                const errorMessage =
-                  error?.message || "Failed to sign out. Please try again.";
-                setModalText(t.signOutError || errorMessage);
-                setModalVisible(true);
-              }
+            onPress={() => {
+              setLogoutModalVisible(true);
             }}
             style={{
               backgroundColor: "#fff",
@@ -2078,7 +2717,7 @@ function SettingScreen() {
             }}
           >
             <Text style={{ color: "#e74c3c", fontSize: 16, fontWeight: "600" }}>
-              {t.signOut || "Sign Out"}
+              {t.logout || "Log out"}
             </Text>
           </TouchableOpacity>
           <Text style={{ color: "#aaa", fontSize: 14, textAlign: "center" }}>
@@ -2092,6 +2731,8 @@ function SettingScreen() {
         animationType="fade"
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
+        accessibilityViewIsModal={true}
+        accessibilityLabel="Information Modal"
       >
         <TouchableOpacity
           style={{
@@ -2130,6 +2771,107 @@ function SettingScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={logoutModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setLogoutModalVisible(false)}
+        accessibilityViewIsModal={true}
+        accessibilityLabel="Logout Confirmation Modal"
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.2)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          activeOpacity={1}
+          onPress={() => setLogoutModalVisible(false)}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              minWidth: 280,
+              maxWidth: 320,
+              alignItems: "center",
+              overflow: "hidden",
+            }}
+          >
+            <View style={{ padding: 24, paddingBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  color: "#333",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  lineHeight: 24,
+                }}
+              >
+                Are you sure you want to log out of the app?
+              </Text>
+            </View>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: "#e0e0e0",
+                width: "100%",
+              }}
+            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                width: "100%",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setLogoutModalVisible(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  alignItems: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#e0e0e0",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#007AFF",
+                    fontSize: 17,
+                    fontWeight: "400",
+                  }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleLogout}
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#007AFF",
+                    fontSize: 17,
+                    fontWeight: "600",
+                  }}
+                >
+                  Log out
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -2155,6 +2897,7 @@ function CalendarScreen({ navigation, route }) {
   );
   const [taskText, setTaskText] = useState("");
   const [taskTime, setTaskTime] = useState("");
+  const [taskLink, setTaskLink] = useState("");
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
   const [tempHour, setTempHour] = useState("00");
@@ -2276,6 +3019,7 @@ function CalendarScreen({ navigation, route }) {
     setEditingTask(null);
     setTaskText("");
     setTaskTime("");
+    setTaskLink("");
     setSelectedDate(date);
     setModalVisible(true);
   };
@@ -2285,6 +3029,7 @@ function CalendarScreen({ navigation, route }) {
     setEditingTask(task);
     setTaskText(task.title);
     setTaskTime(task.time || "");
+    setTaskLink(task.link || "");
     setSelectedDate(task.date);
     setModalVisible(true);
   };
@@ -2301,12 +3046,19 @@ function CalendarScreen({ navigation, route }) {
         await TaskService.updateTask(editingTask.id, {
           title: taskText,
           time: taskTime,
+          link: taskLink,
           date: selectedDate,
         });
 
         dayTasks = dayTasks.map((t) =>
           t.id === editingTask.id
-            ? { ...t, title: taskText, time: taskTime, date: selectedDate }
+            ? {
+                ...t,
+                title: taskText,
+                time: taskTime,
+                link: taskLink,
+                date: selectedDate,
+              }
             : t
         );
       } else {
@@ -2314,6 +3066,7 @@ function CalendarScreen({ navigation, route }) {
         newTask = await TaskService.addTask({
           title: taskText,
           time: taskTime,
+          link: taskLink,
           date: selectedDate,
           checked: false,
         });
@@ -2326,6 +3079,7 @@ function CalendarScreen({ navigation, route }) {
       setEditingTask(null);
       setTaskText("");
       setTaskTime("");
+      setTaskLink("");
     } catch (error) {
       console.error("Error saving task:", error);
       Alert.alert("Error", "Failed to save task. Please try again.");
@@ -2349,6 +3103,7 @@ function CalendarScreen({ navigation, route }) {
       setEditingTask(null);
       setTaskText("");
       setTaskTime("");
+      setTaskLink("");
       console.log("Deleted task", task.id);
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -2462,7 +3217,7 @@ function CalendarScreen({ navigation, route }) {
                 !isInRange && styles.hiddenDate,
               ]}
             >
-              {isInRange ? dateObj.getDate() : ""}
+              {isInRange ? String(dateObj.getDate()) : ""}
             </Text>
           </View>
         </View>
@@ -2488,7 +3243,9 @@ function CalendarScreen({ navigation, route }) {
         ]}
       >
         {renderDateContent()}
-        {tasks[date]?.length > 0 && <View style={styles.taskDot} />}
+        {tasks[date] && tasks[date].length > 0 && (
+          <View style={styles.taskDot} />
+        )}
       </TouchableOpacity>
     );
   };
@@ -2533,20 +3290,27 @@ function CalendarScreen({ navigation, route }) {
             flex: 1,
             flexDirection: "row",
             alignItems: "center",
-            justifyContent: "space-between",
           },
         ]}
         onPress={() => openEditTask(item)}
         onLongPress={() => startMoveTask(item)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.taskText, item.checked && styles.taskTextChecked]}>
-          {item.title}
-        </Text>
-        {item.time && <Text style={styles.taskTimeRight}>{item.time}</Text>}
-        {moveMode && taskToMove && taskToMove.id === item.id && (
-          <Text style={styles.moveHint}>{t.moveHint}</Text>
-        )}
+        <View style={styles.taskTextContainer}>
+          <Text
+            style={[styles.taskText, item.checked && styles.taskTextChecked]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {item.title}
+          </Text>
+        </View>
+        <View style={styles.taskTimeContainer}>
+          {item.time && <Text style={styles.taskTimeRight}>{item.time}</Text>}
+          {moveMode && taskToMove && taskToMove.id === item.id && (
+            <Text style={styles.moveHint}>{t.moveHint}</Text>
+          )}
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -2583,9 +3347,7 @@ function CalendarScreen({ navigation, route }) {
         activeOffsetX={[-50, 50]}
       >
         <View style={[styles.taskArea, { flex: 1 }]}>
-          <View
-            style={[styles.taskAreaContent, { flex: 1, overflow: "hidden" }]}
-          >
+          <View style={[styles.taskAreaContent, { flex: 1 }]}>
             <View
               style={[
                 styles.tasksHeaderRow,
@@ -2707,16 +3469,18 @@ function CalendarScreen({ navigation, route }) {
       transparent={true}
       visible={modalVisible}
       onRequestClose={() => setModalVisible(false)}
+      accessibilityViewIsModal={true}
+      accessibilityLabel="Task Creation/Edit Modal"
     >
       <TouchableOpacity
         style={styles.modalOverlay}
         activeOpacity={1}
         onPress={() => setModalVisible(false)}
       >
-        <View
+        <TouchableOpacity
           style={styles.modalContent}
-          onStartShouldSetResponder={() => true}
-          onTouchEnd={(e) => e.stopPropagation()}
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
         >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
@@ -2737,6 +3501,8 @@ function CalendarScreen({ navigation, route }) {
                 placeholderTextColor="#888"
                 autoFocus={true}
                 returnKeyType="next"
+                accessibilityLabel="Task title input"
+                accessibilityHint="Enter the task title"
                 onSubmitEditing={() => {
                   // 當用戶按 Enter 時，可以選擇時間或直接保存
                   if (taskText.trim()) {
@@ -2752,6 +3518,44 @@ function CalendarScreen({ navigation, route }) {
                   }
                 }}
               />
+            </View>
+
+            {/* Link Input Field */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={styles.label}>{t.link}</Text>
+              <View style={styles.linkInputContainer}>
+                <TextInput
+                  style={styles.linkInput}
+                  value={taskLink}
+                  onChangeText={setTaskLink}
+                  placeholder={t.linkPlaceholder}
+                  placeholderTextColor="#888"
+                  keyboardType="url"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  accessibilityLabel="Task link input"
+                  accessibilityHint="Enter a URL link for this task"
+                />
+                {taskLink && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const url = taskLink.startsWith("http")
+                        ? taskLink
+                        : `https://${taskLink}`;
+                      Linking.openURL(url).catch((err) =>
+                        console.error("Failed to open URL:", err)
+                      );
+                    }}
+                    style={styles.linkPreviewButton}
+                  >
+                    <MaterialIcons
+                      name="open-in-new"
+                      size={20}
+                      color="#6c63ff"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             {/* Time Selection */}
@@ -2796,6 +3600,8 @@ function CalendarScreen({ navigation, route }) {
                 visible={timePickerVisible}
                 onRequestClose={() => setTimePickerVisible(false)}
                 animationType="slide"
+                accessibilityViewIsModal={true}
+                accessibilityLabel="Time Picker Modal"
               >
                 <View style={styles.nativeTimePickerOverlay}>
                   <View style={styles.nativeTimePickerContainer}>
@@ -2974,7 +3780,7 @@ function CalendarScreen({ navigation, route }) {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </TouchableOpacity>
     </Modal>
   );
@@ -3075,12 +3881,12 @@ export default function App() {
   useEffect(() => {
     if (Platform.OS === "web") {
       const setTitle = () => {
-        document.title = "Too Doo List";
+        document.title = "To Do";
       };
       setTitle();
       const observer = new MutationObserver(() => {
-        if (document.title !== "Too Doo List") {
-          document.title = "Too Doo List";
+        if (document.title !== "To Do") {
+          document.title = "To Do";
         }
       });
       const titleTag = document.querySelector("title");
@@ -3159,7 +3965,7 @@ export default function App() {
     React.useEffect(() => {
       if (typeof document !== "undefined") {
         setTimeout(() => {
-          document.title = "Too Doo List";
+          document.title = "To Do";
         }, 0);
       }
     });
@@ -3224,7 +4030,7 @@ export default function App() {
       <NavigationContainer
         onStateChange={() => {
           if (typeof document !== "undefined") {
-            document.title = "Too Doo List";
+            document.title = "To Do";
           }
         }}
       >
@@ -3244,8 +4050,22 @@ export default function App() {
               animationEnabled: false,
             }}
           />
-          <Stack.Screen name="Terms" component={TermsScreen} />
-          <Stack.Screen name="Privacy" component={PrivacyScreen} />
+          <Stack.Screen
+            name="Terms"
+            component={TermsScreen}
+            options={{
+              headerShown: false,
+              presentation: "modal",
+            }}
+          />
+          <Stack.Screen
+            name="Privacy"
+            component={PrivacyScreen}
+            options={{
+              headerShown: false,
+              presentation: "modal",
+            }}
+          />
           <Stack.Screen
             name="ComingSoon"
             component={require("./ComingSoonScreen").default}
@@ -3446,9 +4266,9 @@ const styles = StyleSheet.create({
   },
   todayCircle: {
     backgroundColor: "#6c63ff",
-    width: 22,
-    height: 22,
-    borderRadius: 13,
+    width: 20,
+    height: 20,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -3570,12 +4390,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
   },
+  taskTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginRight: 8,
+    flexShrink: 1,
+  },
   taskText: {
     fontSize: 16,
     color: "#333",
-    flex: 1,
-    marginLeft: 12,
     textDecorationLine: "none",
+    flexShrink: 1,
+    maxWidth: "100%",
+  },
+  taskTimeContainer: {
+    flexShrink: 0,
+    alignItems: "flex-end",
+    minWidth: 60,
   },
   moveHint: {
     color: "#ffb300",
@@ -3587,6 +4418,26 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 8,
     color: "#3d3d4e",
+  },
+  linkInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 50,
+  },
+  linkInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+    paddingVertical: 0,
+  },
+  linkPreviewButton: {
+    padding: 8,
+    marginLeft: 8,
   },
   timeInput: {
     height: 50,
@@ -4030,8 +4881,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6c63ff",
     fontWeight: "600",
-    marginLeft: 12,
-    minWidth: 48,
     textAlign: "right",
   },
   timePickerModal: {
@@ -4188,10 +5037,12 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#eee",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 50,
     fontSize: 16,
+    backgroundColor: "#f9f9f9",
     marginBottom: 16,
   },
   modalButtons: {
@@ -4501,12 +5352,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
   },
-  webTimeSeparator: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#6c63ff",
-    marginHorizontal: 15,
-  },
   webTimePickerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -4585,5 +5430,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
     fontWeight: "500",
+  },
+  taskAreaContent: {
+    flex: 1,
+  },
+  tasksScrollContent: {
+    flexGrow: 1,
+    paddingTop: 8,
   },
 });
