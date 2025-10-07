@@ -2298,8 +2298,11 @@ function SettingScreen() {
       console.log("Current session:", session);
 
       if (!session) {
-        setModalText(t.alreadyLoggedOut || "You are already logged out.");
-        setModalVisible(true);
+        console.log("Already logged out, navigating to splash...");
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Splash" }],
+        });
         return;
       }
 
@@ -2311,18 +2314,13 @@ function SettingScreen() {
         throw error;
       }
 
-      console.log("Log out successful");
-      setModalText(t.logoutSuccess || "Successfully logged out!");
-      setModalVisible(true);
+      console.log("Log out successful, navigating to splash...");
 
-      // Navigate back to splash screen after logout
-      setTimeout(() => {
-        setModalVisible(false);
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Splash" }],
-        });
-      }, 1500); // Show success message for 1.5 seconds then navigate
+      // Navigate back to splash screen immediately after logout
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Splash" }],
+      });
     } catch (error) {
       console.error("Error logging out:", error);
       console.error("Error details:", {
@@ -2699,7 +2697,7 @@ function SettingScreen() {
             </Text>
           </TouchableOpacity>
           <Text style={{ color: "#aaa", fontSize: 14, textAlign: "center" }}>
-            {t.version} 1.0.0
+            {t.version} {require("./package.json").version}
           </Text>
         </View>
       </ScrollView>
@@ -3464,6 +3462,14 @@ function CalendarScreen({ navigation, route }) {
             <Text style={styles.modalTitle}>
               {editingTask ? t.editTask : t.createTask}
             </Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+              accessibilityLabel="Close modal"
+              accessibilityHint="Close the task creation/editing modal"
+            >
+              <MaterialIcons name="close" size={20} color="#888" />
+            </TouchableOpacity>
           </View>
           <View style={{ marginBottom: 24 }}>
             {/* Task Text Input - 移到最前面並設為 autoFocus */}
@@ -3478,21 +3484,13 @@ function CalendarScreen({ navigation, route }) {
                 placeholder={t.addTask}
                 placeholderTextColor="#888"
                 autoFocus={true}
-                returnKeyType="next"
+                returnKeyType="done"
                 accessibilityLabel="Task title input"
                 accessibilityHint="Enter the task title"
                 onSubmitEditing={() => {
-                  // 當用戶按 Enter 時，可以選擇時間或直接保存
+                  // 當用戶按 Enter 時，直接儲存任務（時間是可選的）
                   if (taskText.trim()) {
-                    // 如果有時間就保存，沒有就顯示時間選擇器
-                    if (!taskTime) {
-                      const now = new Date();
-                      setTempHour(now.getHours().toString().padStart(2, "0"));
-                      setTempMinute(
-                        now.getMinutes().toString().padStart(2, "0")
-                      );
-                      setTimePickerVisible(true);
-                    }
+                    saveTask();
                   }
                 }}
               />
@@ -3889,6 +3887,10 @@ export default function App() {
       document.title = "Too Doo List";
     }
     ReactGA.initialize("G-NV40E1BDH3");
+
+    // Log app version for debugging
+    console.log("Too-Doo-List App Version:", require("./package.json").version);
+
     if (
       Platform.OS === "web" &&
       typeof window !== "undefined" &&
@@ -5048,12 +5050,17 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 15,
   },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 0,
+    position: "relative",
+  },
   modalCloseButton: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    zIndex: 20,
-    padding: 6,
+    padding: 4,
+    alignItems: "center",
+    justifyContent: "center",
   },
   deleteButton: {
     backgroundColor: "transparent",

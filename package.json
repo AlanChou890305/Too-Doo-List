@@ -1,12 +1,15 @@
 {
   "name": "too-doo-list",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
