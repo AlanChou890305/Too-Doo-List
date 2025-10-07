@@ -57,7 +57,6 @@ export class TaskService {
             displayName: userDisplayName,
             avatar: user.user_metadata?.avatar_url,
           },
-          category_details: null, // Categories not available due to missing relationship
         });
       });
 
@@ -168,7 +167,6 @@ export class TaskService {
         date: task.date,
         checked: task.checked || false,
         priority: task.priority || "medium",
-        category: task.category || null,
         description: task.description || null,
         due_time: task.due_time || null,
         is_completed: task.is_completed || false,

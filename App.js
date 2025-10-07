@@ -3888,7 +3888,7 @@ export default function App() {
     if (typeof document !== "undefined") {
       document.title = "Too Doo List";
     }
-    ReactGA.initialize("G-FDKFB5F7VX");
+    ReactGA.initialize("G-NV40E1BDH3");
     if (
       Platform.OS === "web" &&
       typeof window !== "undefined" &&

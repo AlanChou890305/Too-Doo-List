@@ -14,7 +14,6 @@ export const TASK_FIELDS = {
 
   // 擴展欄位
   PRIORITY: "priority",
-  CATEGORY: "category",
   DESCRIPTION: "description",
   DUE_TIME: "due_time",
   IS_COMPLETED: "is_completed",
@@ -72,7 +71,6 @@ export const createTaskObject = (taskData) => {
     [TASK_FIELDS.DATE]: taskData.date,
     [TASK_FIELDS.CHECKED]: taskData.checked || false,
     [TASK_FIELDS.PRIORITY]: taskData.priority || TASK_PRIORITIES.MEDIUM,
-    [TASK_FIELDS.CATEGORY]: taskData.category || null,
     [TASK_FIELDS.DESCRIPTION]: taskData.description || null,
     [TASK_FIELDS.DUE_TIME]: taskData.due_time || null,
     [TASK_FIELDS.IS_COMPLETED]: taskData.is_completed || false,
