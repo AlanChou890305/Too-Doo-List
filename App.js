@@ -87,6 +87,7 @@ const translations = {
     delete: "Delete",
     logoutConfirm: "Are you sure you want to log out of the app?",
     logout: "Log out",
+    deleteConfirm: "Are you sure you want to delete this task?",
     done: "Done",
     moveHint: "Tap a date to move",
     moveTask: "Move Task",
@@ -229,6 +230,7 @@ const translations = {
     delete: "刪除",
     logoutConfirm: "您確定要登出應用程式嗎？",
     logout: "登出",
+    deleteConfirm: "您確定要刪除這個任務嗎？",
     done: "完成",
     moveHint: "點選日期以移動",
     moveTask: "移動任務",
@@ -2830,6 +2832,7 @@ function CalendarScreen({ navigation, route }) {
   const [linkInputFocused, setLinkInputFocused] = useState(false);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
 
   // 格式化日期輸入 (YYYY-MM-DD)
   const formatDateInput = (text) => {
@@ -3043,19 +3046,24 @@ function CalendarScreen({ navigation, route }) {
     }
   };
 
-  const deleteTask = async (task) => {
-    if (!task) return;
+  const showDeleteConfirm = () => {
+    setDeleteConfirmVisible(true);
+  };
+
+  const deleteTask = async () => {
+    if (!editingTask) return;
 
     try {
-      await TaskService.deleteTask(task.id);
+      await TaskService.deleteTask(editingTask.id);
 
       // Update local state
-      const day = task.date;
+      const day = editingTask.date;
       const dayTasks = tasks[day] ? [...tasks[day]] : [];
-      const filteredTasks = dayTasks.filter((t) => t.id !== task.id);
+      const filteredTasks = dayTasks.filter((t) => t.id !== editingTask.id);
       const newTasks = { ...tasks, [day]: filteredTasks };
       setTasks(newTasks);
 
+      setDeleteConfirmVisible(false);
       setModalVisible(false);
       setEditingTask(null);
       setTaskText("");
@@ -3066,6 +3074,7 @@ function CalendarScreen({ navigation, route }) {
       setLinkInputFocused(false);
     } catch (error) {
       console.error("Error deleting task:", error);
+      setDeleteConfirmVisible(false);
       Alert.alert("Error", "Failed to delete task. Please try again.");
     }
   };
@@ -3536,16 +3545,26 @@ function CalendarScreen({ navigation, route }) {
                 </Text>
                 {Platform.OS === "web" ? (
                   <View style={styles.linkInputContainer}>
+                    <style>
+                      {`
+                        #date-input-field::-webkit-calendar-picker-indicator {
+                          position: absolute;
+                          width: 100%;
+                          height: 100%;
+                          top: 0;
+                          left: 0;
+                          opacity: 0;
+                          cursor: pointer;
+                        }
+                      `}
+                    </style>
                     <input
-                      type="text"
+                      id="date-input-field"
+                      type="date"
                       value={taskDate}
-                      onChange={(e) =>
-                        setTaskDate(formatDateInput(e.target.value))
-                      }
-                      placeholder={t.datePlaceholder}
-                      maxLength={10}
+                      onChange={(e) => setTaskDate(e.target.value)}
                       style={{
-                        flex: 1,
+                        width: "100%",
                         fontSize: 16,
                         paddingLeft: 16,
                         paddingRight: 16,
@@ -3555,49 +3574,10 @@ function CalendarScreen({ navigation, route }) {
                         outline: "none",
                         height: 50,
                         color: "#333",
+                        cursor: "pointer",
+                        position: "relative",
                       }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // 創建隱藏的 date input 來觸發選擇器
-                        const hiddenInput = document.createElement("input");
-                        hiddenInput.type = "date";
-                        hiddenInput.value = taskDate || "";
-                        hiddenInput.style.position = "absolute";
-                        hiddenInput.style.opacity = "0";
-                        hiddenInput.style.pointerEvents = "none";
-                        document.body.appendChild(hiddenInput);
-
-                        hiddenInput.showPicker();
-
-                        hiddenInput.addEventListener("change", (e) => {
-                          setTaskDate(e.target.value);
-                          document.body.removeChild(hiddenInput);
-                        });
-
-                        hiddenInput.addEventListener("blur", () => {
-                          setTimeout(() => {
-                            if (document.body.contains(hiddenInput)) {
-                              document.body.removeChild(hiddenInput);
-                            }
-                          }, 100);
-                        });
-                      }}
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 8,
-                        marginLeft: 8,
-                        marginRight: 4,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <MaterialIcons name="event" size={20} color="#6c63ff" />
-                    </button>
                   </View>
                 ) : (
                   <TouchableOpacity
@@ -3645,16 +3625,26 @@ function CalendarScreen({ navigation, route }) {
                 <Text style={styles.label}>{t.time}</Text>
                 {Platform.OS === "web" ? (
                   <View style={styles.linkInputContainer}>
+                    <style>
+                      {`
+                        #time-input-field::-webkit-calendar-picker-indicator {
+                          position: absolute;
+                          width: 100%;
+                          height: 100%;
+                          top: 0;
+                          left: 0;
+                          opacity: 0;
+                          cursor: pointer;
+                        }
+                      `}
+                    </style>
                     <input
-                      type="text"
+                      id="time-input-field"
+                      type="time"
                       value={taskTime}
-                      onChange={(e) =>
-                        setTaskTime(formatTimeInput(e.target.value))
-                      }
-                      placeholder={t.timePlaceholder}
-                      maxLength={5}
+                      onChange={(e) => setTaskTime(e.target.value)}
                       style={{
-                        flex: 1,
+                        width: "100%",
                         fontSize: 16,
                         paddingLeft: 16,
                         paddingRight: 16,
@@ -3664,53 +3654,10 @@ function CalendarScreen({ navigation, route }) {
                         outline: "none",
                         height: 50,
                         color: "#333",
+                        cursor: "pointer",
+                        position: "relative",
                       }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // 創建隱藏的 time input 來觸發選擇器
-                        const hiddenInput = document.createElement("input");
-                        hiddenInput.type = "time";
-                        hiddenInput.value = taskTime || "";
-                        hiddenInput.style.position = "absolute";
-                        hiddenInput.style.opacity = "0";
-                        hiddenInput.style.pointerEvents = "none";
-                        document.body.appendChild(hiddenInput);
-
-                        hiddenInput.showPicker();
-
-                        hiddenInput.addEventListener("change", (e) => {
-                          setTaskTime(e.target.value);
-                          document.body.removeChild(hiddenInput);
-                        });
-
-                        hiddenInput.addEventListener("blur", () => {
-                          setTimeout(() => {
-                            if (document.body.contains(hiddenInput)) {
-                              document.body.removeChild(hiddenInput);
-                            }
-                          }, 100);
-                        });
-                      }}
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 8,
-                        marginLeft: 8,
-                        marginRight: 4,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <MaterialIcons
-                        name="access-time"
-                        size={20}
-                        color="#6c63ff"
-                      />
-                    </button>
                   </View>
                 ) : (
                   <TouchableOpacity
@@ -3788,7 +3735,7 @@ function CalendarScreen({ navigation, route }) {
             {editingTask && (
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => deleteTask(editingTask)}
+                onPress={showDeleteConfirm}
               >
                 <Text style={styles.deleteButtonText}>{t.delete}</Text>
               </TouchableOpacity>
@@ -3799,6 +3746,108 @@ function CalendarScreen({ navigation, route }) {
           </View>
         </View>
       </SafeAreaView>
+    </Modal>
+  );
+
+  const renderDeleteConfirmModal = () => (
+    <Modal
+      visible={deleteConfirmVisible}
+      animationType="fade"
+      transparent={true}
+      onRequestClose={() => setDeleteConfirmVisible(false)}
+      accessibilityViewIsModal={true}
+      accessibilityLabel="Delete Confirmation Modal"
+    >
+      <TouchableOpacity
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.2)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        activeOpacity={1}
+        onPress={() => setDeleteConfirmVisible(false)}
+      >
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: 12,
+            minWidth: 280,
+            maxWidth: 320,
+            alignItems: "center",
+            overflow: "hidden",
+          }}
+        >
+          <View style={{ padding: 24, paddingBottom: 16 }}>
+            <Text
+              style={{
+                fontSize: 18,
+                color: "#333",
+                textAlign: "center",
+                fontWeight: "600",
+                lineHeight: 24,
+              }}
+            >
+              {t.deleteConfirm}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              height: 1,
+              backgroundColor: "#e0e0e0",
+              width: "100%",
+            }}
+          />
+
+          <View
+            style={{
+              flexDirection: "row",
+              width: "100%",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setDeleteConfirmVisible(false)}
+              style={{
+                flex: 1,
+                paddingVertical: 16,
+                alignItems: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#e0e0e0",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#007AFF",
+                  fontSize: 17,
+                  fontWeight: "400",
+                }}
+              >
+                {t.cancel}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={deleteTask}
+              style={{
+                flex: 1,
+                paddingVertical: 16,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#FF3B30",
+                  fontSize: 17,
+                  fontWeight: "600",
+                }}
+              >
+                {t.delete}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
     </Modal>
   );
 
@@ -3889,6 +3938,7 @@ function CalendarScreen({ navigation, route }) {
         </View>
         <View style={styles.taskAreaContainer}>{renderTaskArea()}</View>
         {renderModal()}
+        {renderDeleteConfirmModal()}
       </GestureHandlerRootView>
     </SafeAreaView>
   );
