@@ -52,6 +52,19 @@ import {
 } from "react-native-gesture-handler";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
+// Fonts
+import { useFonts } from 'expo-font';
+import {
+  Roboto_400Regular,
+  Roboto_500Medium,
+  Roboto_700Bold,
+} from '@expo-google-fonts/roboto';
+import {
+  NotoSansTC_400Regular,
+  NotoSansTC_500Medium,
+  NotoSansTC_700Bold,
+} from '@expo-google-fonts/noto-sans-tc';
+
 const TASKS_STORAGE_KEY = "TASKS_STORAGE_KEY";
 const LANGUAGE_STORAGE_KEY = "LANGUAGE_STORAGE_KEY";
 
@@ -3274,10 +3287,10 @@ function CalendarScreen({ navigation, route }) {
           </Text>
         </View>
         <View style={styles.taskTimeContainer}>
-          {item.time && <Text style={styles.taskTimeRight}>{item.time}</Text>}
-          {moveMode && taskToMove && taskToMove.id === item.id && (
+          {item.time ? <Text style={styles.taskTimeRight}>{item.time}</Text> : null}
+          {moveMode && taskToMove && taskToMove.id === item.id ? (
             <Text style={styles.moveHint}>{t.moveHint}</Text>
-          )}
+          ) : null}
         </View>
       </TouchableOpacity>
     </View>
@@ -3516,7 +3529,7 @@ function CalendarScreen({ navigation, route }) {
                       setLinkInputFocused(false);
                     }}
                   />
-                  {taskLink && editingTask && (
+                  {taskLink && editingTask ? (
                     <TouchableOpacity
                       onPress={() => {
                         const url = taskLink.startsWith("http")
@@ -3534,7 +3547,7 @@ function CalendarScreen({ navigation, route }) {
                         color="#6c63ff"
                       />
                     </TouchableOpacity>
-                  )}
+                  ) : null}
                 </View>
               </View>
 
@@ -3576,6 +3589,7 @@ function CalendarScreen({ navigation, route }) {
                         color: "#333",
                         cursor: "pointer",
                         position: "relative",
+                        textAlign: "left",
                       }}
                     />
                   </View>
@@ -3656,6 +3670,7 @@ function CalendarScreen({ navigation, route }) {
                         color: "#333",
                         cursor: "pointer",
                         position: "relative",
+                        textAlign: "left",
                       }}
                     />
                   </View>
@@ -3945,6 +3960,53 @@ function CalendarScreen({ navigation, route }) {
 }
 
 export default function App() {
+  // Load fonts
+  const [fontsLoaded] = useFonts({
+    Roboto_400Regular,
+    Roboto_500Medium,
+    Roboto_700Bold,
+    NotoSansTC_400Regular,
+    NotoSansTC_500Medium,
+    NotoSansTC_700Bold,
+  });
+
+  useEffect(() => {
+    // Add Google Fonts for web only - keep it simple for native
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      // Add Google Fonts links
+      const fontsLink = document.createElement("link");
+      fontsLink.href =
+        "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap";
+      fontsLink.rel = "stylesheet";
+      document.head.appendChild(fontsLink);
+
+      // Apply fonts using more specific selectors to avoid icon interference
+      const style = document.createElement("style");
+      style.textContent = `
+        /* Apply to all text content containers, but not icons */
+        [dir] > * {
+          font-family: 'Roboto', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+            Helvetica, Arial, sans-serif !important;
+        }
+        
+        /* Exclude icons and SVG elements */
+        [dir] > svg,
+        [dir] > * > svg,
+        [dir] [role="img"],
+        [dir] [aria-label*="icon" i] {
+          font-family: inherit !important;
+        }
+        
+        /* Apply to input fields */
+        input, textarea, select {
+          font-family: 'Roboto', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+            Helvetica, Arial, sans-serif !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   useEffect(() => {
     if (Platform.OS === "web") {
       const setTitle = () => {
@@ -4027,7 +4089,8 @@ export default function App() {
 
   const t = translations[language] || translations.en;
 
-  if (loadingLang) return null;
+  // Wait for fonts and language to load
+  if (!fontsLoaded || loadingLang) return null;
 
   function MainTabs() {
     React.useEffect(() => {
@@ -4145,6 +4208,31 @@ export default function App() {
 }
 
 // ...
+
+// Helper function to get font family based on platform and language
+const getFontFamily = (language = 'en', weight = 'regular') => {
+  if (Platform.OS === 'web') {
+    // For web, use CSS font family with fallback
+    const isChinese = language === 'zh';
+    if (weight === 'bold') {
+      return isChinese 
+        ? '"Noto Sans TC", "Roboto", -apple-system, system-ui, sans-serif'
+        : '"Roboto", "Noto Sans TC", -apple-system, system-ui, sans-serif';
+    }
+    return isChinese 
+      ? '"Noto Sans TC", "Roboto", -apple-system, system-ui, sans-serif'
+      : '"Roboto", "Noto Sans TC", -apple-system, system-ui, sans-serif';
+  }
+  
+  // For native apps, use loaded fonts
+  const isChinese = language === 'zh';
+  if (weight === 'bold') {
+    return isChinese ? 'NotoSansTC_700Bold' : 'Roboto_700Bold';
+  } else if (weight === 'medium') {
+    return isChinese ? 'NotoSansTC_500Medium' : 'Roboto_500Medium';
+  }
+  return isChinese ? 'NotoSansTC_400Regular' : 'Roboto_400Regular';
+};
 
 const styles = StyleSheet.create({
   taskItemRow: {
@@ -5126,7 +5214,7 @@ const styles = StyleSheet.create({
   },
   modalButtons: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingTop: 16,
