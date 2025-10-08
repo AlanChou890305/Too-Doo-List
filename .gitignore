@@ -37,6 +37,10 @@ manifest.json
 .vscode/extensions.json
 *.code-workspace
 
+# Cursor IDE
+.cursor/chat/
+.cursor/prompts_history/
+
 # OS
 .DS_Store
 .DS_Store?

@@ -49,6 +49,7 @@ export class TaskService {
           title: task.title,
           time: task.time,
           link: task.link,
+          note: task.note,
           date: task.date,
           checked: task.checked,
           user: {
@@ -102,6 +103,7 @@ export class TaskService {
           title: task.title,
           time: task.time,
           link: task.link,
+          note: task.note,
           date: task.date,
           checked: task.checked,
           user: {
@@ -126,21 +128,9 @@ export class TaskService {
         error: authError,
       } = await supabase.auth.getUser();
 
-      console.log("AddTask - User:", user);
-      console.log("AddTask - Auth Error:", authError);
-
       if (!user) {
         throw new Error("No authenticated user found");
       }
-
-      console.log("AddTask - Inserting task:", {
-        user_id: user.id,
-        title: task.title,
-        time: task.time || null,
-        link: task.link || null,
-        date: task.date,
-        checked: task.checked || false,
-      });
 
       // 提取用戶顯示名稱
       const userDisplayName =
@@ -149,14 +139,6 @@ export class TaskService {
         user.email?.split("@")[0] ||
         "User";
 
-      console.log("AddTask - User details:", {
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.user_metadata?.name,
-        userAvatar: user.user_metadata?.avatar_url,
-        userDisplayName: userDisplayName,
-      });
-
       // 使用安全的任務物件創建函數
       const taskData = {
         user_id: user.id,
@@ -164,6 +146,7 @@ export class TaskService {
         title: task.title,
         time: task.time || null,
         link: task.link || null,
+        note: task.note || null,
         date: task.date,
         checked: task.checked || false,
         priority: task.priority || "medium",
@@ -182,7 +165,6 @@ export class TaskService {
 
       // 創建安全的任務物件
       const validatedFields = createTaskObject(taskData);
-      console.log("✅ Inserting task with validated fields:", validatedFields);
 
       const { data, error } = await supabase
         .from("tasks")
@@ -201,12 +183,12 @@ export class TaskService {
         throw error;
       }
 
-      console.log("Task added successfully:", data);
       return {
         id: data.id,
         title: data.title,
         time: data.time,
         link: data.link,
+        note: data.note,
         date: data.date,
         checked: data.checked,
       };
@@ -256,6 +238,7 @@ export class TaskService {
         title: data.title,
         time: data.time,
         link: data.link,
+        note: data.note,
         date: data.date,
         checked: data.checked,
       };

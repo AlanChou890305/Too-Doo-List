@@ -74,13 +74,20 @@ const translations = {
     createTask: "Create Task",
     editTask: "Edit Task",
     taskPlaceholder: "Enter your task here...",
-    timePlaceholder: "Select time",
+    timePlaceholder: "Enter time (HH:MM)",
     link: "Link",
     linkPlaceholder: "Add a link",
     taskLabel: "Task",
+    date: "Date",
+    datePlaceholder: "Enter date (YYYY-MM-DD)",
+    note: "Note",
+    notePlaceholder: "Add a note",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
+    logoutConfirm: "Are you sure you want to log out of the app?",
+    logout: "Log out",
+    done: "Done",
     moveHint: "Tap a date to move",
     moveTask: "Move Task",
     moveTaskAlert: "Now tap a date on the calendar to move this task.",
@@ -209,13 +216,20 @@ const translations = {
     createTask: "新增任務",
     editTask: "編輯任務",
     taskPlaceholder: "在這裡輸入您的任務...",
-    timePlaceholder: "選擇時間",
+    timePlaceholder: "輸入時間 (HH:MM)",
     link: "連結",
     linkPlaceholder: "添加連結",
     taskLabel: "任務",
+    date: "日期",
+    datePlaceholder: "輸入日期 (YYYY-MM-DD)",
+    note: "備註",
+    notePlaceholder: "添加備註",
     save: "儲存",
     cancel: "取消",
     delete: "刪除",
+    logoutConfirm: "您確定要登出應用程式嗎？",
+    logout: "登出",
+    done: "完成",
     moveHint: "點選日期以移動",
     moveTask: "移動任務",
     moveTaskAlert: "請點選日曆上的日期以移動此任務。",
@@ -384,24 +398,13 @@ const SplashScreen = ({ navigation }) => {
 
             // Try to handle the error gracefully by attempting to create user settings manually
             try {
-              console.log("Attempting to handle user creation manually...");
               // The user might still be authenticated even if database setup failed
               const {
                 data: { user },
                 error: userError,
               } = await supabase.auth.getUser();
 
-              console.log("User authentication check:", { user, userError });
-
               if (user) {
-                console.log(
-                  "User is authenticated, attempting to create user settings..."
-                );
-                console.log("User details:", {
-                  id: user.id,
-                  email: user.email,
-                  created_at: user.created_at,
-                });
                 // Try to create user settings manually
                 const { error: settingsError } = await supabase
                   .from("user_settings")
@@ -436,16 +439,10 @@ const SplashScreen = ({ navigation }) => {
                     .select("id")
                     .limit(1);
 
-                  console.log("Table accessibility check:", {
-                    tableCheck,
-                    tableError,
-                  });
-
                   alert(
                     "Account created but some settings could not be saved. You can continue using the app."
                   );
                 } else {
-                  console.log("User settings created successfully");
                   alert("Account created successfully! Welcome to To Do!");
                 }
 
@@ -504,7 +501,6 @@ const SplashScreen = ({ navigation }) => {
           console.warn("OAuth callback: No session found in callback");
 
           // Add fallback mechanisms for incognito mode or session issues
-          console.log("Attempting fallback session recovery...");
 
           // Try to get session with a delay (sometimes it takes time to propagate)
           setTimeout(async () => {
@@ -512,7 +508,6 @@ const SplashScreen = ({ navigation }) => {
               const { data: fallbackData, error: fallbackError } =
                 await supabase.auth.getSession();
               if (fallbackData?.session) {
-                console.log("Fallback: Session found after delay");
                 navigateToMainApp();
                 return;
               }
@@ -523,12 +518,9 @@ const SplashScreen = ({ navigation }) => {
                 error: userError,
               } = await supabase.auth.getUser();
               if (user && !userError) {
-                console.log("Fallback: User found after delay");
                 navigateToMainApp();
                 return;
               }
-
-              console.log("Fallback: No session found");
             } catch (fallbackError) {
               console.error("Fallback session recovery failed:", fallbackError);
             }
@@ -542,11 +534,9 @@ const SplashScreen = ({ navigation }) => {
                 error: userError,
               } = await supabase.auth.getUser();
               if (user && !userError) {
-                console.log("Final fallback: User found");
                 navigateToMainApp();
                 return;
               }
-              console.log("Final fallback: No session found");
             } catch (finalError) {
               console.error("Final fallback failed:", finalError);
             }
@@ -615,13 +605,11 @@ const SplashScreen = ({ navigation }) => {
               return;
             }
 
-            console.log("User verified, navigating to main app");
             navigateToMainApp();
           } catch (error) {
             console.error("Error in auth state change handler:", error);
           }
         } else if (event === "SIGNED_OUT") {
-          console.log("User logged out, resetting to splash screen");
           // Navigate back to splash screen when user logs out
           navigation.reset({
             index: 0,
@@ -1059,23 +1047,21 @@ const SplashScreen = ({ navigation }) => {
         }}
       >
         <Text style={{ color: "#888", fontSize: 13, textAlign: "center" }}>
-          By continuing, you agree to our
+          By continuing, you agree to our{" "}
           <Text
             style={{ color: "#6c63ff", fontWeight: "bold" }}
             onPress={() => navigation.navigate("Terms")}
           >
-            {" "}
             Terms of Use
           </Text>{" "}
-          and
+          and{" "}
           <Text
             style={{ color: "#6c63ff", fontWeight: "bold" }}
             onPress={() => navigation.navigate("Privacy")}
           >
-            {" "}
             Privacy Policy
           </Text>
-          <Text>.</Text>
+          .
         </Text>
       </View>
     </SafeAreaView>
@@ -1090,7 +1076,6 @@ function LoginScreen({ navigation }) {
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
-      console.log("Starting Google Sign In...");
 
       // Check if user is in incognito mode and warn them
       if (Platform.OS === "web") {
@@ -1118,8 +1103,6 @@ function LoginScreen({ navigation }) {
         path: "auth/callback",
       });
 
-      console.log("Using redirect URL:", redirectUrl);
-
       // Start the OAuth flow
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -1140,29 +1123,18 @@ function LoginScreen({ navigation }) {
 
       // Open the URL in the browser
       if (data?.url) {
-        console.log("Opening auth URL in browser:", data.url);
         const result = await WebBrowser.openAuthSessionAsync(
           data.url,
           redirectUrl
         );
 
-        console.log("Auth session completed with type:", result.type);
-
         if (result.type === "success") {
-          console.log("Auth URL:", result.url);
           // The URL will be handled by the deep link listener in supabaseClient.js
           const url = new URL(result.url);
           const params = new URLSearchParams(url.hash.substring(1));
 
           const accessToken = params.get("access_token");
           const refreshToken = params.get("refresh_token");
-
-          console.log(
-            "Extracted tokens - accessToken:",
-            !!accessToken,
-            "refreshToken:",
-            !!refreshToken
-          );
 
           if (accessToken && refreshToken) {
             const { data: sessionData, error: sessionError } =
@@ -1176,26 +1148,14 @@ function LoginScreen({ navigation }) {
               throw sessionError;
             }
 
-            console.log("Session data:", sessionData);
-
             // Navigate to main app if successful
             if (sessionData?.session) {
-              console.log("Navigation to Main screen");
               navigation.navigate("Main");
-            } else {
-              console.log("No session data available");
             }
-          } else {
-            console.log("Missing tokens in URL");
           }
         } else if (result.type === "cancel") {
-          console.log("User cancelled the sign in");
           Alert.alert("Cancelled", "Sign in was cancelled");
-        } else {
-          console.log("Auth session result type:", result.type);
         }
-      } else {
-        console.log("No URL returned from OAuth");
       }
     } catch (error) {
       console.error("Google Sign In Error:", error);
@@ -1369,23 +1329,21 @@ function LoginScreen({ navigation }) {
         }}
       >
         <Text style={{ color: "#888", fontSize: 13, textAlign: "center" }}>
-          By continuing, you agree to our
+          By continuing, you agree to our{" "}
           <Text
             style={{ color: "#6c63ff", fontWeight: "bold" }}
             onPress={() => navigation.navigate("Terms")}
           >
-            {" "}
             Terms of Use
           </Text>{" "}
-          and
+          and{" "}
           <Text
             style={{ color: "#6c63ff", fontWeight: "bold" }}
             onPress={() => navigation.navigate("Privacy")}
           >
-            {" "}
             Privacy Policy
           </Text>
-          <Text>.</Text>
+          .
         </Text>
       </View>
     </SafeAreaView>
@@ -1574,23 +1532,21 @@ function SignupScreen({ navigation }) {
         }}
       >
         <Text style={{ color: "#888", fontSize: 13, textAlign: "center" }}>
-          By continuing, you agree to our
+          By continuing, you agree to our{" "}
           <Text
             style={{ color: "#6c63ff", fontWeight: "bold" }}
             onPress={() => navigation.navigate("Terms")}
           >
-            {" "}
             Terms of Use
           </Text>{" "}
-          and
+          and{" "}
           <Text
             style={{ color: "#6c63ff", fontWeight: "bold" }}
             onPress={() => navigation.navigate("Privacy")}
           >
-            {" "}
             Privacy Policy
           </Text>
-          <Text>.</Text>
+          .
         </Text>
       </View>
     </SafeAreaView>
@@ -2289,16 +2245,13 @@ function SettingScreen() {
   const handleLogout = async () => {
     try {
       setLogoutModalVisible(false);
-      console.log("Attempting to log out...");
 
       // Check if we have a valid session
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      console.log("Current session:", session);
 
       if (!session) {
-        console.log("Already logged out, navigating to splash...");
         navigation.reset({
           index: 0,
           routes: [{ name: "Splash" }],
@@ -2313,8 +2266,6 @@ function SettingScreen() {
         console.error("Log out error:", error);
         throw error;
       }
-
-      console.log("Log out successful, navigating to splash...");
 
       // Navigate back to splash screen immediately after logout
       navigation.reset({
@@ -2787,7 +2738,7 @@ function SettingScreen() {
                   lineHeight: 24,
                 }}
               >
-                Are you sure you want to log out of the app?
+                {t.logoutConfirm}
               </Text>
             </View>
 
@@ -2822,7 +2773,7 @@ function SettingScreen() {
                     fontWeight: "400",
                   }}
                 >
-                  Cancel
+                  {t.cancel}
                 </Text>
               </TouchableOpacity>
 
@@ -2841,7 +2792,7 @@ function SettingScreen() {
                     fontWeight: "600",
                   }}
                 >
-                  Log out
+                  {t.logout}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2874,58 +2825,56 @@ function CalendarScreen({ navigation, route }) {
   const [taskText, setTaskText] = useState("");
   const [taskTime, setTaskTime] = useState("");
   const [taskLink, setTaskLink] = useState("");
-  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [taskDate, setTaskDate] = useState(selectedDate);
+  const [taskNote, setTaskNote] = useState("");
+  const [linkInputFocused, setLinkInputFocused] = useState(false);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
-  const [tempHour, setTempHour] = useState("00");
-  const [tempMinute, setTempMinute] = useState("00");
-  const hourScrollRef = useRef(null);
-  const minuteScrollRef = useRef(null);
 
-  // 當時間選擇器打開時，滾動到正確位置
+  // 格式化日期輸入 (YYYY-MM-DD)
+  const formatDateInput = (text) => {
+    // 移除所有非數字字符
+    const numbersOnly = text.replace(/\D/g, "");
+
+    // 限制長度為8位數字 (YYYYMMDD)
+    const limitedNumbers = numbersOnly.slice(0, 8);
+
+    // 根據長度添加分隔符
+    if (limitedNumbers.length <= 4) {
+      return limitedNumbers;
+    } else if (limitedNumbers.length <= 6) {
+      return `${limitedNumbers.slice(0, 4)}-${limitedNumbers.slice(4)}`;
+    } else {
+      return `${limitedNumbers.slice(0, 4)}-${limitedNumbers.slice(
+        4,
+        6
+      )}-${limitedNumbers.slice(6)}`;
+    }
+  };
+
+  // 格式化時間輸入 (HH:MM)
+  const formatTimeInput = (text) => {
+    // 移除所有非數字字符
+    const numbersOnly = text.replace(/\D/g, "");
+
+    // 限制長度為4位數字 (HHMM)
+    const limitedNumbers = numbersOnly.slice(0, 4);
+
+    // 根據長度添加分隔符
+    if (limitedNumbers.length <= 2) {
+      return limitedNumbers;
+    } else {
+      return `${limitedNumbers.slice(0, 2)}:${limitedNumbers.slice(2)}`;
+    }
+  };
+
+  // 同步 taskDate 和 selectedDate
   useEffect(() => {
-    if (timePickerVisible && Platform.OS === "web") {
-      setTimeout(() => {
-        if (hourScrollRef.current) {
-          // 滾動到中間位置，讓用戶可以向兩個方向滾動
-          hourScrollRef.current.scrollTo({
-            y: (parseInt(tempHour) + 2 * 24) * 34, // 從第三個循環開始
-            animated: false,
-          });
-        }
-        if (minuteScrollRef.current) {
-          // 滾動到中間位置，讓用戶可以向兩個方向滾動
-          minuteScrollRef.current.scrollTo({
-            y: (parseInt(tempMinute) + 2 * 60) * 34, // 從第三個循環開始
-            animated: false,
-          });
-        }
-      }, 100);
+    if (!modalVisible) {
+      setTaskDate(selectedDate);
     }
-  }, [timePickerVisible, tempHour, tempMinute]);
+  }, [selectedDate, modalVisible]);
 
-  // 處理小時滾動事件
-  const handleHourScroll = (event) => {
-    const scrollY = event.nativeEvent.contentOffset.y;
-    const itemHeight = 34;
-    const index = Math.round(scrollY / itemHeight);
-    const newHour = index % 24; // 使用模運算實現循環
-    // 只有當滾動到完全不同的位置時才更新
-    if (Math.abs(parseInt(tempHour) - newHour) >= 1) {
-      setTempHour(newHour.toString().padStart(2, "0"));
-    }
-  };
-
-  // 處理分鐘滾動事件
-  const handleMinuteScroll = (event) => {
-    const scrollY = event.nativeEvent.contentOffset.y;
-    const itemHeight = 34;
-    const index = Math.round(scrollY / itemHeight);
-    const newMinute = index % 60; // 使用模運算實現循環
-    // 只有當滾動到完全不同的位置時才更新
-    if (Math.abs(parseInt(tempMinute) - newMinute) >= 1) {
-      setTempMinute(newMinute.toString().padStart(2, "0"));
-    }
-  };
   const scrollViewRef = useRef(null);
 
   // Load tasks from Supabase
@@ -2937,8 +2886,6 @@ function CalendarScreen({ navigation, route }) {
           data: { user },
           error: authError,
         } = await supabase.auth.getUser();
-        console.log("Current user:", user);
-        console.log("Auth error:", authError);
 
         if (!user) {
           console.warn("No authenticated user found");
@@ -2947,7 +2894,6 @@ function CalendarScreen({ navigation, route }) {
         }
 
         const tasksData = await TaskService.getTasks();
-        console.log("Loaded tasks:", tasksData);
         setTasks(tasksData);
       } catch (error) {
         console.error("Error loading tasks:", error);
@@ -2996,26 +2942,32 @@ function CalendarScreen({ navigation, route }) {
     setTaskText("");
     setTaskTime("");
     setTaskLink("");
+    setTaskDate(date);
+    setTaskNote("");
+    setLinkInputFocused(false);
     setSelectedDate(date);
     setModalVisible(true);
   };
 
   const openEditTask = (task) => {
-    console.log("Open edit task:", task);
     setEditingTask(task);
     setTaskText(task.title);
     setTaskTime(task.time || "");
     setTaskLink(task.link || "");
+    setTaskDate(task.date);
+    setTaskNote(task.note || "");
     setSelectedDate(task.date);
     setModalVisible(true);
   };
 
   const saveTask = async () => {
     if (taskText.trim() === "") return;
+    if (taskDate.trim() === "") return;
 
     try {
       let newTask;
-      let dayTasks = tasks[selectedDate] ? [...tasks[selectedDate]] : [];
+      const targetDate = taskDate || selectedDate;
+      let dayTasks = tasks[targetDate] ? [...tasks[targetDate]] : [];
 
       if (editingTask) {
         // Update existing task
@@ -3023,8 +2975,20 @@ function CalendarScreen({ navigation, route }) {
           title: taskText,
           time: taskTime,
           link: taskLink,
-          date: selectedDate,
+          date: targetDate,
+          note: taskNote,
         });
+
+        // Remove from old date if date changed
+        if (editingTask.date !== targetDate) {
+          const oldDayTasks = tasks[editingTask.date]
+            ? [...tasks[editingTask.date]]
+            : [];
+          const filteredOldTasks = oldDayTasks.filter(
+            (t) => t.id !== editingTask.id
+          );
+          setTasks({ ...tasks, [editingTask.date]: filteredOldTasks });
+        }
 
         dayTasks = dayTasks.map((t) =>
           t.id === editingTask.id
@@ -3033,29 +2997,46 @@ function CalendarScreen({ navigation, route }) {
                 title: taskText,
                 time: taskTime,
                 link: taskLink,
-                date: selectedDate,
+                date: targetDate,
+                note: taskNote,
               }
             : t
         );
+
+        // Add to new date if date changed
+        if (editingTask.date !== targetDate) {
+          dayTasks.push({
+            ...editingTask,
+            title: taskText,
+            time: taskTime,
+            link: taskLink,
+            date: targetDate,
+            note: taskNote,
+          });
+        }
       } else {
         // Create new task
         newTask = await TaskService.addTask({
           title: taskText,
           time: taskTime,
           link: taskLink,
-          date: selectedDate,
+          date: targetDate,
+          note: taskNote,
           checked: false,
         });
 
         dayTasks.push(newTask);
       }
 
-      setTasks({ ...tasks, [selectedDate]: dayTasks });
+      setTasks({ ...tasks, [targetDate]: dayTasks });
       setModalVisible(false);
       setEditingTask(null);
       setTaskText("");
       setTaskTime("");
       setTaskLink("");
+      setTaskDate(selectedDate);
+      setTaskNote("");
+      setLinkInputFocused(false);
     } catch (error) {
       console.error("Error saving task:", error);
       Alert.alert("Error", "Failed to save task. Please try again.");
@@ -3080,7 +3061,9 @@ function CalendarScreen({ navigation, route }) {
       setTaskText("");
       setTaskTime("");
       setTaskLink("");
-      console.log("Deleted task", task.id);
+      setTaskDate(selectedDate);
+      setTaskNote("");
+      setLinkInputFocused(false);
     } catch (error) {
       console.error("Error deleting task:", error);
       Alert.alert("Error", "Failed to delete task. Please try again.");
@@ -3315,7 +3298,6 @@ function CalendarScreen({ navigation, route }) {
 
   const renderTaskArea = () => {
     const dayTasks = tasks[selectedDate] || [];
-    console.log("RenderTaskArea dayTasks:", dayTasks);
     return (
       <PanGestureHandler
         onHandlerStateChange={handleTaskAreaGesture}
@@ -3420,9 +3402,14 @@ function CalendarScreen({ navigation, route }) {
             ) : (
               <View style={{ flex: 1 }}>
                 <FlatList
-                  data={dayTasks
-                    .slice()
-                    .sort((a, b) => (a.time || "").localeCompare(b.time || ""))}
+                  data={dayTasks.slice().sort((a, b) => {
+                    // 已完成的任務排到最底下
+                    if (a.checked !== b.checked) {
+                      return a.checked ? 1 : -1;
+                    }
+                    // 未完成的任務按時間排序
+                    return (a.time || "").localeCompare(b.time || "");
+                  })}
                   keyExtractor={(item) => item.id}
                   renderItem={renderTask}
                   contentContainerStyle={[
@@ -3441,323 +3428,377 @@ function CalendarScreen({ navigation, route }) {
 
   const renderModal = () => (
     <Modal
-      animationType="fade"
-      transparent={true}
+      animationType="slide"
+      transparent={false}
       visible={modalVisible}
       onRequestClose={() => setModalVisible(false)}
       accessibilityViewIsModal={true}
       accessibilityLabel="Task Creation/Edit Modal"
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={() => setModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalContent}
-          activeOpacity={1}
-          onPress={(e) => e.stopPropagation()}
-        >
+      <SafeAreaView style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.modalBackButton}
+              onPress={() => setModalVisible(false)}
+              accessibilityLabel="Go back"
+              accessibilityHint="Close the task creation/editing modal"
+            >
+              <MaterialIcons name="arrow-back" size={24} color="#000" />
+            </TouchableOpacity>
             <Text style={styles.modalTitle}>
               {editingTask ? t.editTask : t.createTask}
             </Text>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setModalVisible(false)}
-              accessibilityLabel="Close modal"
-              accessibilityHint="Close the task creation/editing modal"
-            >
-              <MaterialIcons name="close" size={20} color="#888" />
-            </TouchableOpacity>
+            <View style={styles.modalHeaderSpacer} />
           </View>
-          <View style={{ marginBottom: 24 }}>
-            {/* Task Text Input - 移到最前面並設為 autoFocus */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={styles.label}>
-                {t.taskLabel} <Text style={{ color: "#ff4444" }}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={taskText}
-                onChangeText={setTaskText}
-                placeholder={t.addTask}
-                placeholderTextColor="#888"
-                autoFocus={true}
-                returnKeyType="done"
-                accessibilityLabel="Task title input"
-                accessibilityHint="Enter the task title"
-                onSubmitEditing={() => {
-                  // 當用戶按 Enter 時，直接儲存任務（時間是可選的）
-                  if (taskText.trim()) {
-                    saveTask();
-                  }
-                }}
-              />
-            </View>
-
-            {/* Link Input Field */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={styles.label}>{t.link}</Text>
-              <View style={styles.linkInputContainer}>
+          <ScrollView
+            style={styles.modalScrollView}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={{ marginBottom: 24, marginTop: 24 }}>
+              {/* Task Text Input - 移到最前面並設為 autoFocus */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.label}>
+                  {t.taskLabel} <Text style={{ color: "#ff4444" }}>*</Text>
+                </Text>
                 <TextInput
-                  style={styles.linkInput}
-                  value={taskLink}
-                  onChangeText={setTaskLink}
-                  placeholder={t.linkPlaceholder}
+                  style={styles.input}
+                  value={taskText}
+                  onChangeText={setTaskText}
+                  placeholder={t.addTask}
                   placeholderTextColor="#888"
-                  keyboardType="url"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  accessibilityLabel="Task link input"
-                  accessibilityHint="Enter a URL link for this task"
+                  autoFocus={true}
+                  returnKeyType="done"
+                  accessibilityLabel="Task title input"
+                  accessibilityHint="Enter the task title"
+                  onSubmitEditing={() => {
+                    // 當用戶按 Enter 時，直接儲存任務（時間是可選的）
+                    if (taskText.trim()) {
+                      saveTask();
+                    }
+                  }}
                 />
-                {taskLink && editingTask && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      const url = taskLink.startsWith("http")
-                        ? taskLink
-                        : `https://${taskLink}`;
-                      Linking.openURL(url).catch((err) =>
-                        console.error("Failed to open URL:", err)
-                      );
-                    }}
-                    style={styles.linkPreviewButton}
-                  >
-                    <MaterialIcons
-                      name="open-in-new"
-                      size={20}
-                      color="#6c63ff"
-                    />
-                  </TouchableOpacity>
-                )}
               </View>
-            </View>
 
-            {/* Time Selection */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={styles.label}>{t.time}</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  // 初始化時間選擇器
-                  if (taskTime) {
-                    const [hour, minute] = taskTime.split(":");
-                    setTempHour(hour || "00");
-                    setTempMinute(minute || "00");
-                  } else {
-                    // 預設為當前時間
-                    const now = new Date();
-                    setTempHour(now.getHours().toString().padStart(2, "0"));
-                    setTempMinute(now.getMinutes().toString().padStart(2, "0"));
-                  }
-                  setTimePickerVisible(true);
-                }}
-                style={[styles.timeInput, taskTime && styles.timeInputSelected]}
-                activeOpacity={0.7}
-              >
-                <Text
+              {/* Link Input Field */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.label}>{t.link}</Text>
+                <View
                   style={[
-                    styles.timeInputText,
-                    taskTime && styles.timeInputTextFilled,
+                    styles.linkInputContainer,
+                    linkInputFocused && styles.linkInputContainerFocused,
                   ]}
                 >
-                  {taskTime || t.timePlaceholder}
-                </Text>
-                <MaterialIcons
-                  name="access-time"
-                  size={20}
-                  color={taskTime ? "#6c63ff" : "#999"}
-                />
-              </TouchableOpacity>
-            </View>
-            {timePickerVisible && (
-              <Modal
-                transparent={true}
-                visible={timePickerVisible}
-                onRequestClose={() => setTimePickerVisible(false)}
-                animationType="slide"
-                accessibilityViewIsModal={true}
-                accessibilityLabel="Time Picker Modal"
-              >
-                <View style={styles.nativeTimePickerOverlay}>
-                  <View style={styles.nativeTimePickerContainer}>
-                    <View style={styles.nativeTimePickerHeader}>
-                      <TouchableOpacity
-                        onPress={() => setTimePickerVisible(false)}
-                        style={styles.nativeTimePickerCancel}
-                      >
-                        <Text style={styles.nativeTimePickerCancelText}>
-                          {t.cancel}
-                        </Text>
-                      </TouchableOpacity>
-                      <Text style={styles.nativeTimePickerTitle}>
-                        {t.selectTime}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          const selectedTime = new Date();
-                          selectedTime.setHours(parseInt(tempHour));
-                          selectedTime.setMinutes(parseInt(tempMinute));
-                          setTaskTime(`${tempHour}:${tempMinute}`);
-                          setTimePickerVisible(false);
-                        }}
-                        style={styles.nativeTimePickerDone}
-                      >
-                        <Text style={styles.nativeTimePickerDoneText}>
-                          {t.done}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.nativeTimePickerBody}>
-                      {Platform.OS === "web" ? (
-                        <View style={styles.webTimePicker}>
-                          <View style={styles.webTimePickerContainer}>
-                            <View style={styles.webTimePickerColumn}>
-                              <Text style={styles.webTimePickerLabel}>
-                                小時
-                              </Text>
-                              <ScrollView
-                                ref={hourScrollRef}
-                                style={styles.webTimePickerList}
-                                showsVerticalScrollIndicator={false}
-                                contentContainerStyle={
-                                  styles.webTimePickerContent
-                                }
-                                onScroll={handleHourScroll}
-                                scrollEventThrottle={200}
-                                pagingEnabled={false}
-                                decelerationRate="fast"
-                              >
-                                {/* 添加額外的項目來實現循環效果 */}
-                                {Array.from({ length: 5 }, (_, cycle) =>
-                                  Array.from({ length: 24 }, (_, i) => (
-                                    <TouchableOpacity
-                                      key={`${cycle}-${i}`}
-                                      style={[
-                                        styles.webTimePickerItem,
-                                        parseInt(tempHour) === i &&
-                                          styles.webTimePickerItemSelected,
-                                      ]}
-                                      onPress={() =>
-                                        setTempHour(
-                                          i.toString().padStart(2, "0")
-                                        )
-                                      }
-                                    >
-                                      <Text
-                                        style={[
-                                          styles.webTimePickerText,
-                                          parseInt(tempHour) === i &&
-                                            styles.webTimePickerTextSelected,
-                                        ]}
-                                      >
-                                        {i.toString().padStart(2, "0")}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  ))
-                                )}
-                              </ScrollView>
-                            </View>
-                            <Text style={styles.webTimeSeparator}>:</Text>
-                            <View style={styles.webTimePickerColumn}>
-                              <Text style={styles.webTimePickerLabel}>
-                                分鐘
-                              </Text>
-                              <ScrollView
-                                ref={minuteScrollRef}
-                                style={styles.webTimePickerList}
-                                showsVerticalScrollIndicator={false}
-                                contentContainerStyle={
-                                  styles.webTimePickerContent
-                                }
-                                onScroll={handleMinuteScroll}
-                                scrollEventThrottle={200}
-                                pagingEnabled={false}
-                                decelerationRate="fast"
-                              >
-                                {/* 添加額外的項目來實現循環效果 */}
-                                {Array.from({ length: 5 }, (_, cycle) =>
-                                  Array.from({ length: 60 }, (_, i) => (
-                                    <TouchableOpacity
-                                      key={`${cycle}-${i}`}
-                                      style={[
-                                        styles.webTimePickerItem,
-                                        parseInt(tempMinute) === i &&
-                                          styles.webTimePickerItemSelected,
-                                      ]}
-                                      onPress={() =>
-                                        setTempMinute(
-                                          i.toString().padStart(2, "0")
-                                        )
-                                      }
-                                    >
-                                      <Text
-                                        style={[
-                                          styles.webTimePickerText,
-                                          parseInt(tempMinute) === i &&
-                                            styles.webTimePickerTextSelected,
-                                        ]}
-                                      >
-                                        {i.toString().padStart(2, "0")}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  ))
-                                )}
-                              </ScrollView>
-                            </View>
-                          </View>
-                        </View>
-                      ) : (
-                        <DateTimePicker
-                          value={
-                            new Date(
-                              2024,
-                              0,
-                              1,
-                              parseInt(tempHour) || 0,
-                              parseInt(tempMinute) || 0
-                            )
-                          }
-                          mode="time"
-                          display="spinner"
-                          onChange={(event, selectedDate) => {
-                            if (event.type === "set" && selectedDate) {
-                              const hours = selectedDate
-                                .getHours()
-                                .toString()
-                                .padStart(2, "0");
-                              const minutes = selectedDate
-                                .getMinutes()
-                                .toString()
-                                .padStart(2, "0");
-                              setTempHour(hours);
-                              setTempMinute(minutes);
-                            }
-                          }}
-                          style={styles.dateTimePicker}
-                        />
-                      )}
-                    </View>
-                  </View>
+                  <TextInput
+                    style={styles.linkInput}
+                    value={taskLink}
+                    onChangeText={setTaskLink}
+                    placeholder={t.linkPlaceholder}
+                    placeholderTextColor="#888"
+                    keyboardType="url"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    accessibilityLabel="Task link input"
+                    accessibilityHint="Enter a URL link for this task"
+                    onFocus={() => {
+                      setLinkInputFocused(true);
+                    }}
+                    onBlur={() => {
+                      setLinkInputFocused(false);
+                    }}
+                  />
+                  {taskLink && editingTask && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        const url = taskLink.startsWith("http")
+                          ? taskLink
+                          : `https://${taskLink}`;
+                        Linking.openURL(url).catch((err) =>
+                          console.error("Failed to open URL:", err)
+                        );
+                      }}
+                      style={styles.linkPreviewButton}
+                    >
+                      <MaterialIcons
+                        name="open-in-new"
+                        size={20}
+                        color="#6c63ff"
+                      />
+                    </TouchableOpacity>
+                  )}
                 </View>
-              </Modal>
-            )}
-            <View style={styles.modalButtons}>
-              {editingTask && (
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => deleteTask(editingTask)}
-                >
-                  <Text style={styles.deleteButtonText}>{t.delete}</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
-                <Text style={styles.saveButtonText}>{t.save}</Text>
-              </TouchableOpacity>
+              </View>
+
+              {/* Date Input Field */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.label}>
+                  {t.date} <Text style={{ color: "#ff4444" }}>*</Text>
+                </Text>
+                {Platform.OS === "web" ? (
+                  <View style={styles.linkInputContainer}>
+                    <input
+                      type="text"
+                      value={taskDate}
+                      onChange={(e) =>
+                        setTaskDate(formatDateInput(e.target.value))
+                      }
+                      placeholder={t.datePlaceholder}
+                      maxLength={10}
+                      style={{
+                        flex: 1,
+                        fontSize: 16,
+                        paddingLeft: 16,
+                        paddingRight: 16,
+                        border: "none",
+                        backgroundColor: "transparent",
+                        fontFamily: "inherit",
+                        outline: "none",
+                        height: 50,
+                        color: "#333",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // 創建隱藏的 date input 來觸發選擇器
+                        const hiddenInput = document.createElement("input");
+                        hiddenInput.type = "date";
+                        hiddenInput.value = taskDate || "";
+                        hiddenInput.style.position = "absolute";
+                        hiddenInput.style.opacity = "0";
+                        hiddenInput.style.pointerEvents = "none";
+                        document.body.appendChild(hiddenInput);
+
+                        hiddenInput.showPicker();
+
+                        hiddenInput.addEventListener("change", (e) => {
+                          setTaskDate(e.target.value);
+                          document.body.removeChild(hiddenInput);
+                        });
+
+                        hiddenInput.addEventListener("blur", () => {
+                          setTimeout(() => {
+                            if (document.body.contains(hiddenInput)) {
+                              document.body.removeChild(hiddenInput);
+                            }
+                          }, 100);
+                        });
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 8,
+                        marginLeft: 8,
+                        marginRight: 4,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <MaterialIcons name="event" size={20} color="#6c63ff" />
+                    </button>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => setDatePickerVisible(true)}
+                    style={styles.linkInputContainer}
+                  >
+                    <Text
+                      style={[
+                        styles.linkInput,
+                        !taskDate && styles.placeholderText,
+                      ]}
+                    >
+                      {taskDate || t.datePlaceholder}
+                    </Text>
+                    <View style={styles.linkPreviewButton}>
+                      <MaterialIcons name="event" size={20} color="#6c63ff" />
+                    </View>
+                  </TouchableOpacity>
+                )}
+                {datePickerVisible && Platform.OS !== "web" && (
+                  <DateTimePicker
+                    value={taskDate ? new Date(taskDate) : new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setDatePickerVisible(false);
+                      if (event.type === "set" && selectedDate) {
+                        const year = selectedDate.getFullYear();
+                        const month = String(
+                          selectedDate.getMonth() + 1
+                        ).padStart(2, "0");
+                        const day = String(selectedDate.getDate()).padStart(
+                          2,
+                          "0"
+                        );
+                        setTaskDate(`${year}-${month}-${day}`);
+                      }
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* Time Input Field */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.label}>{t.time}</Text>
+                {Platform.OS === "web" ? (
+                  <View style={styles.linkInputContainer}>
+                    <input
+                      type="text"
+                      value={taskTime}
+                      onChange={(e) =>
+                        setTaskTime(formatTimeInput(e.target.value))
+                      }
+                      placeholder={t.timePlaceholder}
+                      maxLength={5}
+                      style={{
+                        flex: 1,
+                        fontSize: 16,
+                        paddingLeft: 16,
+                        paddingRight: 16,
+                        border: "none",
+                        backgroundColor: "transparent",
+                        fontFamily: "inherit",
+                        outline: "none",
+                        height: 50,
+                        color: "#333",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // 創建隱藏的 time input 來觸發選擇器
+                        const hiddenInput = document.createElement("input");
+                        hiddenInput.type = "time";
+                        hiddenInput.value = taskTime || "";
+                        hiddenInput.style.position = "absolute";
+                        hiddenInput.style.opacity = "0";
+                        hiddenInput.style.pointerEvents = "none";
+                        document.body.appendChild(hiddenInput);
+
+                        hiddenInput.showPicker();
+
+                        hiddenInput.addEventListener("change", (e) => {
+                          setTaskTime(e.target.value);
+                          document.body.removeChild(hiddenInput);
+                        });
+
+                        hiddenInput.addEventListener("blur", () => {
+                          setTimeout(() => {
+                            if (document.body.contains(hiddenInput)) {
+                              document.body.removeChild(hiddenInput);
+                            }
+                          }, 100);
+                        });
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 8,
+                        marginLeft: 8,
+                        marginRight: 4,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <MaterialIcons
+                        name="access-time"
+                        size={20}
+                        color="#6c63ff"
+                      />
+                    </button>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => setTimePickerVisible(true)}
+                    style={styles.linkInputContainer}
+                  >
+                    <Text
+                      style={[
+                        styles.linkInput,
+                        !taskTime && styles.placeholderText,
+                      ]}
+                    >
+                      {taskTime || t.timePlaceholder}
+                    </Text>
+                    <View style={styles.linkPreviewButton}>
+                      <MaterialIcons
+                        name="access-time"
+                        size={20}
+                        color="#6c63ff"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                )}
+                {timePickerVisible && Platform.OS !== "web" && (
+                  <DateTimePicker
+                    value={
+                      taskTime
+                        ? new Date(
+                            2024,
+                            0,
+                            1,
+                            parseInt(taskTime.split(":")[0]) || 0,
+                            parseInt(taskTime.split(":")[1]) || 0
+                          )
+                        : new Date()
+                    }
+                    mode="time"
+                    display="default"
+                    onChange={(event, selectedTime) => {
+                      setTimePickerVisible(false);
+                      if (event.type === "set" && selectedTime) {
+                        const hours = String(selectedTime.getHours()).padStart(
+                          2,
+                          "0"
+                        );
+                        const minutes = String(
+                          selectedTime.getMinutes()
+                        ).padStart(2, "0");
+                        setTaskTime(`${hours}:${minutes}`);
+                      }
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* Note Input Field */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.label}>{t.note}</Text>
+                <TextInput
+                  style={[styles.input, styles.noteInput]}
+                  value={taskNote}
+                  onChangeText={setTaskNote}
+                  placeholder={t.notePlaceholder}
+                  placeholderTextColor="#888"
+                  multiline={true}
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  accessibilityLabel="Task note input"
+                  accessibilityHint="Enter additional notes for this task"
+                />
+              </View>
             </View>
+          </ScrollView>
+          <View style={styles.modalButtons}>
+            {editingTask && (
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => deleteTask(editingTask)}
+              >
+                <Text style={styles.deleteButtonText}>{t.delete}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
+              <Text style={styles.saveButtonText}>{t.save}</Text>
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 
@@ -3887,9 +3928,6 @@ export default function App() {
       document.title = "Too Doo List";
     }
     ReactGA.initialize("G-NV40E1BDH3");
-
-    // Log app version for debugging
-    console.log("Too-Doo-List App Version:", require("./package.json").version);
 
     if (
       Platform.OS === "web" &&
@@ -4406,19 +4444,27 @@ const styles = StyleSheet.create({
     borderColor: "#e0e0e0",
     backgroundColor: "#f9f9f9",
     borderRadius: 12,
-    paddingHorizontal: 16,
     height: 50,
+  },
+  linkInputContainerFocused: {
+    borderColor: "#6c63ff",
   },
   linkInput: {
     flex: 1,
     fontSize: 16,
     color: "#333",
-    paddingVertical: 0,
+    paddingHorizontal: 16,
     height: 50,
+    backgroundColor: "transparent",
+    textAlignVertical: "center",
+    borderRadius: 12,
   },
   linkPreviewButton: {
     padding: 8,
     marginLeft: 8,
+  },
+  placeholderText: {
+    color: "#888",
   },
   timeInput: {
     height: 50,
@@ -4995,26 +5041,21 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    backgroundColor: "#fff",
   },
   modalContent: {
-    width: "85%",
+    flex: 1,
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    elevation: 4,
+  },
+  modalScrollView: {
+    flex: 1,
+    paddingHorizontal: 24,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: 24,
+    flex: 1,
+    textAlign: "center",
   },
   input: {
     borderWidth: 1,
@@ -5025,12 +5066,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#f9f9f9",
   },
+  inputFilled: {
+    borderColor: "#6c63ff",
+  },
+  noteInput: {
+    height: 100,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    paddingHorizontal: 0,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 16,
     gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    backgroundColor: "#fff",
   },
   buttonGroup: {
     flexDirection: "row",
@@ -5053,9 +5107,20 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 0,
-    position: "relative",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  modalBackButton: {
+    padding: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 40,
+  },
+  modalHeaderSpacer: {
+    width: 40,
   },
   modalCloseButton: {
     padding: 4,

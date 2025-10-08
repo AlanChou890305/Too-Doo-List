@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "To Do",
     slug: "too-doo-list",
-    version: "1.0.0",
+    version: "1.1.0",
     description: "Simple and intuitive task management app with Google SSO",
     main: "node_modules/expo/AppEntry.js",
     orientation: "portrait",
@@ -17,6 +17,9 @@ module.exports = {
       bundleIdentifier: "com.cty0305.too.doo.list",
       supportsTablet: true,
       associatedDomains: ["applinks:YOUR_APP_LINK_DOMAIN"],
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
       package: "com.cty0305.too.doo.list",

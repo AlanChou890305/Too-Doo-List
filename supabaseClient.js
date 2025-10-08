@@ -56,19 +56,14 @@ const commonConfig = {
 
 // Validate Supabase configuration
 // Log successful configuration
-console.log("Supabase client initialized with environment variables");
 
 // Initialize Supabase client
 const supabase = createClient(supabaseUrl, supabaseAnonKey, commonConfig);
 
 // Handle deep links when the app is opened from a redirect
 const handleOpenURL = async (event) => {
-  console.log("Received deep link:", event.url);
-
   // Check if this is a Supabase auth callback
   if (event.url.includes("access_token=") || event.url.includes("error=")) {
-    console.log("Processing Supabase auth callback");
-
     try {
       // Extract the URL parameters
       const url = new URL(event.url);
@@ -79,15 +74,7 @@ const handleOpenURL = async (event) => {
       const expiresIn = params.get("expires_in");
       const tokenType = params.get("token_type");
 
-      console.log("Extracted auth data:", {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        expiresIn,
-        tokenType,
-      });
-
       if (accessToken && refreshToken) {
-        console.log("Setting session with tokens");
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -95,18 +82,12 @@ const handleOpenURL = async (event) => {
 
         if (error) {
           console.error("Error setting session:", error);
-        } else {
-          console.log("Session set successfully:", data);
-          // The app will handle navigation based on auth state changes
         }
-      } else {
-        console.log("Missing tokens in callback URL");
+        // The app will handle navigation based on auth state changes
       }
     } catch (error) {
       console.error("Error handling auth callback:", error);
     }
-  } else {
-    console.log("Not an auth callback URL");
   }
 };
 
@@ -121,10 +102,7 @@ const setupDeepLinking = () => {
       try {
         const initialUrl = await Linking.getInitialURL();
         if (initialUrl) {
-          console.log("App opened with URL:", initialUrl);
           handleOpenURL({ url: initialUrl });
-        } else {
-          console.log("No initial URL found");
         }
       } catch (error) {
         console.error("Error processing initial URL:", error);

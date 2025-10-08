@@ -8,15 +8,14 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
     },
-    "production": {
-      "channel": "Too-Doo-List"
-    }
+    "production": {}
   },
   "submit": {
-    "production": {
-      "channel": "Too-Doo-List"
-    }
+    "production": {}
   }
 }

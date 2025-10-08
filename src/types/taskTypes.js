@@ -12,6 +12,7 @@ export const TASK_FIELDS = {
   DATE: "date",
   CHECKED: "checked",
   LINK: "link",
+  NOTE: "note",
 
   // 擴展欄位
   PRIORITY: "priority",
@@ -70,6 +71,7 @@ export const createTaskObject = (taskData) => {
     [TASK_FIELDS.TEXT]: taskData.title,
     [TASK_FIELDS.TIME]: taskData.time || null,
     [TASK_FIELDS.LINK]: taskData.link || null,
+    [TASK_FIELDS.NOTE]: taskData.note || null,
     [TASK_FIELDS.DATE]: taskData.date,
     [TASK_FIELDS.CHECKED]: taskData.checked || false,
     [TASK_FIELDS.PRIORITY]: taskData.priority || TASK_PRIORITIES.MEDIUM,
