@@ -53,17 +53,17 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 // Fonts
-import { useFonts } from 'expo-font';
+import { useFonts } from "expo-font";
 import {
   Roboto_400Regular,
   Roboto_500Medium,
   Roboto_700Bold,
-} from '@expo-google-fonts/roboto';
+} from "@expo-google-fonts/roboto";
 import {
   NotoSansTC_400Regular,
   NotoSansTC_500Medium,
   NotoSansTC_700Bold,
-} from '@expo-google-fonts/noto-sans-tc';
+} from "@expo-google-fonts/noto-sans-tc";
 
 const TASKS_STORAGE_KEY = "TASKS_STORAGE_KEY";
 const LANGUAGE_STORAGE_KEY = "LANGUAGE_STORAGE_KEY";
@@ -846,7 +846,9 @@ const SplashScreen = ({ navigation }) => {
       // Use the correct redirect URL for Expo
       const getRedirectUrl = () => {
         if (Platform.OS !== "web") {
-          return "too-doo-list://auth/callback";
+          // For native apps (iOS/Android), use the Netlify web URL
+          // This allows Google OAuth to work on native platforms
+          return "https://to-do-mvp.netlify.app/auth/callback";
         }
 
         // For web, determine the appropriate redirect URL
@@ -864,7 +866,7 @@ const SplashScreen = ({ navigation }) => {
         }
 
         // Fallback to the configured production URL
-        return "https://too-doo-list-app-20251005.netlify.app/auth/callback";
+        return "https://to-do-mvp.netlify.app/auth/callback";
       };
 
       const redirectUrl = getRedirectUrl();
@@ -3287,7 +3289,9 @@ function CalendarScreen({ navigation, route }) {
           </Text>
         </View>
         <View style={styles.taskTimeContainer}>
-          {item.time ? <Text style={styles.taskTimeRight}>{item.time}</Text> : null}
+          {item.time ? (
+            <Text style={styles.taskTimeRight}>{item.time}</Text>
+          ) : null}
           {moveMode && taskToMove && taskToMove.id === item.id ? (
             <Text style={styles.moveHint}>{t.moveHint}</Text>
           ) : null}
@@ -3569,6 +3573,9 @@ function CalendarScreen({ navigation, route }) {
                           opacity: 0;
                           cursor: pointer;
                         }
+                        #date-input-field::-webkit-date-and-time-value {
+                          text-align: left;
+                        }
                       `}
                     </style>
                     <input
@@ -3649,6 +3656,9 @@ function CalendarScreen({ navigation, route }) {
                           left: 0;
                           opacity: 0;
                           cursor: pointer;
+                        }
+                        #time-input-field::-webkit-date-and-time-value {
+                          text-align: left;
                         }
                       `}
                     </style>
@@ -4210,28 +4220,28 @@ export default function App() {
 // ...
 
 // Helper function to get font family based on platform and language
-const getFontFamily = (language = 'en', weight = 'regular') => {
-  if (Platform.OS === 'web') {
+const getFontFamily = (language = "en", weight = "regular") => {
+  if (Platform.OS === "web") {
     // For web, use CSS font family with fallback
-    const isChinese = language === 'zh';
-    if (weight === 'bold') {
-      return isChinese 
+    const isChinese = language === "zh";
+    if (weight === "bold") {
+      return isChinese
         ? '"Noto Sans TC", "Roboto", -apple-system, system-ui, sans-serif'
         : '"Roboto", "Noto Sans TC", -apple-system, system-ui, sans-serif';
     }
-    return isChinese 
+    return isChinese
       ? '"Noto Sans TC", "Roboto", -apple-system, system-ui, sans-serif'
       : '"Roboto", "Noto Sans TC", -apple-system, system-ui, sans-serif';
   }
-  
+
   // For native apps, use loaded fonts
-  const isChinese = language === 'zh';
-  if (weight === 'bold') {
-    return isChinese ? 'NotoSansTC_700Bold' : 'Roboto_700Bold';
-  } else if (weight === 'medium') {
-    return isChinese ? 'NotoSansTC_500Medium' : 'Roboto_500Medium';
+  const isChinese = language === "zh";
+  if (weight === "bold") {
+    return isChinese ? "NotoSansTC_700Bold" : "Roboto_700Bold";
+  } else if (weight === "medium") {
+    return isChinese ? "NotoSansTC_500Medium" : "Roboto_500Medium";
   }
-  return isChinese ? 'NotoSansTC_400Regular' : 'Roboto_400Regular';
+  return isChinese ? "NotoSansTC_400Regular" : "Roboto_400Regular";
 };
 
 const styles = StyleSheet.create({
@@ -5214,7 +5224,7 @@ const styles = StyleSheet.create({
   },
   modalButtons: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingTop: 16,

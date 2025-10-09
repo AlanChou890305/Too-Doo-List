@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "To Do",
     slug: "too-doo-list",
-    version: "1.2.1",
+    version: "1.2.2",
     description: "Simple and intuitive task management app with Google SSO",
     main: "node_modules/expo/AppEntry.js",
     orientation: "portrait",
@@ -94,12 +94,6 @@ module.exports = {
     },
 
     // Updates configuration
-    updates: {
-      url: "https://u.expo.dev/059246f4-4110-4b6c-96bf-d968f554f81e",
-      fallbackToCacheTimeout: 0,
-      enabled: true,
-    },
-
     runtimeVersion: {
       policy: "appVersion",
     },
@@ -107,7 +101,7 @@ module.exports = {
     // EAS project configuration
     extra: {
       eas: {
-        projectId: "059246f4-4110-4b6c-96bf-d968f554f81e",
+        projectId: "a86169e7-6d37-4bee-be43-d1e709615ef9",
       },
     },
 
