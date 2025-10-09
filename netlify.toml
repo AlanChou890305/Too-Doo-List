@@ -14,8 +14,8 @@
 # Redirect rules for SPA routing
 # Exception: Serve auth callback page directly
 [[redirects]]
-  from = "/auth/callback.html"
-  to = "/auth-callback.html"
+  from = "/auth/callback"
+  to = "/auth/callback.html"
   status = 200
 
 [[redirects]]
