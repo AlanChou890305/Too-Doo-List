@@ -19,6 +19,11 @@ module.exports = {
       associatedDomains: ["applinks:YOUR_APP_LINK_DOMAIN"],
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        CFBundleURLTypes: [
+          {
+            CFBundleURLSchemes: ["com.cty0305.too.doo.list"],
+          },
+        ],
       },
     },
     android: {

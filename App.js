@@ -848,8 +848,8 @@ const SplashScreen = ({ navigation }) => {
       // Use the correct redirect URL for Expo
       const getRedirectUrl = () => {
         if (Platform.OS !== "web") {
-          // For standalone apps (TestFlight), use Netlify redirect page
-          // This page will handle OAuth callback and redirect back to the app
+          // For standalone apps (TestFlight), use Netlify callback page
+          // The page will redirect back to app using custom URI scheme
           return "https://to-do-mvp.netlify.app/auth/callback";
         }
 
@@ -910,48 +910,32 @@ const SplashScreen = ({ navigation }) => {
           // Use window.location.replace to avoid back button issues
           window.location.replace(data.url);
         } else {
-          // For mobile, use AuthSession with Netlify callback
-          const result = await AuthSession.startAsync({
-            authUrl: data.url,
-            returnUrl: "https://to-do-mvp.netlify.app/auth/callback",
-          });
+          // For mobile, open the auth URL in a web browser
+          const result = await WebBrowser.openAuthSessionAsync(
+            data.url,
+            redirectUrl
+          );
           console.warn("VERBOSE: Auth session result:", result);
 
-          if (result.type === "success" && result.url) {
-            // Check if the URL contains auth tokens
-            if (
-              result.url.includes("access_token=") ||
-              result.url.includes("error=")
-            ) {
-              // Parse the URL to get the tokens
-              const url = new URL(result.url);
-              const hash = url.hash.substring(1);
-              const params = new URLSearchParams(hash);
+          // After returning from the auth flow, check the session
+          const {
+            data: { session: newSession },
+            error: sessionCheckError,
+          } = await supabase.auth.getSession();
 
-              const accessToken = params.get("access_token");
-              const refreshToken = params.get("refresh_token");
+          if (sessionCheckError) {
+            console.error(
+              "Error checking session after auth:",
+              sessionCheckError
+            );
+            return;
+          }
 
-              if (accessToken && refreshToken) {
-                // Set the session manually
-                const { data, error } = await supabase.auth.setSession({
-                  access_token: accessToken,
-                  refresh_token: refreshToken,
-                });
-
-                if (error) {
-                  console.error("Error setting session:", error);
-                  return;
-                }
-
-                // Navigate to main app
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "MainTabs" }],
-                });
-              }
-            }
-          } else if (result.type === "dismiss") {
-            console.warn("Auth session was dismissed by user");
+          if (newSession) {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MainTabs" }],
+            });
           }
         }
       } else {
