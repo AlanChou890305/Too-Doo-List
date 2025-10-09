@@ -96,6 +96,7 @@ const translations = {
     note: "Note",
     notePlaceholder: "Add a note",
     save: "Save",
+    update: "Update",
     cancel: "Cancel",
     delete: "Delete",
     logoutConfirm: "Are you sure you want to log out of the app?",
@@ -239,6 +240,7 @@ const translations = {
     note: "備註",
     notePlaceholder: "添加備註",
     save: "儲存",
+    update: "更新",
     cancel: "取消",
     delete: "刪除",
     logoutConfirm: "您確定要登出應用程式嗎？",
@@ -846,8 +848,8 @@ const SplashScreen = ({ navigation }) => {
       // Use the correct redirect URL for Expo
       const getRedirectUrl = () => {
         if (Platform.OS !== "web") {
-          // For native apps (iOS/Android), use the Netlify web URL
-          // This allows Google OAuth to work on native platforms
+          // For standalone apps (TestFlight), use Netlify redirect page
+          // This page will handle OAuth callback and redirect back to the app
           return "https://to-do-mvp.netlify.app/auth/callback";
         }
 
@@ -908,31 +910,48 @@ const SplashScreen = ({ navigation }) => {
           // Use window.location.replace to avoid back button issues
           window.location.replace(data.url);
         } else {
-          // For mobile, open the auth URL in a web browser
-          const result = await WebBrowser.openAuthSessionAsync(
-            data.url,
-            redirectUrl
-          );
+          // For mobile, use AuthSession with Netlify callback
+          const result = await AuthSession.startAsync({
+            authUrl: data.url,
+            returnUrl: "https://to-do-mvp.netlify.app/auth/callback",
+          });
           console.warn("VERBOSE: Auth session result:", result);
 
-          // After returning from the auth flow, check the session
-          const {
-            data: { session: newSession },
-            error: sessionCheckError,
-          } = await supabase.auth.getSession();
-          if (sessionCheckError) {
-            console.error(
-              "Error checking session after auth:",
-              sessionCheckError
-            );
-            return;
-          }
+          if (result.type === "success" && result.url) {
+            // Check if the URL contains auth tokens
+            if (
+              result.url.includes("access_token=") ||
+              result.url.includes("error=")
+            ) {
+              // Parse the URL to get the tokens
+              const url = new URL(result.url);
+              const hash = url.hash.substring(1);
+              const params = new URLSearchParams(hash);
 
-          if (newSession) {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "MainTabs" }],
-            });
+              const accessToken = params.get("access_token");
+              const refreshToken = params.get("refresh_token");
+
+              if (accessToken && refreshToken) {
+                // Set the session manually
+                const { data, error } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                });
+
+                if (error) {
+                  console.error("Error setting session:", error);
+                  return;
+                }
+
+                // Navigate to main app
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "MainTabs" }],
+                });
+              }
+            }
+          } else if (result.type === "dismiss") {
+            console.warn("Auth session was dismissed by user");
           }
         }
       } else {
@@ -2983,13 +3002,11 @@ function CalendarScreen({ navigation, route }) {
     if (taskDate.trim() === "") return;
 
     try {
-      let newTask;
       const targetDate = taskDate || selectedDate;
-      let dayTasks = tasks[targetDate] ? [...tasks[targetDate]] : [];
 
       if (editingTask) {
         // Update existing task
-        await TaskService.updateTask(editingTask.id, {
+        const updatedTask = await TaskService.updateTask(editingTask.id, {
           title: taskText,
           time: taskTime,
           link: taskLink,
@@ -2997,44 +3014,32 @@ function CalendarScreen({ navigation, route }) {
           note: taskNote,
         });
 
-        // Remove from old date if date changed
         if (editingTask.date !== targetDate) {
-          const oldDayTasks = tasks[editingTask.date]
-            ? [...tasks[editingTask.date]]
-            : [];
-          const filteredOldTasks = oldDayTasks.filter(
+          // Date changed - remove from old date and add to new date
+          const oldDayTasks = tasks[editingTask.date] || [];
+          const newOldDayTasks = oldDayTasks.filter(
             (t) => t.id !== editingTask.id
           );
-          setTasks({ ...tasks, [editingTask.date]: filteredOldTasks });
-        }
 
-        dayTasks = dayTasks.map((t) =>
-          t.id === editingTask.id
-            ? {
-                ...t,
-                title: taskText,
-                time: taskTime,
-                link: taskLink,
-                date: targetDate,
-                note: taskNote,
-              }
-            : t
-        );
+          const newDayTasks = tasks[targetDate] || [];
+          const updatedNewDayTasks = [...newDayTasks, updatedTask];
 
-        // Add to new date if date changed
-        if (editingTask.date !== targetDate) {
-          dayTasks.push({
-            ...editingTask,
-            title: taskText,
-            time: taskTime,
-            link: taskLink,
-            date: targetDate,
-            note: taskNote,
+          setTasks({
+            ...tasks,
+            [editingTask.date]: newOldDayTasks,
+            [targetDate]: updatedNewDayTasks,
           });
+        } else {
+          // Same date - update in place
+          const dayTasks = tasks[targetDate] || [];
+          const updatedDayTasks = dayTasks.map((t) =>
+            t.id === editingTask.id ? updatedTask : t
+          );
+          setTasks({ ...tasks, [targetDate]: updatedDayTasks });
         }
       } else {
         // Create new task
-        newTask = await TaskService.addTask({
+        const newTask = await TaskService.addTask({
           title: taskText,
           time: taskTime,
           link: taskLink,
@@ -3043,10 +3048,10 @@ function CalendarScreen({ navigation, route }) {
           checked: false,
         });
 
-        dayTasks.push(newTask);
+        const dayTasks = tasks[targetDate] || [];
+        setTasks({ ...tasks, [targetDate]: [...dayTasks, newTask] });
       }
 
-      setTasks({ ...tasks, [targetDate]: dayTasks });
       setModalVisible(false);
       setEditingTask(null);
       setTaskText("");
@@ -3766,7 +3771,9 @@ function CalendarScreen({ navigation, route }) {
               </TouchableOpacity>
             )}
             <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
-              <Text style={styles.saveButtonText}>{t.save}</Text>
+              <Text style={styles.saveButtonText}>
+                {editingTask ? t.update : t.save}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4100,7 +4107,15 @@ export default function App() {
   const t = translations[language] || translations.en;
 
   // Wait for fonts and language to load
-  if (!fontsLoaded || loadingLang) return null;
+  // Add timeout fallback to prevent infinite white screen
+  const [fontTimeout, setFontTimeout] = React.useState(false);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setFontTimeout(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!fontsLoaded && !fontTimeout) return null;
+  if (loadingLang && !fontTimeout) return null;
 
   function MainTabs() {
     React.useEffect(() => {
@@ -5224,7 +5239,7 @@ const styles = StyleSheet.create({
   },
   modalButtons: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingTop: 16,
