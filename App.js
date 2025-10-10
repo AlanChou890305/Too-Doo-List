@@ -848,9 +848,9 @@ const SplashScreen = ({ navigation }) => {
       // Use the correct redirect URL for Expo
       const getRedirectUrl = () => {
         if (Platform.OS !== "web") {
-          // For standalone apps (TestFlight), use Netlify callback page
+          // For standalone apps (TestFlight), use Vercel callback page
           // The page will redirect back to app using custom URI scheme
-          return "https://to-do-mvp.netlify.app/auth/callback";
+          return "https://to-do-mvp.vercel.app/auth/callback";
         }
 
         // For web, determine the appropriate redirect URL
@@ -862,13 +862,18 @@ const SplashScreen = ({ navigation }) => {
           return `${currentOrigin}/auth/callback`;
         }
 
-        // Check if we're on the production Netlify domain
+        // Check if we're on Vercel domain
+        if (currentOrigin.includes("vercel.app")) {
+          return `${currentOrigin}/auth/callback`;
+        }
+
+        // Check if we're on the legacy Netlify domain (temporary fallback)
         if (currentOrigin.includes("netlify.app")) {
           return `${currentOrigin}/auth/callback`;
         }
 
-        // Fallback to the configured production URL
-        return "https://to-do-mvp.netlify.app/auth/callback";
+        // Fallback to the configured production URL (Vercel)
+        return "https://to-do-mvp.vercel.app/auth/callback";
       };
 
       const redirectUrl = getRedirectUrl();
