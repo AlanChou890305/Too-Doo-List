@@ -3,13 +3,18 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "rewrites": [
+    {
+      "source": "/auth/callback",
+      "destination": "/auth/callback.html"
+    }
+  ],
   "routes": [
     {
-      "src": "/auth/callback",
-      "dest": "/auth/callback.html"
+      "handle": "filesystem"
     },
     {
-      "src": "/((?!auth/callback).*)",
+      "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
