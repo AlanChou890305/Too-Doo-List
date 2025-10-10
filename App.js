@@ -635,10 +635,28 @@ const SplashScreen = ({ navigation }) => {
         }
       });
 
+    // Listen for custom auth success event from deep link handling
+    const handleCustomAuthSuccess = (event) => {
+      console.log("Custom auth success event received:", event.detail);
+      navigateToMainApp();
+    };
+
+    // Add event listener for custom auth success
+    if (typeof window !== "undefined") {
+      window.addEventListener("supabase-auth-success", handleCustomAuthSuccess);
+    }
+
     // Cleanup auth subscription on unmount
     const cleanupAuthSubscription = () => {
       if (authSubscription?.unsubscribe) {
         authSubscription.unsubscribe();
+      }
+      // Remove custom event listener
+      if (typeof window !== "undefined") {
+        window.removeEventListener(
+          "supabase-auth-success",
+          handleCustomAuthSuccess
+        );
       }
     };
 
@@ -859,12 +877,12 @@ const SplashScreen = ({ navigation }) => {
 
         // Check if we're in development (localhost)
         if (currentOrigin.includes("localhost")) {
-          return `${currentOrigin}/auth/callback`;
+          return `${currentOrigin}/auth/callback-local.html`;
         }
 
         // Check if we're on Vercel domain
         if (currentOrigin.includes("vercel.app")) {
-          return `${currentOrigin}/auth/callback`;
+          return `${currentOrigin}/auth/callback-local.html`;
         }
 
         // Check if we're on the legacy Netlify domain (temporary fallback)
