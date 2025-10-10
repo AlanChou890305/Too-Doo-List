@@ -101,6 +101,8 @@ coverage/
 # Gatsby files
 .cache/
 public
+!public/callback.html
+!public/auth/
 
 # Storybook build outputs
 .out

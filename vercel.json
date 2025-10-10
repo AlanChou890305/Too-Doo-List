@@ -1,7 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/auth/callback", "destination": "/auth/callback.html" }
-  ],
+  "rewrites": [{ "source": "/auth/callback", "destination": "/callback.html" }],
   "headers": [
     {
       "source": "/_expo/(.*)",
