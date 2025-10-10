@@ -51,8 +51,25 @@
   <body>
     <div class="container">
       <div class="spinner"></div>
+      <h2>Login Successful!</h2>
       <p id="status">Redirecting back to app...</p>
       <div class="debug" id="debug"></div>
+      <div
+        id="ios-instructions"
+        style="
+          display: none;
+          margin-top: 20px;
+          padding: 15px;
+          background: #e8f4fd;
+          border-radius: 8px;
+        "
+      >
+        <h3>📱 Return to App</h3>
+        <p><strong>Tap "Open" when prompted by Safari</strong></p>
+        <p style="color: #28a745; font-weight: bold">
+          ✅ Your login was successful!
+        </p>
+      </div>
     </div>
 
     <script>
@@ -60,37 +77,37 @@
       const debugLog = [];
       function log(message, data) {
         const logEntry = `[${new Date().toISOString()}] ${message}`;
-        console.log(logEntry, data || '');
-        debugLog.push(logEntry + (data ? ': ' + JSON.stringify(data) : ''));
+        console.log(logEntry, data || "");
+        debugLog.push(logEntry + (data ? ": " + JSON.stringify(data) : ""));
         updateDebugDisplay();
       }
 
       function updateDebugDisplay() {
-        const debugEl = document.getElementById('debug');
-        debugEl.innerHTML = debugLog.join('<br>');
+        const debugEl = document.getElementById("debug");
+        debugEl.innerHTML = debugLog.join("<br>");
       }
 
       function updateStatus(message) {
-        document.getElementById('status').textContent = message;
-        log('Status update', message);
+        document.getElementById("status").textContent = message;
+        log("Status update", message);
       }
 
       // Parse the URL hash and query parameters to get OAuth parameters
       function getAuthParams() {
-        log('Current URL', window.location.href);
-        log('Hash', window.location.hash);
-        log('Search', window.location.search);
+        log("Current URL", window.location.href);
+        log("Hash", window.location.hash);
+        log("Search", window.location.search);
 
         // Try hash first (for direct token response)
         let params;
         if (window.location.hash) {
           const hash = window.location.hash.substring(1);
           params = new URLSearchParams(hash);
-          log('Parsed from hash');
+          log("Parsed from hash");
         } else {
           // Try query parameters (for authorization code flow)
           params = new URLSearchParams(window.location.search);
-          log('Parsed from query');
+          log("Parsed from query");
         }
 
         const result = {
@@ -104,7 +121,7 @@
           error_description: params.get("error_description"),
         };
 
-        log('Parsed params', result);
+        log("Parsed params", result);
         return result;
       }
 
@@ -113,78 +130,94 @@
         const authParams = getAuthParams();
 
         if (authParams.error) {
-          log('OAuth error detected', authParams.error);
+          log("OAuth error detected", authParams.error);
           updateStatus(`Error: ${authParams.error}`);
-          
+
           // Redirect to app with error
           const errorUrl = `com.cty0305.too.doo.list://auth/callback?error=${encodeURIComponent(
             authParams.error
           )}&error_description=${encodeURIComponent(
             authParams.error_description || ""
           )}`;
-          
-          log('Redirecting with error', errorUrl);
+
+          log("Redirecting with error", errorUrl);
           window.location.href = errorUrl;
           return;
         }
 
         if (authParams.access_token && authParams.refresh_token) {
-          log('Direct token flow detected');
-          updateStatus('Login successful! Redirecting with tokens...');
-          
+          log("Direct token flow detected");
+          updateStatus("Login successful! Redirecting with tokens...");
+
           // Success - redirect to app with tokens
           const redirectUrl = `com.cty0305.too.doo.list://auth/callback#access_token=${authParams.access_token}&refresh_token=${authParams.refresh_token}&expires_in=${authParams.expires_in}&token_type=${authParams.token_type}`;
 
-          log('Redirecting with tokens');
-          
+          log("Redirecting with tokens");
+
           try {
             window.location.href = redirectUrl;
           } catch (e) {
-            log('Redirect failed', e.message);
+            log("Redirect failed", e.message);
           }
 
           // Fallback: show manual instruction
           setTimeout(() => {
-            updateStatus('Please return to the To Do app. The login was successful!');
+            showIOSInstructions();
           }, 2000);
         } else if (authParams.code) {
-          log('PKCE flow detected', authParams.code);
-          updateStatus('Login successful! Redirecting with authorization code...');
-          
-          // Authorization code flow - redirect with code
-          const redirectUrl = `com.cty0305.too.doo.list://auth/callback?code=${authParams.code}&state=${authParams.state || ''}`;
+          log("PKCE flow detected", authParams.code);
+          updateStatus(
+            "Login successful! Redirecting with authorization code..."
+          );
 
-          log('Redirecting with code', redirectUrl);
+          // Authorization code flow - redirect with code
+          const redirectUrl = `com.cty0305.too.doo.list://auth/callback?code=${
+            authParams.code
+          }&state=${authParams.state || ""}`;
+
+          log("Redirecting with code", redirectUrl);
 
           try {
             window.location.href = redirectUrl;
           } catch (e) {
-            log('Redirect failed', e.message);
+            log("Redirect failed", e.message);
           }
 
           // Fallback: show manual instruction
           setTimeout(() => {
-            updateStatus('Please return to the To Do app. The login was successful!');
+            showIOSInstructions();
           }, 2000);
         } else {
-          log('Missing auth params');
-          updateStatus('Error: Missing authentication parameters');
-          
+          log("Missing auth params");
+          updateStatus("Error: Missing authentication parameters");
+
           // Redirect to app with error
           const errorUrl = `com.cty0305.too.doo.list://auth/callback?error=missing_auth_params&error_description=No access token or authorization code received`;
-          
-          log('Redirecting with missing params error', errorUrl);
+
+          log("Redirecting with missing params error", errorUrl);
           window.location.href = errorUrl;
         }
       }
 
+      function showIOSInstructions() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        if (isIOS) {
+          document.getElementById("ios-instructions").style.display = "block";
+          updateStatus('Tap "Open" when prompted by Safari');
+        } else {
+          updateStatus(
+            "Please manually return to the To Do app. The login was successful!"
+          );
+        }
+      }
+
       // Start redirect immediately
-      log('Starting redirect process');
+      log("Starting redirect process");
       redirectToApp();
 
       // Fallback: if redirect doesn't work after 5 seconds, show error
       setTimeout(() => {
-        updateStatus('Unable to redirect back to app automatically. Please manually return to the app.');
+        showIOSInstructions();
       }, 5000);
     </script>
   </body>

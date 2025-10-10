@@ -63,16 +63,20 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, commonConfig);
 // Handle deep links when the app is opened from a redirect
 const handleOpenURL = async (event) => {
   console.log("Deep link received:", event.url);
-  
+
   // Check if this is a Supabase auth callback
-  if (event.url.includes("access_token=") || event.url.includes("code=") || event.url.includes("error=")) {
+  if (
+    event.url.includes("access_token=") ||
+    event.url.includes("code=") ||
+    event.url.includes("error=")
+  ) {
     try {
       // Extract the URL parameters
       const url = new URL(event.url);
-      
+
       // Try hash parameters first (direct token flow)
       let params = new URLSearchParams(url.hash.substring(1));
-      
+
       // If no hash parameters, try query parameters (PKCE flow)
       if (!params.get("access_token") && !params.get("code")) {
         params = new URLSearchParams(url.search);
@@ -83,15 +87,19 @@ const handleOpenURL = async (event) => {
       const code = params.get("code");
       const error = params.get("error");
 
-      console.log("Auth params:", { 
-        hasAccessToken: !!accessToken, 
+      console.log("Auth params:", {
+        hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
         hasCode: !!code,
-        hasError: !!error 
+        hasError: !!error,
       });
 
       if (error) {
-        console.error("OAuth error from callback:", error, params.get("error_description"));
+        console.error(
+          "OAuth error from callback:",
+          error,
+          params.get("error_description")
+        );
         return;
       }
 
@@ -111,12 +119,21 @@ const handleOpenURL = async (event) => {
       } else if (code) {
         // PKCE flow - exchange code for tokens
         console.log("Exchanging authorization code for tokens");
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        
+        const { data, error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(code);
+
         if (exchangeError) {
           console.error("Error exchanging code for session:", exchangeError);
         } else {
           console.log("Code exchanged successfully");
+          // Force auth state check to trigger navigation
+          const {
+            data: { session },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+          if (!sessionError && session) {
+            console.log("Session confirmed after code exchange");
+          }
         }
       }
     } catch (error) {
