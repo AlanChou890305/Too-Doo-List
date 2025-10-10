@@ -1,3 +1,12 @@
+# NETLIFY CONFIGURATION - BACKUP
+# This file is kept as backup in case you need to switch back to Netlify
+# Currently using Vercel for hosting
+# 
+# To use Netlify again:
+# 1. Rename this file to netlify.toml
+# 2. Update App.js redirect URLs to use Netlify domain
+# 3. Deploy to Netlify
+
 [build]
   # Build command for Expo web
   command = "npx expo export --platform web --output-dir dist"
@@ -12,11 +21,12 @@
     # in Netlify dashboard under Site settings > Environment variables
 
 # Redirect rules for SPA routing
-# Exception: Serve auth callback page directly
+# Exception: Serve auth callback page directly (with query parameters preserved)
 [[redirects]]
   from = "/auth/callback"
-  to = "/auth/callback.html"
+  to = "/auth/callback.html :splat"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
