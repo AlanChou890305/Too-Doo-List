@@ -713,11 +713,15 @@ const SplashScreen = ({ navigation }) => {
     const checkInitialUrl = async () => {
       if (Platform.OS === "web") {
         const url = new URL(window.location.href);
-        if (
+        // Check for OAuth callback in URL (hash or pathname)
+        const hasAuthCallback =
           url.pathname.includes("auth/callback") ||
-          url.hash.includes("access_token")
-        ) {
-          console.warn("Initial URL is an auth callback");
+          url.hash.includes("access_token") ||
+          url.hash.includes("error=") ||
+          url.search.includes("code=");
+
+        if (hasAuthCallback) {
+          console.warn("Initial URL is an auth callback:", url.href);
           await handleOAuthCallback();
           return;
         }
@@ -871,27 +875,14 @@ const SplashScreen = ({ navigation }) => {
           return "https://to-do-mvp.vercel.app/auth/callback";
         }
 
-        // For web, determine the appropriate redirect URL
+        // For web, use the current origin as redirect URL
+        // Supabase will handle the OAuth flow and redirect back to current page
         const currentOrigin = window.location.origin;
         console.warn("VERBOSE: Current origin:", currentOrigin);
 
-        // Check if we're in development (localhost)
-        if (currentOrigin.includes("localhost")) {
-          return `${currentOrigin}/auth/callback-local.html`;
-        }
-
-        // Check if we're on Vercel domain
-        if (currentOrigin.includes("vercel.app")) {
-          return `${currentOrigin}/auth/callback-local.html`;
-        }
-
-        // Check if we're on the legacy Netlify domain (temporary fallback)
-        if (currentOrigin.includes("netlify.app")) {
-          return `${currentOrigin}/auth/callback`;
-        }
-
-        // Fallback to the configured production URL (Vercel)
-        return "https://to-do-mvp.vercel.app/auth/callback";
+        // Always return current origin for web (localhost or production)
+        // This allows Supabase to redirect back to the same page with auth tokens
+        return currentOrigin;
       };
 
       const redirectUrl = getRedirectUrl();
