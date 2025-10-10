@@ -875,14 +875,17 @@ const SplashScreen = ({ navigation }) => {
           return "https://to-do-mvp.vercel.app/auth/callback";
         }
 
-        // For web, use the current origin as redirect URL
-        // Supabase will handle the OAuth flow and redirect back to current page
+        // For web, determine the appropriate redirect URL
         const currentOrigin = window.location.origin;
         console.warn("VERBOSE: Current origin:", currentOrigin);
 
-        // Always return current origin for web (localhost or production)
-        // This allows Supabase to redirect back to the same page with auth tokens
-        return currentOrigin;
+        // For localhost, return localhost
+        if (currentOrigin.includes("localhost")) {
+          return currentOrigin;
+        }
+
+        // For production web (Vercel), explicitly return the full callback URL
+        return "https://to-do-mvp.vercel.app/auth/callback";
       };
 
       const redirectUrl = getRedirectUrl();
