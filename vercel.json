@@ -1,7 +1,10 @@
 {
   "rewrites": [
     { "source": "/auth/callback", "destination": "/callback.html" },
-    { "source": "/auth/callback-local.html", "destination": "/auth/callback-local.html" }
+    {
+      "source": "/auth/callback-local.html",
+      "destination": "/auth/callback-local.html"
+    }
   ],
   "headers": [
     {

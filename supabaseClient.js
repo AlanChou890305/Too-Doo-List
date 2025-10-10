@@ -133,6 +133,17 @@ const handleOpenURL = async (event) => {
           } = await supabase.auth.getSession();
           if (!sessionError && session) {
             console.log("Session confirmed after code exchange");
+            // Force trigger auth state change event to ensure navigation
+            console.log("Triggering auth state change event");
+
+            // Dispatch a custom event to trigger navigation
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(
+                new CustomEvent("supabase-auth-success", {
+                  detail: { session },
+                })
+              );
+            }
           }
         }
       }
