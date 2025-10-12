@@ -10,8 +10,16 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 // Validate required environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error(
+    "❌ Missing required environment variables:",
+    "EXPO_PUBLIC_SUPABASE_URL:",
+    supabaseUrl ? "✓" : "✗",
+    "EXPO_PUBLIC_SUPABASE_ANON_KEY:",
+    supabaseAnonKey ? "✓" : "✗"
+  );
   throw new Error(
-    "Missing required environment variables: EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY"
+    "Missing required environment variables: EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY. " +
+    "Please check your environment configuration in eas.json and app.config.js"
   );
 }
 
