@@ -17,10 +17,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
     "EXPO_PUBLIC_SUPABASE_ANON_KEY:",
     supabaseAnonKey ? "✓" : "✗"
   );
-  throw new Error(
-    "Missing required environment variables: EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY. " +
+  console.error(
+    "⚠️ WARNING: App will continue with limited functionality. " +
     "Please check your environment configuration in eas.json and app.config.js"
   );
+  // Don't throw error to prevent app crash - let it continue with limited functionality
 }
 
 // Create a custom storage handler for React Native
@@ -65,8 +66,40 @@ const commonConfig = {
 // Validate Supabase configuration
 // Log successful configuration
 
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseAnonKey, commonConfig);
+// Initialize Supabase client with safe fallback
+let supabase;
+try {
+  // Use fallback values if environment variables are missing (should not happen in production)
+  const url = supabaseUrl || "https://placeholder.supabase.co";
+  const key = supabaseAnonKey || "placeholder-key";
+  
+  supabase = createClient(url, key, commonConfig);
+  
+  // Log successful initialization
+  if (supabaseUrl && supabaseAnonKey) {
+    console.log("✅ Supabase client initialized successfully");
+  } else {
+    console.warn("⚠️ Supabase client initialized with placeholder values - limited functionality");
+  }
+} catch (error) {
+  console.error("❌ Failed to initialize Supabase client:", error);
+  // Create a minimal mock client to prevent crashes
+  supabase = {
+    auth: {
+      signInWithOAuth: async () => ({ data: null, error: new Error("Supabase not configured") }),
+      getSession: async () => ({ data: { session: null }, error: null }),
+      getUser: async () => ({ data: { user: null }, error: null }),
+      signOut: async () => ({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    },
+    from: () => ({
+      select: () => ({ data: [], error: null }),
+      insert: () => ({ data: null, error: new Error("Supabase not configured") }),
+      update: () => ({ data: null, error: new Error("Supabase not configured") }),
+      delete: () => ({ data: null, error: new Error("Supabase not configured") }),
+    }),
+  };
+}
 
 // Handle deep links when the app is opened from a redirect
 const handleOpenURL = async (event) => {
