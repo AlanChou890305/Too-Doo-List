@@ -27,6 +27,23 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
+
+// Global error handler for uncaught errors
+if (Platform.OS !== "web") {
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    originalConsoleError("[ERROR]", ...args);
+  };
+  
+  // Log app startup
+  console.log("✅ App.js loaded successfully");
+  console.log("Platform:", Platform.OS);
+  console.log("Environment check:", {
+    hasSupabaseUrl: !!process.env.EXPO_PUBLIC_SUPABASE_URL,
+    hasSupabaseKey: !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  });
+}
+
 import { supabase } from "./supabaseClient";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -4108,12 +4125,27 @@ export default function App() {
   // Add timeout fallback to prevent infinite white screen
   const [fontTimeout, setFontTimeout] = React.useState(false);
   React.useEffect(() => {
-    const timer = setTimeout(() => setFontTimeout(true), 5000);
+    const timer = setTimeout(() => {
+      console.log("Font loading timeout - continuing anyway");
+      setFontTimeout(true);
+    }, 3000); // Reduced from 5s to 3s
     return () => clearTimeout(timer);
   }, []);
 
-  if (!fontsLoaded && !fontTimeout) return null;
-  if (loadingLang && !fontTimeout) return null;
+  // Log font loading status
+  React.useEffect(() => {
+    console.log("Font loading status:", { fontsLoaded, fontTimeout, loadingLang });
+  }, [fontsLoaded, fontTimeout, loadingLang]);
+
+  // Allow app to start even if fonts aren't loaded (with fallback)
+  if (!fontsLoaded && !fontTimeout) {
+    console.log("Waiting for fonts...");
+    return null;
+  }
+  if (loadingLang && !fontTimeout) {
+    console.log("Waiting for language...");
+    return null;
+  }
 
   function MainTabs() {
     React.useEffect(() => {

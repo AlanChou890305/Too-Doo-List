@@ -3,12 +3,15 @@ import { Platform } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 
-// Supabase configuration
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// Supabase configuration - try multiple sources for environment variables
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 
+                   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
+                       Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-// Validate required environment variables
+// Validate required environment variables - but don't crash the app
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
     "❌ Missing required environment variables:",
@@ -21,7 +24,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     "⚠️ WARNING: App will continue with limited functionality. " +
     "Please check your environment configuration in eas.json and app.config.js"
   );
-  // Don't throw error to prevent app crash - let it continue with limited functionality
+  // Continue without throwing - this prevents SIGABRT crash
 }
 
 // Create a custom storage handler for React Native

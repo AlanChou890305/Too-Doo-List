@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "To Do",
     slug: "too-doo-list",
-    version: "1.2.8",
+    version: "1.2.9",
     description: "Simple and intuitive task management app with Google SSO",
     main: "node_modules/expo/AppEntry.js",
     orientation: "portrait",
@@ -108,10 +108,14 @@ module.exports = {
       eas: {
         projectId: "a86169e7-6d37-4bee-be43-d1e709615ef9",
       },
+      // Environment variables for production builds
+      EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL || "https://qerosiozltqrbehctxdn.supabase.co",
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlcm9zaW96bHRxcmJlaGN0eGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NTQyNzAsImV4cCI6MjA3NTIzMDI3MH0.gEzTwpl79HbrQ0KeYRvEji45vdI7SbOhZVc_wpih91E",
     },
 
     // Splash screen configuration
     splash: {
+      image: "./assets/logo.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
