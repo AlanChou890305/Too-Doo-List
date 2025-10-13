@@ -400,10 +400,12 @@ const SplashScreen = ({ navigation }) => {
       try {
         // Only handle OAuth callback on web platform
         if (Platform.OS !== "web" || typeof window === "undefined") {
-          console.warn("OAuth callback: Not on web platform, skipping callback handling");
+          console.warn(
+            "OAuth callback: Not on web platform, skipping callback handling"
+          );
           return;
         }
-        
+
         console.warn("OAuth callback: Starting callback handling");
         console.warn("OAuth callback: Current URL:", window.location.href);
 
@@ -431,7 +433,10 @@ const SplashScreen = ({ navigation }) => {
               error: oauthError,
               errorCode: urlParams.get("error_code"),
               errorDescription: decodeURIComponent(errorDescription || ""),
-              fullUrl: Platform.OS === "web" && typeof window !== "undefined" ? window.location.href : "N/A",
+              fullUrl:
+                Platform.OS === "web" && typeof window !== "undefined"
+                  ? window.location.href
+                  : "N/A",
             });
 
             // Try to handle the error gracefully by attempting to create user settings manually
