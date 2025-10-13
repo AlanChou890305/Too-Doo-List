@@ -38,10 +38,8 @@ if (Platform.OS !== "web") {
   // Log app startup
   console.log("✅ App.js loaded successfully");
   console.log("Platform:", Platform.OS);
-  console.log("Environment check:", {
-    hasSupabaseUrl: !!process.env.EXPO_PUBLIC_SUPABASE_URL,
-    hasSupabaseKey: !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-  });
+  // Don't check process.env here - it may not be available yet in native builds
+  console.log("App initialization starting...");
 }
 
 import { supabase } from "./supabaseClient";
