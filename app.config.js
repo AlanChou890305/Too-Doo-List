@@ -100,6 +100,9 @@ module.exports = {
 
     // Updates configuration
     runtimeVersion: "1.2.9",
+    updates: {
+      url: "https://u.expo.dev/a86169e7-6d37-4bee-be43-d1e709615ef9",
+    },
 
     // EAS project configuration
     extra: {

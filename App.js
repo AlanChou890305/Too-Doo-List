@@ -34,7 +34,7 @@ if (Platform.OS !== "web") {
   console.error = (...args) => {
     originalConsoleError("[ERROR]", ...args);
   };
-  
+
   // Log app startup
   console.log("✅ App.js loaded successfully");
   console.log("Platform:", Platform.OS);
@@ -398,6 +398,12 @@ const SplashScreen = ({ navigation }) => {
     // Handle OAuth callback if this is a redirect from OAuth
     const handleOAuthCallback = async () => {
       try {
+        // Only handle OAuth callback on web platform
+        if (Platform.OS !== "web" || typeof window === "undefined") {
+          console.warn("OAuth callback: Not on web platform, skipping callback handling");
+          return;
+        }
+        
         console.warn("OAuth callback: Starting callback handling");
         console.warn("OAuth callback: Current URL:", window.location.href);
 
@@ -425,7 +431,7 @@ const SplashScreen = ({ navigation }) => {
               error: oauthError,
               errorCode: urlParams.get("error_code"),
               errorDescription: decodeURIComponent(errorDescription || ""),
-              fullUrl: window.location.href,
+              fullUrl: Platform.OS === "web" && typeof window !== "undefined" ? window.location.href : "N/A",
             });
 
             // Try to handle the error gracefully by attempting to create user settings manually
@@ -4132,7 +4138,11 @@ export default function App() {
 
   // Log font loading status
   React.useEffect(() => {
-    console.log("Font loading status:", { fontsLoaded, fontTimeout, loadingLang });
+    console.log("Font loading status:", {
+      fontsLoaded,
+      fontTimeout,
+      loadingLang,
+    });
   }, [fontsLoaded, fontTimeout, loadingLang]);
 
   // Allow app to start even if fonts aren't loaded (with fallback)
