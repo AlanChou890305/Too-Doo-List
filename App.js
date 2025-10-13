@@ -857,10 +857,15 @@ const SplashScreen = ({ navigation }) => {
 
   // Add a debug effect to log navigation state changes
   useEffect(() => {
-    const unsubscribe = navigation.addListener("state", (e) => {
-      console.warn("Navigation state changed:", e.data.state);
-    });
-    return unsubscribe;
+    // Check if navigation and addListener are available
+    if (navigation && typeof navigation.addListener === "function") {
+      const unsubscribe = navigation.addListener("state", (e) => {
+        console.warn("Navigation state changed:", e.data.state);
+      });
+      return unsubscribe;
+    }
+    // Return empty cleanup function if addListener is not available
+    return () => {};
   }, [navigation]);
 
   const handleGoogleSignIn = async () => {
@@ -4153,11 +4158,33 @@ export default function App() {
   // Allow app to start even if fonts aren't loaded (with fallback)
   if (!fontsLoaded && !fontTimeout) {
     console.log("Waiting for fonts...");
-    return null;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#fff",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontSize: 16, color: "#666" }}>Loading...</Text>
+      </View>
+    );
   }
   if (loadingLang && !fontTimeout) {
     console.log("Waiting for language...");
-    return null;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#fff",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontSize: 16, color: "#666" }}>Loading...</Text>
+      </View>
+    );
   }
 
   function MainTabs() {
