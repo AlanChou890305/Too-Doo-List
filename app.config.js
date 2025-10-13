@@ -97,6 +97,7 @@ module.exports = {
     runtimeVersion: "1.2.9",
     updates: {
       url: "https://u.expo.dev/a86169e7-6d37-4bee-be43-d1e709615ef9",
+      channel: "production",
     },
 
     // EAS project configuration
