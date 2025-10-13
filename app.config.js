@@ -99,9 +99,7 @@ module.exports = {
     },
 
     // Updates configuration
-    runtimeVersion: {
-      policy: "appVersion",
-    },
+    runtimeVersion: "1.2.9",
 
     // EAS project configuration
     extra: {
