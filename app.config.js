@@ -46,7 +46,7 @@ module.exports = {
     web: {
       port: 8081,
       bundler: "metro",
-      output: "static",
+      output: "single",
       favicon: "./assets/logo.png",
       meta: [
         {
