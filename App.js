@@ -667,8 +667,12 @@ const SplashScreen = ({ navigation }) => {
       navigateToMainApp();
     };
 
-    // Add event listener for custom auth success
-    if (typeof window !== "undefined") {
+    // Add event listener for custom auth success (web only)
+    if (
+      Platform.OS === "web" &&
+      typeof window !== "undefined" &&
+      typeof window.addEventListener === "function"
+    ) {
       window.addEventListener("supabase-auth-success", handleCustomAuthSuccess);
     }
 
@@ -677,8 +681,12 @@ const SplashScreen = ({ navigation }) => {
       if (authSubscription?.unsubscribe) {
         authSubscription.unsubscribe();
       }
-      // Remove custom event listener
-      if (typeof window !== "undefined") {
+      // Remove custom event listener (web only)
+      if (
+        Platform.OS === "web" &&
+        typeof window !== "undefined" &&
+        typeof window.removeEventListener === "function"
+      ) {
         window.removeEventListener(
           "supabase-auth-success",
           handleCustomAuthSuccess
@@ -952,8 +960,14 @@ const SplashScreen = ({ navigation }) => {
         if (Platform.OS === "web") {
           // For web, we need to redirect to the auth URL
           console.warn("VERBOSE: Redirecting to:", data.url);
-          // Use window.location.replace to avoid back button issues
-          window.location.replace(data.url);
+          // Use window.location.replace to avoid back button issues (web only)
+          if (
+            Platform.OS === "web" &&
+            typeof window !== "undefined" &&
+            window.location
+          ) {
+            window.location.replace(data.url);
+          }
         } else {
           // For mobile, open the auth URL in a web browser
           const result = await WebBrowser.openAuthSessionAsync(
