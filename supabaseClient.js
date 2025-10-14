@@ -6,10 +6,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
 // Supabase configuration - try multiple sources for environment variables
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 
-                   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
-                       Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl =
+  process.env.EXPO_PUBLIC_SUPABASE_URL ||
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 // Validate required environment variables - but don't crash the app
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -22,7 +24,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
   console.error(
     "⚠️ WARNING: App will continue with limited functionality. " +
-    "Please check your environment configuration in eas.json and app.config.js"
+      "Please check your environment configuration in eas.json and app.config.js"
   );
   // Continue without throwing - this prevents SIGABRT crash
 }
@@ -75,31 +77,47 @@ try {
   // Use fallback values if environment variables are missing (should not happen in production)
   const url = supabaseUrl || "https://placeholder.supabase.co";
   const key = supabaseAnonKey || "placeholder-key";
-  
+
   supabase = createClient(url, key, commonConfig);
-  
+
   // Log successful initialization
   if (supabaseUrl && supabaseAnonKey) {
     console.log("✅ Supabase client initialized successfully");
   } else {
-    console.warn("⚠️ Supabase client initialized with placeholder values - limited functionality");
+    console.warn(
+      "⚠️ Supabase client initialized with placeholder values - limited functionality"
+    );
   }
 } catch (error) {
   console.error("❌ Failed to initialize Supabase client:", error);
   // Create a minimal mock client to prevent crashes
   supabase = {
     auth: {
-      signInWithOAuth: async () => ({ data: null, error: new Error("Supabase not configured") }),
+      signInWithOAuth: async () => ({
+        data: null,
+        error: new Error("Supabase not configured"),
+      }),
       getSession: async () => ({ data: { session: null }, error: null }),
       getUser: async () => ({ data: { user: null }, error: null }),
       signOut: async () => ({ error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe: () => {} } },
+      }),
     },
     from: () => ({
       select: () => ({ data: [], error: null }),
-      insert: () => ({ data: null, error: new Error("Supabase not configured") }),
-      update: () => ({ data: null, error: new Error("Supabase not configured") }),
-      delete: () => ({ data: null, error: new Error("Supabase not configured") }),
+      insert: () => ({
+        data: null,
+        error: new Error("Supabase not configured"),
+      }),
+      update: () => ({
+        data: null,
+        error: new Error("Supabase not configured"),
+      }),
+      delete: () => ({
+        data: null,
+        error: new Error("Supabase not configured"),
+      }),
     }),
   };
 }
@@ -169,25 +187,42 @@ const handleOpenURL = async (event) => {
         if (exchangeError) {
           console.error("Error exchanging code for session:", exchangeError);
         } else {
-          console.log("Code exchanged successfully");
+          console.log("✅ Code exchanged successfully!");
+
+          // Wait a moment for session to be fully established
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
           // Force auth state check to trigger navigation
           const {
             data: { session },
             error: sessionError,
           } = await supabase.auth.getSession();
-          if (!sessionError && session) {
-            console.log("Session confirmed after code exchange");
-            // Force trigger auth state change event to ensure navigation
-            console.log("Triggering auth state change event");
 
-            // Dispatch a custom event to trigger navigation
-            if (typeof window !== "undefined") {
+          if (!sessionError && session) {
+            console.log("✅ Session confirmed after code exchange");
+            console.log("Session user:", session.user?.email);
+
+            // Force trigger auth state change event to ensure navigation
+            // This will trigger the onAuthStateChange listener in App.js
+            console.log(
+              "🔔 Manually triggering auth refresh to ensure listeners fire..."
+            );
+
+            // Refresh the session to trigger all auth state listeners
+            await supabase.auth.refreshSession();
+
+            // For web platform, also dispatch custom event
+            if (Platform.OS === "web" && typeof window !== "undefined") {
               window.dispatchEvent(
                 new CustomEvent("supabase-auth-success", {
                   detail: { session },
                 })
               );
             }
+
+            console.log("✅ Auth state notifications sent");
+          } else {
+            console.error("❌ No session found after code exchange");
           }
         }
       }

@@ -612,13 +612,20 @@ const SplashScreen = ({ navigation }) => {
       supabase.auth.onAuthStateChange(async (event, session) => {
         console.warn("Auth state changed:", { event, session });
 
-        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+        if (
+          event === "SIGNED_IN" ||
+          event === "INITIAL_SESSION" ||
+          event === "TOKEN_REFRESHED"
+        ) {
           try {
+            console.warn(`Processing ${event} event...`);
+
             // If we already have a session from the event, use it
             let currentSession = session;
 
             // If no session from event, try to get it
             if (!currentSession) {
+              console.warn("No session in event, fetching from Supabase...");
               const {
                 data: { session: fetchedSession },
                 error: sessionError,
@@ -637,6 +644,8 @@ const SplashScreen = ({ navigation }) => {
               return;
             }
 
+            console.warn("Session found, verifying user...");
+
             // Verify the user
             const {
               data: { user },
@@ -648,6 +657,7 @@ const SplashScreen = ({ navigation }) => {
               return;
             }
 
+            console.warn("User verified successfully, navigating to app...");
             navigateToMainApp();
           } catch (error) {
             console.error("Error in auth state change handler:", error);
@@ -697,19 +707,25 @@ const SplashScreen = ({ navigation }) => {
     // Check for existing session on mount
     const checkSession = async () => {
       try {
-        console.warn("Checking for existing session...");
+        console.warn("[checkSession] Starting session check...");
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession();
 
         if (error) {
-          console.error("Error getting session:", error);
+          console.error("[checkSession] Error getting session:", error);
           return;
         }
 
         if (session) {
-          console.warn("Existing session found, verifying user...");
+          console.warn("[checkSession] Existing session found!");
+          console.warn("[checkSession] Session user ID:", session.user?.id);
+          console.warn(
+            "[checkSession] Session expires at:",
+            new Date(session.expires_at * 1000).toISOString()
+          );
+
           // Verify the user is still valid
           const {
             data: { user },
@@ -717,17 +733,36 @@ const SplashScreen = ({ navigation }) => {
           } = await supabase.auth.getUser();
 
           if (userError || !user) {
-            console.error("Session invalid or user not found:", userError);
+            console.error(
+              "[checkSession] Session invalid or user not found:",
+              userError
+            );
+            console.error(
+              "[checkSession] Attempting to clear invalid session..."
+            );
+            try {
+              await supabase.auth.signOut();
+            } catch (signOutError) {
+              console.error("[checkSession] Error signing out:", signOutError);
+            }
             return;
           }
 
-          console.warn("Session and user verified, navigating to main app");
+          console.warn("[checkSession] User verified:", {
+            id: user.id,
+            email: user.email,
+            provider: user.app_metadata?.provider,
+          });
+          console.warn("[checkSession] Navigating to main app...");
           navigateToMainApp();
         } else {
-          console.warn("No existing session found, showing login");
+          console.warn(
+            "[checkSession] No existing session found, showing login screen"
+          );
         }
       } catch (error) {
-        console.error("Error checking session:", error);
+        console.error("[checkSession] Unexpected error:", error);
+        console.error("[checkSession] Error stack:", error.stack);
       }
     };
 
@@ -760,27 +795,54 @@ const SplashScreen = ({ navigation }) => {
           return;
         }
       } else {
-        // For mobile, check if we have a session after OAuth
-        try {
-          const {
-            data: { session },
-            error,
-          } = await supabase.auth.getSession();
-          if (error) {
-            console.error("Error checking session:", error);
-          } else if (session) {
-            console.warn(
-              "Mobile: Session found after OAuth, navigating to main app"
+        // For mobile, check if we have a session after OAuth with retry
+        console.warn("Mobile platform detected, checking for session...");
+
+        // Try multiple times with delays to handle OAuth callback timing
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            console.warn(`Session check attempt ${attempt}/3...`);
+
+            const {
+              data: { session },
+              error,
+            } = await supabase.auth.getSession();
+
+            if (error) {
+              console.error(
+                `Error checking session (attempt ${attempt}):`,
+                error
+              );
+            } else if (session) {
+              console.warn(
+                `Mobile: Session found on attempt ${attempt}, navigating to main app`
+              );
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainTabs" }],
+              });
+              return;
+            } else {
+              console.warn(`No session found on attempt ${attempt}`);
+            }
+
+            // Wait before next attempt (except on last attempt)
+            if (attempt < 3) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, 1000 * attempt)
+              );
+            }
+          } catch (error) {
+            console.error(
+              `Error in mobile session check (attempt ${attempt}):`,
+              error
             );
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "MainTabs" }],
-            });
-            return;
           }
-        } catch (error) {
-          console.error("Error in mobile session check:", error);
         }
+
+        console.warn(
+          "All session check attempts completed, proceeding to check existing session"
+        );
       }
 
       // If not an auth callback, check for existing session
@@ -970,32 +1032,56 @@ const SplashScreen = ({ navigation }) => {
           }
         } else {
           // For mobile, open the auth URL in a web browser
+          console.warn("VERBOSE: Opening OAuth browser session...");
           const result = await WebBrowser.openAuthSessionAsync(
             data.url,
             redirectUrl
           );
           console.warn("VERBOSE: Auth session result:", result);
 
-          // After returning from the auth flow, check the session
-          const {
-            data: { session: newSession },
-            error: sessionCheckError,
-          } = await supabase.auth.getSession();
+          // Don't check session immediately - let the deep link handler and
+          // auth state listener handle the navigation after session is fully established
+          // The deep link handler in supabaseClient.js will process the OAuth callback
+          // and trigger the auth state change, which will navigate to MainTabs
+          console.warn(
+            "VERBOSE: Waiting for deep link handler to process OAuth callback..."
+          );
 
-          if (sessionCheckError) {
-            console.error(
-              "Error checking session after auth:",
-              sessionCheckError
-            );
-            return;
-          }
+          // Give the deep link handler time to process the callback
+          // The auth state listener will handle navigation automatically
+          setTimeout(async () => {
+            // Only check if we still don't have a session after 3 seconds
+            const {
+              data: { session: newSession },
+              error: sessionCheckError,
+            } = await supabase.auth.getSession();
 
-          if (newSession) {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "MainTabs" }],
-            });
-          }
+            if (sessionCheckError) {
+              console.error(
+                "Error checking session after auth:",
+                sessionCheckError
+              );
+              Alert.alert(
+                "Authentication Error",
+                "Failed to complete sign in. Please try again."
+              );
+              return;
+            }
+
+            if (!newSession) {
+              console.warn(
+                "No session found after OAuth - this might indicate a problem"
+              );
+              Alert.alert(
+                "Sign In Issue",
+                "Authentication completed but session was not established. Please try signing in again."
+              );
+            } else {
+              console.warn(
+                "Session found after delay, auth state listener should have navigated"
+              );
+            }
+          }, 3000);
         }
       } else {
         console.warn("VERBOSE: No URL returned from OAuth");
