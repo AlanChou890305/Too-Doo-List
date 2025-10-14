@@ -657,38 +657,15 @@ const SplashScreen = ({ navigation }) => {
             console.warn("Session found, verifying user...");
             console.warn("Session user email:", currentSession.user?.email);
 
-            // Verify the user
-            console.warn("Calling supabase.auth.getUser()...");
-            const {
-              data: { user },
-              error: userError,
-            } = await supabase.auth.getUser();
-
-            console.warn("getUser() returned:", {
-              hasUser: !!user,
-              hasError: !!userError,
-              userEmail: user?.email,
-            });
-
-            if (userError) {
-              console.error(
-                "❌ User verification failed with error:",
-                userError
-              );
-              console.error("Error details:", {
-                message: userError.message,
-                status: userError.status,
-                name: userError.name,
-              });
-              return;
-            }
+            // Use user directly from session to avoid API call issues
+            const user = currentSession.user;
 
             if (!user) {
-              console.error("❌ User verification failed: no user returned");
+              console.error("❌ No user in session");
               return;
             }
 
-            console.warn("✅ User verified successfully!");
+            console.warn("✅ User verified from session!");
             console.warn("User email:", user.email);
             console.warn("User ID:", user.id);
             console.warn("🚀 Navigating to main app...");
