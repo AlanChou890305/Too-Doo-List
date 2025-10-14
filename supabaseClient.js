@@ -129,17 +129,17 @@ const handleOpenURL = async (event) => {
   console.log("🔗 ========================================");
 
   // Check if this is a Supabase auth callback
-  const isAuthCallback = 
+  const isAuthCallback =
     event.url.includes("access_token=") ||
     event.url.includes("code=") ||
     event.url.includes("error=");
-    
+
   console.log("🔗 [Deep Link] Is auth callback:", isAuthCallback);
-  
+
   if (isAuthCallback) {
     try {
       console.log("🔗 [Deep Link] Processing auth callback...");
-      
+
       // Extract the URL parameters
       const url = new URL(event.url);
       console.log("🔗 [Deep Link] URL pathname:", url.pathname);
@@ -178,14 +178,19 @@ const handleOpenURL = async (event) => {
       if (accessToken && refreshToken) {
         // Direct token flow
         console.log("🔗 [Deep Link] Using direct token flow...");
-        console.log("🔗 [Deep Link] Setting session with tokens from deep link");
+        console.log(
+          "🔗 [Deep Link] Setting session with tokens from deep link"
+        );
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
 
         if (sessionError) {
-          console.error("🔗 [Deep Link] ❌ Error setting session:", sessionError);
+          console.error(
+            "🔗 [Deep Link] ❌ Error setting session:",
+            sessionError
+          );
         } else {
           console.log("🔗 [Deep Link] ✅ Session set successfully");
           console.log("🔗 [Deep Link] User:", data?.user?.email);
@@ -194,13 +199,19 @@ const handleOpenURL = async (event) => {
         // PKCE flow - exchange code for tokens
         console.log("🔗 [Deep Link] Using PKCE flow...");
         console.log("🔗 [Deep Link] Exchanging authorization code for tokens");
-        console.log("🔗 [Deep Link] Code (first 20 chars):", code.substring(0, 20) + "...");
-        
+        console.log(
+          "🔗 [Deep Link] Code (first 20 chars):",
+          code.substring(0, 20) + "..."
+        );
+
         const { data, error: exchangeError } =
           await supabase.auth.exchangeCodeForSession(code);
 
         if (exchangeError) {
-          console.error("🔗 [Deep Link] ❌ Error exchanging code for session:", exchangeError);
+          console.error(
+            "🔗 [Deep Link] ❌ Error exchanging code for session:",
+            exchangeError
+          );
           console.error("🔗 [Deep Link] Error details:", {
             message: exchangeError.message,
             status: exchangeError.status,
@@ -208,7 +219,10 @@ const handleOpenURL = async (event) => {
           });
         } else {
           console.log("🔗 [Deep Link] ✅ Code exchanged successfully!");
-          console.log("🔗 [Deep Link] Session user:", data?.session?.user?.email);
+          console.log(
+            "🔗 [Deep Link] Session user:",
+            data?.session?.user?.email
+          );
 
           // Wait a moment for session to be fully established
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -220,9 +234,14 @@ const handleOpenURL = async (event) => {
           } = await supabase.auth.getSession();
 
           if (!sessionError && session) {
-            console.log("🔗 [Deep Link] ✅ Session confirmed after code exchange");
+            console.log(
+              "🔗 [Deep Link] ✅ Session confirmed after code exchange"
+            );
             console.log("🔗 [Deep Link] Session user:", session.user?.email);
-            console.log("🔗 [Deep Link] Session expires:", new Date(session.expires_at * 1000).toISOString());
+            console.log(
+              "🔗 [Deep Link] Session expires:",
+              new Date(session.expires_at * 1000).toISOString()
+            );
 
             // Force trigger auth state change event to ensure navigation
             // This will trigger the onAuthStateChange listener in App.js
@@ -231,10 +250,14 @@ const handleOpenURL = async (event) => {
             );
 
             // Refresh the session to trigger all auth state listeners
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-            
+            const { data: refreshData, error: refreshError } =
+              await supabase.auth.refreshSession();
+
             if (refreshError) {
-              console.error("🔗 [Deep Link] ❌ Error refreshing session:", refreshError);
+              console.error(
+                "🔗 [Deep Link] ❌ Error refreshing session:",
+                refreshError
+              );
             } else {
               console.log("🔗 [Deep Link] ✅ Session refreshed successfully");
             }
@@ -251,8 +274,12 @@ const handleOpenURL = async (event) => {
 
             console.log("🔗 [Deep Link] ✅ Auth state notifications sent");
           } else {
-            console.error("🔗 [Deep Link] ❌ No session found after code exchange");
-            console.error("🔗 [Deep Link] This should not happen - code exchange succeeded but no session");
+            console.error(
+              "🔗 [Deep Link] ❌ No session found after code exchange"
+            );
+            console.error(
+              "🔗 [Deep Link] This should not happen - code exchange succeeded but no session"
+            );
           }
         }
       } else {
@@ -275,16 +302,25 @@ let subscription;
 
 // For OAuth with Expo
 const setupDeepLinking = () => {
+  console.log("🔗 [Setup] Initializing deep linking...");
+  console.log("🔗 [Setup] Platform:", Platform.OS);
+
   if (Platform.OS !== "web") {
+    console.log("🔗 [Setup] Setting up native deep linking handlers...");
+
     // Handle the initial URL in case the app was launched from a deep link
     const processInitialURL = async () => {
       try {
+        console.log("🔗 [Setup] Checking for initial URL...");
         const initialUrl = await Linking.getInitialURL();
+        console.log("🔗 [Setup] Initial URL:", initialUrl || "None");
+
         if (initialUrl) {
+          console.log("🔗 [Setup] Processing initial URL...");
           handleOpenURL({ url: initialUrl });
         }
       } catch (error) {
-        console.error("Error processing initial URL:", error);
+        console.error("🔗 [Setup] ❌ Error processing initial URL:", error);
       }
     };
 
@@ -292,10 +328,13 @@ const setupDeepLinking = () => {
     processInitialURL();
 
     // Listen for deep links when the app is opened from a URL
+    console.log("🔗 [Setup] Adding URL event listener...");
     subscription = Linking.addEventListener("url", handleOpenURL);
+    console.log("🔗 [Setup] ✅ URL event listener added");
 
     // Cleanup function to remove the event listener
     const cleanup = () => {
+      console.log("🔗 [Setup] Cleaning up deep link listener");
       if (subscription && subscription.remove) {
         subscription.remove();
       } else {
@@ -307,12 +346,15 @@ const setupDeepLinking = () => {
     return cleanup;
   }
 
+  console.log("🔗 [Setup] Web platform - skipping native deep linking setup");
   // Return a no-op cleanup function for web
   return () => {};
 };
 
 // Set up deep linking and get cleanup function
+console.log("🔗 [Init] Starting deep link initialization...");
 const cleanupDeepLinking = setupDeepLinking();
+console.log("🔗 [Init] ✅ Deep linking initialized");
 
 // Clean up event listener
 const cleanupAuthListeners = () => {

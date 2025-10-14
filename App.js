@@ -592,18 +592,28 @@ const SplashScreen = ({ navigation }) => {
 
     // Navigate to main app
     const navigateToMainApp = () => {
+      console.warn("📍 [navigateToMainApp] Function called");
+
       if (!navigation) {
-        console.error("Navigation object is not available");
+        console.error(
+          "📍 [navigateToMainApp] ❌ Navigation object is not available"
+        );
         return;
       }
+
+      console.warn(
+        "📍 [navigateToMainApp] Navigation object exists, attempting reset..."
+      );
 
       try {
         navigation.reset({
           index: 0,
           routes: [{ name: "MainTabs" }],
         });
+        console.warn("📍 [navigateToMainApp] ✅ Navigation reset successful!");
       } catch (error) {
-        console.error("Navigation error:", error);
+        console.error("📍 [navigateToMainApp] ❌ Navigation error:", error);
+        console.error("📍 [navigateToMainApp] Error stack:", error.stack);
       }
     };
 
@@ -645,19 +655,44 @@ const SplashScreen = ({ navigation }) => {
             }
 
             console.warn("Session found, verifying user...");
+            console.warn("Session user email:", currentSession.user?.email);
 
             // Verify the user
+            console.warn("Calling supabase.auth.getUser()...");
             const {
               data: { user },
               error: userError,
             } = await supabase.auth.getUser();
 
-            if (userError || !user) {
-              console.error("User verification failed:", userError);
+            console.warn("getUser() returned:", {
+              hasUser: !!user,
+              hasError: !!userError,
+              userEmail: user?.email,
+            });
+
+            if (userError) {
+              console.error(
+                "❌ User verification failed with error:",
+                userError
+              );
+              console.error("Error details:", {
+                message: userError.message,
+                status: userError.status,
+                name: userError.name,
+              });
               return;
             }
 
-            console.warn("User verified successfully, navigating to app...");
+            if (!user) {
+              console.error("❌ User verification failed: no user returned");
+              return;
+            }
+
+            console.warn("✅ User verified successfully!");
+            console.warn("User email:", user.email);
+            console.warn("User ID:", user.id);
+            console.warn("🚀 Navigating to main app...");
+
             navigateToMainApp();
           } catch (error) {
             console.error("Error in auth state change handler:", error);
@@ -767,13 +802,153 @@ const SplashScreen = ({ navigation }) => {
     };
 
     // Handle deep linking for OAuth redirects
-    const handleDeepLink = (event) => {
+    const handleDeepLink = async (event) => {
       if (event?.url) {
-        console.warn("Deep link received:", event.url);
-        const url = new URL(event.url);
-        if (url.pathname.includes("auth/callback")) {
-          console.warn("Auth callback detected in deep link");
-          handleOAuthCallback();
+        console.warn("🔗🔗🔗 [App.js Deep Link] Received:", event.url);
+
+        // Check if this is an auth callback
+        const isAuthCallback =
+          event.url.includes("auth/callback") ||
+          event.url.includes("access_token=") ||
+          event.url.includes("code=") ||
+          event.url.includes("error=");
+
+        if (isAuthCallback) {
+          console.warn("🔗🔗🔗 [App.js Deep Link] Auth callback detected!");
+
+          try {
+            // Parse the URL - handle custom scheme URLs
+            let params;
+            if (event.url.includes("#")) {
+              // Hash parameters (direct token flow)
+              const hashPart = event.url.split("#")[1];
+              params = new URLSearchParams(hashPart);
+              console.warn("🔗🔗🔗 [App.js Deep Link] Parsing from hash");
+            } else if (event.url.includes("?")) {
+              // Query parameters (PKCE flow)
+              const queryPart = event.url.split("?")[1];
+              params = new URLSearchParams(queryPart);
+              console.warn("🔗🔗🔗 [App.js Deep Link] Parsing from query");
+            } else {
+              console.error(
+                "🔗🔗🔗 [App.js Deep Link] No parameters found in URL"
+              );
+              return;
+            }
+
+            const code = params.get("code");
+            const accessToken = params.get("access_token");
+            const refreshToken = params.get("refresh_token");
+            const error = params.get("error");
+
+            console.warn("🔗🔗🔗 [App.js Deep Link] Params:", {
+              hasCode: !!code,
+              hasAccessToken: !!accessToken,
+              hasRefreshToken: !!refreshToken,
+              hasError: !!error,
+            });
+
+            if (error) {
+              console.error("🔗🔗🔗 [App.js Deep Link] OAuth error:", error);
+              Alert.alert(
+                "Authentication Error",
+                params.get("error_description") || error
+              );
+              return;
+            }
+
+            if (code) {
+              // PKCE flow - exchange code for session
+              console.warn(
+                "🔗🔗🔗 [App.js Deep Link] Exchanging code for session..."
+              );
+
+              const { data, error: exchangeError } =
+                await supabase.auth.exchangeCodeForSession(code);
+
+              if (exchangeError) {
+                console.error(
+                  "🔗🔗🔗 [App.js Deep Link] ❌ Code exchange failed:",
+                  exchangeError
+                );
+                Alert.alert(
+                  "Authentication Error",
+                  "Failed to complete sign in. Please try again."
+                );
+                return;
+              }
+
+              console.warn(
+                "🔗🔗🔗 [App.js Deep Link] ✅ Code exchanged successfully!"
+              );
+              console.warn(
+                "🔗🔗🔗 [App.js Deep Link] Session user:",
+                data?.session?.user?.email
+              );
+
+              // Navigate to main app
+              console.warn(
+                "🔗🔗🔗 [App.js Deep Link] Navigating to main app..."
+              );
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainTabs" }],
+              });
+            } else if (accessToken && refreshToken) {
+              // Direct token flow
+              console.warn(
+                "🔗🔗🔗 [App.js Deep Link] Setting session with tokens..."
+              );
+
+              const { data, error: sessionError } =
+                await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                });
+
+              if (sessionError) {
+                console.error(
+                  "🔗🔗🔗 [App.js Deep Link] ❌ Set session failed:",
+                  sessionError
+                );
+                Alert.alert(
+                  "Authentication Error",
+                  "Failed to complete sign in. Please try again."
+                );
+                return;
+              }
+
+              console.warn(
+                "🔗🔗🔗 [App.js Deep Link] ✅ Session set successfully!"
+              );
+
+              // Navigate to main app
+              console.warn(
+                "🔗🔗🔗 [App.js Deep Link] Navigating to main app..."
+              );
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainTabs" }],
+              });
+            } else {
+              console.error(
+                "🔗🔗🔗 [App.js Deep Link] No code or tokens found in callback"
+              );
+            }
+          } catch (error) {
+            console.error(
+              "🔗🔗🔗 [App.js Deep Link] ❌ Error handling deep link:",
+              error
+            );
+            console.error(
+              "🔗🔗🔗 [App.js Deep Link] Error stack:",
+              error.stack
+            );
+          }
+        } else {
+          console.warn(
+            "🔗🔗🔗 [App.js Deep Link] Not an auth callback, ignoring"
+          );
         }
       }
     };
@@ -795,8 +970,34 @@ const SplashScreen = ({ navigation }) => {
           return;
         }
       } else {
-        // For mobile, check if we have a session after OAuth with retry
-        console.warn("Mobile platform detected, checking for session...");
+        // For mobile, check if app was launched with a deep link
+        console.warn("Mobile platform detected, checking for initial URL...");
+
+        try {
+          const initialUrl = await Linking.getInitialURL();
+          console.warn("Initial URL:", initialUrl || "None");
+
+          if (
+            initialUrl &&
+            (initialUrl.includes("auth/callback") ||
+              initialUrl.includes("code=") ||
+              initialUrl.includes("access_token="))
+          ) {
+            console.warn(
+              "🔗🔗🔗 [App.js] App launched with auth callback URL!"
+            );
+            // Process the deep link
+            await handleDeepLink({ url: initialUrl });
+            return;
+          }
+        } catch (error) {
+          console.error("Error getting initial URL:", error);
+        }
+
+        // If no auth callback in initial URL, check for existing session with retry
+        console.warn(
+          "No auth callback in initial URL, checking for session..."
+        );
 
         // Try multiple times with delays to handle OAuth callback timing
         for (let attempt = 1; attempt <= 3; attempt++) {
@@ -1039,19 +1240,152 @@ const SplashScreen = ({ navigation }) => {
           );
           console.warn("VERBOSE: Auth session result:", result);
 
-          // Don't check session immediately - let the deep link handler and
-          // auth state listener handle the navigation after session is fully established
-          // The deep link handler in supabaseClient.js will process the OAuth callback
-          // and trigger the auth state change, which will navigate to MainTabs
-          console.warn(
-            "VERBOSE: Waiting for deep link handler to process OAuth callback..."
-          );
+          // ✅ KEY FIX: The result.url contains the OAuth callback URL
+          // We need to manually process it since iOS doesn't automatically trigger the deep link
+          if (result.type === "success" && result.url) {
+            console.warn(
+              "🎯 [CRITICAL] WebBrowser returned with URL, processing manually..."
+            );
+            console.warn("🎯 [CRITICAL] Returned URL:", result.url);
+
+            // Parse and handle the OAuth callback URL directly
+            try {
+              let params;
+              if (result.url.includes("#")) {
+                const hashPart = result.url.split("#")[1];
+                params = new URLSearchParams(hashPart);
+                console.warn("🎯 [CRITICAL] Parsing from hash");
+              } else if (result.url.includes("?")) {
+                const queryPart = result.url.split("?")[1];
+                params = new URLSearchParams(queryPart);
+                console.warn("🎯 [CRITICAL] Parsing from query");
+              }
+
+              if (params) {
+                const code = params.get("code");
+                const accessToken = params.get("access_token");
+                const refreshToken = params.get("refresh_token");
+                const error = params.get("error");
+
+                console.warn("🎯 [CRITICAL] OAuth params:", {
+                  hasCode: !!code,
+                  hasAccessToken: !!accessToken,
+                  hasRefreshToken: !!refreshToken,
+                  hasError: !!error,
+                });
+
+                if (error) {
+                  console.error("🎯 [CRITICAL] OAuth error:", error);
+                  Alert.alert(
+                    "Authentication Error",
+                    params.get("error_description") || error
+                  );
+                  return;
+                }
+
+                if (code) {
+                  // Exchange code for session
+                  console.warn("🎯 [CRITICAL] Exchanging code for session...");
+
+                  const { data: sessionData, error: exchangeError } =
+                    await supabase.auth.exchangeCodeForSession(code);
+
+                  if (exchangeError) {
+                    console.error(
+                      "🎯 [CRITICAL] ❌ Code exchange failed:",
+                      exchangeError
+                    );
+                    Alert.alert(
+                      "Authentication Error",
+                      "Failed to complete sign in. Please try again."
+                    );
+                    return;
+                  }
+
+                  console.warn("🎯 [CRITICAL] ✅ Code exchanged successfully!");
+                  console.warn("🎯 [CRITICAL] Session:", {
+                    hasSession: !!sessionData?.session,
+                    userEmail: sessionData?.session?.user?.email,
+                  });
+
+                  // Don't navigate here - let auth state listener handle it
+                  // exchangeCodeForSession triggers SIGNED_IN event which will navigate
+                  console.warn(
+                    "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
+                  );
+                  console.warn(
+                    "🎯 [CRITICAL] (SIGNED_IN event should trigger navigation)"
+                  );
+                  return;
+                } else if (accessToken && refreshToken) {
+                  // Direct token flow
+                  console.warn("🎯 [CRITICAL] Setting session with tokens...");
+
+                  const { data: sessionData, error: sessionError } =
+                    await supabase.auth.setSession({
+                      access_token: accessToken,
+                      refresh_token: refreshToken,
+                    });
+
+                  if (sessionError) {
+                    console.error(
+                      "🎯 [CRITICAL] ❌ Set session failed:",
+                      sessionError
+                    );
+                    Alert.alert(
+                      "Authentication Error",
+                      "Failed to complete sign in. Please try again."
+                    );
+                    return;
+                  }
+
+                  console.warn("🎯 [CRITICAL] ✅ Session set successfully!");
+
+                  // Don't navigate here - let auth state listener handle it
+                  console.warn(
+                    "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
+                  );
+                  return;
+                }
+              }
+            } catch (error) {
+              console.error(
+                "🎯 [CRITICAL] ❌ Error processing OAuth callback:",
+                error
+              );
+              Alert.alert(
+                "Authentication Error",
+                "Failed to process authentication. Please try again."
+              );
+              return;
+            }
+
+            return;
+          } else if (result.type === "cancel") {
+            console.warn("VERBOSE: User cancelled the auth flow");
+            Alert.alert(
+              "Sign In Cancelled",
+              "You cancelled the sign in process."
+            );
+            return;
+          } else if (result.type === "dismiss") {
+            console.warn("VERBOSE: Auth flow was dismissed");
+            return;
+          }
+
+          // If we get here, something unexpected happened
+          console.error("VERBOSE: Unexpected result type:", result.type);
 
           // Give the deep link handler more time to process the callback
           // The auth state listener will handle navigation automatically
-          const checkSessionWithRetry = async (attempt = 1, maxAttempts = 5) => {
-            console.warn(`[Auth Fallback] Session check attempt ${attempt}/${maxAttempts}...`);
-            
+          const checkSessionWithRetry = async (
+            attempt = 1,
+            maxAttempts = 5
+          ) => {
+            console.warn(
+              `[Auth Fallback] Session check attempt ${attempt}/${maxAttempts}...`
+            );
+
             const {
               data: { session: newSession },
               error: sessionCheckError,
@@ -1075,14 +1409,19 @@ const SplashScreen = ({ navigation }) => {
               console.warn(
                 `[Auth Fallback] No session found on attempt ${attempt}`
               );
-              
+
               // Retry if we haven't reached max attempts
               if (attempt < maxAttempts) {
                 const delay = 2000 * attempt; // Increasing delay: 2s, 4s, 6s, 8s
                 console.warn(`[Auth Fallback] Retrying in ${delay}ms...`);
-                setTimeout(() => checkSessionWithRetry(attempt + 1, maxAttempts), delay);
+                setTimeout(
+                  () => checkSessionWithRetry(attempt + 1, maxAttempts),
+                  delay
+                );
               } else {
-                console.error("[Auth Fallback] All attempts exhausted, no session found");
+                console.error(
+                  "[Auth Fallback] All attempts exhausted, no session found"
+                );
                 Alert.alert(
                   "Sign In Issue",
                   "Authentication completed but session was not established. Please try signing in again.\n\nIf this persists, try restarting the app."
@@ -1093,7 +1432,7 @@ const SplashScreen = ({ navigation }) => {
                 `[Auth Fallback] ✅ Session found on attempt ${attempt}!`
               );
               console.warn("[Auth Fallback] User:", newSession.user?.email);
-              
+
               // Manually trigger navigation if auth listener hasn't done it yet
               console.warn("[Auth Fallback] Manually triggering navigation...");
               navigation.reset({
@@ -1102,7 +1441,7 @@ const SplashScreen = ({ navigation }) => {
               });
             }
           };
-          
+
           // Start checking after 2 seconds
           setTimeout(() => checkSessionWithRetry(1, 5), 2000);
         }
