@@ -1047,10 +1047,11 @@ const SplashScreen = ({ navigation }) => {
             "VERBOSE: Waiting for deep link handler to process OAuth callback..."
           );
 
-          // Give the deep link handler time to process the callback
+          // Give the deep link handler more time to process the callback
           // The auth state listener will handle navigation automatically
-          setTimeout(async () => {
-            // Only check if we still don't have a session after 3 seconds
+          const checkSessionWithRetry = async (attempt = 1, maxAttempts = 5) => {
+            console.warn(`[Auth Fallback] Session check attempt ${attempt}/${maxAttempts}...`);
+            
             const {
               data: { session: newSession },
               error: sessionCheckError,
@@ -1058,30 +1059,52 @@ const SplashScreen = ({ navigation }) => {
 
             if (sessionCheckError) {
               console.error(
-                "Error checking session after auth:",
+                "[Auth Fallback] Error checking session:",
                 sessionCheckError
               );
-              Alert.alert(
-                "Authentication Error",
-                "Failed to complete sign in. Please try again."
-              );
+              if (attempt >= maxAttempts) {
+                Alert.alert(
+                  "Authentication Error",
+                  "Failed to complete sign in. Please try again."
+                );
+              }
               return;
             }
 
             if (!newSession) {
               console.warn(
-                "No session found after OAuth - this might indicate a problem"
+                `[Auth Fallback] No session found on attempt ${attempt}`
               );
-              Alert.alert(
-                "Sign In Issue",
-                "Authentication completed but session was not established. Please try signing in again."
-              );
+              
+              // Retry if we haven't reached max attempts
+              if (attempt < maxAttempts) {
+                const delay = 2000 * attempt; // Increasing delay: 2s, 4s, 6s, 8s
+                console.warn(`[Auth Fallback] Retrying in ${delay}ms...`);
+                setTimeout(() => checkSessionWithRetry(attempt + 1, maxAttempts), delay);
+              } else {
+                console.error("[Auth Fallback] All attempts exhausted, no session found");
+                Alert.alert(
+                  "Sign In Issue",
+                  "Authentication completed but session was not established. Please try signing in again.\n\nIf this persists, try restarting the app."
+                );
+              }
             } else {
               console.warn(
-                "Session found after delay, auth state listener should have navigated"
+                `[Auth Fallback] ✅ Session found on attempt ${attempt}!`
               );
+              console.warn("[Auth Fallback] User:", newSession.user?.email);
+              
+              // Manually trigger navigation if auth listener hasn't done it yet
+              console.warn("[Auth Fallback] Manually triggering navigation...");
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainTabs" }],
+              });
             }
-          }, 3000);
+          };
+          
+          // Start checking after 2 seconds
+          setTimeout(() => checkSessionWithRetry(1, 5), 2000);
         }
       } else {
         console.warn("VERBOSE: No URL returned from OAuth");

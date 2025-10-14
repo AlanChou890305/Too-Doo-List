@@ -124,17 +124,27 @@ try {
 
 // Handle deep links when the app is opened from a redirect
 const handleOpenURL = async (event) => {
-  console.log("Deep link received:", event.url);
+  console.log("🔗 ========================================");
+  console.log("🔗 [Deep Link] Received URL:", event.url);
+  console.log("🔗 ========================================");
 
   // Check if this is a Supabase auth callback
-  if (
+  const isAuthCallback = 
     event.url.includes("access_token=") ||
     event.url.includes("code=") ||
-    event.url.includes("error=")
-  ) {
+    event.url.includes("error=");
+    
+  console.log("🔗 [Deep Link] Is auth callback:", isAuthCallback);
+  
+  if (isAuthCallback) {
     try {
+      console.log("🔗 [Deep Link] Processing auth callback...");
+      
       // Extract the URL parameters
       const url = new URL(event.url);
+      console.log("🔗 [Deep Link] URL pathname:", url.pathname);
+      console.log("🔗 [Deep Link] URL hash:", url.hash);
+      console.log("🔗 [Deep Link] URL search:", url.search);
 
       // Try hash parameters first (direct token flow)
       let params = new URLSearchParams(url.hash.substring(1));
@@ -149,7 +159,7 @@ const handleOpenURL = async (event) => {
       const code = params.get("code");
       const error = params.get("error");
 
-      console.log("Auth params:", {
+      console.log("🔗 [Deep Link] Auth params:", {
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
         hasCode: !!code,
@@ -158,7 +168,7 @@ const handleOpenURL = async (event) => {
 
       if (error) {
         console.error(
-          "OAuth error from callback:",
+          "🔗 [Deep Link] ❌ OAuth error from callback:",
           error,
           params.get("error_description")
         );
@@ -167,27 +177,38 @@ const handleOpenURL = async (event) => {
 
       if (accessToken && refreshToken) {
         // Direct token flow
-        console.log("Setting session with tokens from deep link");
+        console.log("🔗 [Deep Link] Using direct token flow...");
+        console.log("🔗 [Deep Link] Setting session with tokens from deep link");
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
 
         if (sessionError) {
-          console.error("Error setting session:", sessionError);
+          console.error("🔗 [Deep Link] ❌ Error setting session:", sessionError);
         } else {
-          console.log("Session set successfully");
+          console.log("🔗 [Deep Link] ✅ Session set successfully");
+          console.log("🔗 [Deep Link] User:", data?.user?.email);
         }
       } else if (code) {
         // PKCE flow - exchange code for tokens
-        console.log("Exchanging authorization code for tokens");
+        console.log("🔗 [Deep Link] Using PKCE flow...");
+        console.log("🔗 [Deep Link] Exchanging authorization code for tokens");
+        console.log("🔗 [Deep Link] Code (first 20 chars):", code.substring(0, 20) + "...");
+        
         const { data, error: exchangeError } =
           await supabase.auth.exchangeCodeForSession(code);
 
         if (exchangeError) {
-          console.error("Error exchanging code for session:", exchangeError);
+          console.error("🔗 [Deep Link] ❌ Error exchanging code for session:", exchangeError);
+          console.error("🔗 [Deep Link] Error details:", {
+            message: exchangeError.message,
+            status: exchangeError.status,
+            name: exchangeError.name,
+          });
         } else {
-          console.log("✅ Code exchanged successfully!");
+          console.log("🔗 [Deep Link] ✅ Code exchanged successfully!");
+          console.log("🔗 [Deep Link] Session user:", data?.session?.user?.email);
 
           // Wait a moment for session to be fully established
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -199,20 +220,28 @@ const handleOpenURL = async (event) => {
           } = await supabase.auth.getSession();
 
           if (!sessionError && session) {
-            console.log("✅ Session confirmed after code exchange");
-            console.log("Session user:", session.user?.email);
+            console.log("🔗 [Deep Link] ✅ Session confirmed after code exchange");
+            console.log("🔗 [Deep Link] Session user:", session.user?.email);
+            console.log("🔗 [Deep Link] Session expires:", new Date(session.expires_at * 1000).toISOString());
 
             // Force trigger auth state change event to ensure navigation
             // This will trigger the onAuthStateChange listener in App.js
             console.log(
-              "🔔 Manually triggering auth refresh to ensure listeners fire..."
+              "🔗 [Deep Link] 🔔 Manually triggering auth refresh to ensure listeners fire..."
             );
 
             // Refresh the session to trigger all auth state listeners
-            await supabase.auth.refreshSession();
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError) {
+              console.error("🔗 [Deep Link] ❌ Error refreshing session:", refreshError);
+            } else {
+              console.log("🔗 [Deep Link] ✅ Session refreshed successfully");
+            }
 
             // For web platform, also dispatch custom event
             if (Platform.OS === "web" && typeof window !== "undefined") {
+              console.log("🔗 [Deep Link] Dispatching custom event (web only)");
               window.dispatchEvent(
                 new CustomEvent("supabase-auth-success", {
                   detail: { session },
@@ -220,16 +249,25 @@ const handleOpenURL = async (event) => {
               );
             }
 
-            console.log("✅ Auth state notifications sent");
+            console.log("🔗 [Deep Link] ✅ Auth state notifications sent");
           } else {
-            console.error("❌ No session found after code exchange");
+            console.error("🔗 [Deep Link] ❌ No session found after code exchange");
+            console.error("🔗 [Deep Link] This should not happen - code exchange succeeded but no session");
           }
         }
+      } else {
+        console.warn("🔗 [Deep Link] ⚠️ No access token or code found in URL");
+        console.warn("🔗 [Deep Link] URL hash:", url.hash);
+        console.warn("🔗 [Deep Link] URL search:", url.search);
       }
     } catch (error) {
-      console.error("Error handling auth callback:", error);
+      console.error("🔗 [Deep Link] ❌ Error handling auth callback:", error);
+      console.error("🔗 [Deep Link] Error stack:", error.stack);
     }
+  } else {
+    console.log("🔗 [Deep Link] Not an auth callback, ignoring");
   }
+  console.log("🔗 ========================================");
 };
 
 // Initialize subscription variable at the top level
