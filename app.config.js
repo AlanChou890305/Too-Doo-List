@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "To Do",
     slug: "too-doo-list",
-    version: "1.2.20",
+    version: "1.3.0",
     description: "Simple and intuitive task management app with Google SSO",
     main: "node_modules/expo/AppEntry.js",
     orientation: "portrait",
@@ -94,7 +94,7 @@ module.exports = {
     },
 
     // Updates configuration
-    runtimeVersion: "1.2.20",
+    runtimeVersion: "1.3.0",
     updates: {
       url: "https://u.expo.dev/a86169e7-6d37-4bee-be43-d1e709615ef9",
       channel: "production",

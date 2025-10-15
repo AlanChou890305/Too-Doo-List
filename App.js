@@ -43,7 +43,10 @@ if (Platform.OS !== "web") {
 }
 
 import { supabase } from "./supabaseClient";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 // Services
 import { TaskService } from "./src/services/taskService";
@@ -89,7 +92,7 @@ const translations = {
     settings: "Settings",
     userName: "User Name",
     account: "Account",
-    logout: "Log out",
+    logout: "Log Out",
     comingSoon: "Coming soon...",
     terms: "Terms of Use",
     privacy: "Privacy Policy",
@@ -113,9 +116,10 @@ const translations = {
     save: "Save",
     update: "Update",
     cancel: "Cancel",
+    confirm: "Confirm",
     delete: "Delete",
     logoutConfirm: "Are you sure you want to log out of the app?",
-    logout: "Log out",
+    logout: "Log Out",
     deleteConfirm: "Are you sure you want to delete this task?",
     done: "Done",
     moveHint: "Tap a date to move",
@@ -221,7 +225,7 @@ const translations = {
     privacyAcknowledgment:
       "By using To Do, you acknowledge that you have read and understood this Privacy Policy and agree to the collection, use, and disclosure of your information as described herein.",
     googleAccount: "Google Account",
-    logout: "Log out",
+    logout: "Log Out",
     selectTime: "Select Time",
     hour: "Hour",
     minute: "Min",
@@ -257,6 +261,7 @@ const translations = {
     save: "儲存",
     update: "更新",
     cancel: "取消",
+    confirm: "確認",
     delete: "刪除",
     logoutConfirm: "您確定要登出應用程式嗎？",
     logout: "登出",
@@ -3309,6 +3314,7 @@ function SettingScreen() {
 
 function CalendarScreen({ navigation, route }) {
   const { language, t } = useContext(LanguageContext);
+  const insets = useSafeAreaInsets();
   const getCurrentDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -3335,6 +3341,8 @@ function CalendarScreen({ navigation, route }) {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [tempDate, setTempDate] = useState(null);
+  const [tempTime, setTempTime] = useState(null);
 
   // 格式化日期輸入 (YYYY-MM-DD)
   const formatDateInput = (text) => {
@@ -3934,9 +3942,9 @@ function CalendarScreen({ navigation, route }) {
       accessibilityViewIsModal={true}
       accessibilityLabel="Task Creation/Edit Modal"
     >
-      <SafeAreaView style={styles.modalOverlay}>
+      <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
+          <View style={[styles.modalHeader, { paddingTop: insets.top + 16 }]}>
             <TouchableOpacity
               style={styles.modalBackButton}
               onPress={() => setModalVisible(false)}
@@ -3955,7 +3963,7 @@ function CalendarScreen({ navigation, route }) {
             keyboardShouldPersistTaps="handled"
           >
             <View style={{ marginBottom: 24, marginTop: 24 }}>
-              {/* Task Text Input - 移到最前面並設為 autoFocus */}
+              {/* Task Text Input */}
               <View style={{ marginBottom: 20 }}>
                 <Text style={styles.label}>
                   {t.taskLabel} <Text style={{ color: "#ff4444" }}>*</Text>
@@ -3966,7 +3974,7 @@ function CalendarScreen({ navigation, route }) {
                   onChangeText={setTaskText}
                   placeholder={t.addTask}
                   placeholderTextColor="#888"
-                  autoFocus={true}
+                  autoFocus={false}
                   returnKeyType="done"
                   accessibilityLabel="Task title input"
                   accessibilityHint="Enter the task title"
@@ -4075,42 +4083,28 @@ function CalendarScreen({ navigation, route }) {
                   </View>
                 ) : (
                   <TouchableOpacity
-                    onPress={() => setDatePickerVisible(true)}
+                    onPress={() => {
+                      console.log(
+                        "📅 Date field clicked, setting datePickerVisible to true"
+                      );
+                      setTempDate(taskDate ? new Date(taskDate) : new Date());
+                      setDatePickerVisible(true);
+                    }}
                     style={styles.linkInputContainer}
+                    activeOpacity={0.7}
                   >
                     <Text
                       style={[
-                        styles.linkInput,
+                        styles.dateTimeText,
                         !taskDate && styles.placeholderText,
                       ]}
                     >
                       {taskDate || t.datePlaceholder}
                     </Text>
-                    <View style={styles.linkPreviewButton}>
+                    <View style={styles.linkPreviewButton} pointerEvents="none">
                       <MaterialIcons name="event" size={20} color="#6c63ff" />
                     </View>
                   </TouchableOpacity>
-                )}
-                {datePickerVisible && Platform.OS !== "web" && (
-                  <DateTimePicker
-                    value={taskDate ? new Date(taskDate) : new Date()}
-                    mode="date"
-                    display="default"
-                    onChange={(event, selectedDate) => {
-                      setDatePickerVisible(false);
-                      if (event.type === "set" && selectedDate) {
-                        const year = selectedDate.getFullYear();
-                        const month = String(
-                          selectedDate.getMonth() + 1
-                        ).padStart(2, "0");
-                        const day = String(selectedDate.getDate()).padStart(
-                          2,
-                          "0"
-                        );
-                        setTaskDate(`${year}-${month}-${day}`);
-                      }
-                    }}
-                  />
                 )}
               </View>
 
@@ -4159,18 +4153,36 @@ function CalendarScreen({ navigation, route }) {
                   </View>
                 ) : (
                   <TouchableOpacity
-                    onPress={() => setTimePickerVisible(true)}
+                    onPress={() => {
+                      console.log(
+                        "🕐 Time field clicked, setting timePickerVisible to true"
+                      );
+                      const now = new Date();
+                      setTempTime(
+                        taskTime
+                          ? new Date(
+                              2024,
+                              0,
+                              1,
+                              parseInt(taskTime.split(":")[0]) || 0,
+                              parseInt(taskTime.split(":")[1]) || 0
+                            )
+                          : now
+                      );
+                      setTimePickerVisible(true);
+                    }}
                     style={styles.linkInputContainer}
+                    activeOpacity={0.7}
                   >
                     <Text
                       style={[
-                        styles.linkInput,
+                        styles.dateTimeText,
                         !taskTime && styles.placeholderText,
                       ]}
                     >
                       {taskTime || t.timePlaceholder}
                     </Text>
-                    <View style={styles.linkPreviewButton}>
+                    <View style={styles.linkPreviewButton} pointerEvents="none">
                       <MaterialIcons
                         name="access-time"
                         size={20}
@@ -4178,36 +4190,6 @@ function CalendarScreen({ navigation, route }) {
                       />
                     </View>
                   </TouchableOpacity>
-                )}
-                {timePickerVisible && Platform.OS !== "web" && (
-                  <DateTimePicker
-                    value={
-                      taskTime
-                        ? new Date(
-                            2024,
-                            0,
-                            1,
-                            parseInt(taskTime.split(":")[0]) || 0,
-                            parseInt(taskTime.split(":")[1]) || 0
-                          )
-                        : new Date()
-                    }
-                    mode="time"
-                    display="default"
-                    onChange={(event, selectedTime) => {
-                      setTimePickerVisible(false);
-                      if (event.type === "set" && selectedTime) {
-                        const hours = String(selectedTime.getHours()).padStart(
-                          2,
-                          "0"
-                        );
-                        const minutes = String(
-                          selectedTime.getMinutes()
-                        ).padStart(2, "0");
-                        setTaskTime(`${hours}:${minutes}`);
-                      }
-                    }}
-                  />
                 )}
               </View>
 
@@ -4230,22 +4212,31 @@ function CalendarScreen({ navigation, route }) {
             </View>
           </ScrollView>
           <View style={styles.modalButtons}>
-            {editingTask && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={showDeleteConfirm}
-              >
-                <Text style={styles.deleteButtonText}>{t.delete}</Text>
-              </TouchableOpacity>
+            {editingTask ? (
+              <>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={showDeleteConfirm}
+                >
+                  <Text style={styles.deleteButtonText}>{t.delete}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
+                  <Text style={styles.saveButtonText}>{t.update}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <View style={{ flex: 1 }} />
+                <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
+                  <Text style={styles.saveButtonText}>{t.save}</Text>
+                </TouchableOpacity>
+              </>
             )}
-            <TouchableOpacity style={styles.saveButton} onPress={saveTask}>
-              <Text style={styles.saveButtonText}>
-                {editingTask ? t.update : t.save}
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
-      </SafeAreaView>
+        {renderDatePickerOverlay()}
+        {renderTimePickerOverlay()}
+      </View>
     </Modal>
   );
 
@@ -4350,6 +4341,193 @@ function CalendarScreen({ navigation, route }) {
       </TouchableOpacity>
     </Modal>
   );
+
+  const renderDatePickerOverlay = () => {
+    if (!datePickerVisible || Platform.OS === "web") return null;
+
+    return (
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1000,
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+          }}
+          activeOpacity={1}
+          onPress={() => setDatePickerVisible(false)}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              paddingBottom: insets.bottom,
+            }}
+            onStartShouldSetResponder={() => true}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: "#f0f0f0",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setDatePickerVisible(false)}
+                style={{ paddingVertical: 8, paddingHorizontal: 8 }}
+              >
+                <Text style={{ color: "#007AFF", fontSize: 17 }}>
+                  {t.cancel}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (tempDate) {
+                    const year = tempDate.getFullYear();
+                    const month = String(tempDate.getMonth() + 1).padStart(
+                      2,
+                      "0"
+                    );
+                    const day = String(tempDate.getDate()).padStart(2, "0");
+                    setTaskDate(`${year}-${month}-${day}`);
+                  }
+                  setDatePickerVisible(false);
+                }}
+                style={{ paddingVertical: 8, paddingHorizontal: 8 }}
+              >
+                <Text
+                  style={{ color: "#007AFF", fontSize: 17, fontWeight: "600" }}
+                >
+                  {t.confirm}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {tempDate && (
+              <View style={{ alignItems: "center", width: "100%" }}>
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "inline" : "calendar"}
+                  onChange={(event, selectedDate) => {
+                    if (selectedDate) {
+                      setTempDate(selectedDate);
+                    }
+                  }}
+                  style={{ width: "100%" }}
+                />
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderTimePickerOverlay = () => {
+    if (!timePickerVisible || Platform.OS === "web") return null;
+
+    return (
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1000,
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+          }}
+          activeOpacity={1}
+          onPress={() => setTimePickerVisible(false)}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              paddingBottom: insets.bottom,
+            }}
+            onStartShouldSetResponder={() => true}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: "#f0f0f0",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setTimePickerVisible(false)}
+                style={{ paddingVertical: 8, paddingHorizontal: 8 }}
+              >
+                <Text style={{ color: "#007AFF", fontSize: 17 }}>
+                  {t.cancel}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (tempTime) {
+                    const hours = String(tempTime.getHours()).padStart(2, "0");
+                    const minutes = String(tempTime.getMinutes()).padStart(
+                      2,
+                      "0"
+                    );
+                    setTaskTime(`${hours}:${minutes}`);
+                  }
+                  setTimePickerVisible(false);
+                }}
+                style={{ paddingVertical: 8, paddingHorizontal: 8 }}
+              >
+                <Text
+                  style={{ color: "#007AFF", fontSize: 17, fontWeight: "600" }}
+                >
+                  {t.confirm}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {tempTime && (
+              <View style={{ alignItems: "center", width: "100%" }}>
+                <DateTimePicker
+                  value={tempTime}
+                  mode="time"
+                  display="spinner"
+                  onChange={(event, selectedTime) => {
+                    if (selectedTime) {
+                      setTempTime(selectedTime);
+                    }
+                  }}
+                  style={{ width: "100%" }}
+                />
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   // Calendar navigation functions
   // Handles vertical swipe gestures for month navigation
@@ -4646,33 +4824,24 @@ export default function App() {
             } else if (route.name === "Setting") {
               iconName = "settings";
             }
-            return (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <MaterialIcons name={iconName} size={size} color={color} />
-              </View>
-            );
+            return <MaterialIcons name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: "#111",
           tabBarInactiveTintColor: "#888",
           tabBarShowLabel: false,
           tabBarStyle: {
-            height: 60,
-            paddingBottom: 4,
-            paddingTop: 4,
+            height: 80,
+            paddingBottom: 8,
+            paddingTop: 8,
             backgroundColor: "rgba(255,255,255,0.96)",
             borderTopWidth: 1,
             borderTopColor: "#eee",
           },
           tabBarIconStyle: {
-            flex: 1,
             justifyContent: "center",
             alignItems: "center",
+            marginTop: 0,
+            marginBottom: 0,
           },
         })}
       >
@@ -5130,6 +5299,20 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     textAlignVertical: "center",
     borderRadius: 12,
+  },
+  dateTimeText: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+    paddingHorizontal: 16,
+    ...Platform.select({
+      ios: {
+        lineHeight: 50, // iOS: 使用 lineHeight 實現垂直置中
+      },
+      android: {
+        textAlignVertical: "center",
+      },
+    }),
   },
   linkPreviewButton: {
     padding: 8,
@@ -5747,6 +5930,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   modalButtons: {
+    height: 80,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -5784,15 +5968,20 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+    backgroundColor: "#fff",
+    zIndex: 10,
   },
   modalBackButton: {
-    padding: 4,
+    padding: 12,
     alignItems: "center",
     justifyContent: "center",
-    width: 40,
+    width: 48,
+    height: 48,
+    zIndex: 999,
+    backgroundColor: "transparent",
   },
   modalHeaderSpacer: {
-    width: 40,
+    width: 48,
   },
   modalCloseButton: {
     padding: 4,
