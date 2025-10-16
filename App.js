@@ -3584,10 +3584,10 @@ function CalendarScreen({ navigation, route }) {
 
   const toggleTaskChecked = async (task) => {
     try {
-      const newCheckedState = !task.checked;
+      const newCompletedState = !(task.is_completed || task.checked);
 
       // If task is being marked as completed, cancel notification (支援新舊格式)
-      if (newCheckedState) {
+      if (newCompletedState) {
         if (task.notificationIds) {
           await cancelTaskNotification(task.notificationIds);
         } else if (task.notificationId) {
@@ -3595,12 +3595,12 @@ function CalendarScreen({ navigation, route }) {
         }
       }
 
-      await TaskService.toggleTaskChecked(task.id, newCheckedState);
+      await TaskService.toggleTaskChecked(task.id, newCompletedState);
 
       // Update local state
       const dayTasks = tasks[task.date] ? [...tasks[task.date]] : [];
       const updatedTasks = dayTasks.map((t) =>
-        t.id === task.id ? { ...t, checked: newCheckedState } : t
+        t.id === task.id ? { ...t, checked: newCompletedState, is_completed: newCompletedState } : t
       );
       setTasks({ ...tasks, [task.date]: updatedTasks });
     } catch (error) {
@@ -3616,7 +3616,7 @@ function CalendarScreen({ navigation, route }) {
         onPress={() => toggleTaskChecked(item)}
         activeOpacity={0.7}
       >
-        {item.checked ? (
+        {(item.is_completed || item.checked) ? (
           <MaterialIcons name="check-box" size={24} color={theme.primary} />
         ) : (
           <MaterialIcons
@@ -3644,8 +3644,8 @@ function CalendarScreen({ navigation, route }) {
           <Text
             style={[
               styles.taskText,
-              { color: item.checked ? theme.textTertiary : theme.text },
-              item.checked && styles.taskTextChecked,
+              { color: (item.is_completed || item.checked) ? theme.textTertiary : theme.text },
+              (item.is_completed || item.checked) && styles.taskTextChecked,
             ]}
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -3808,8 +3808,10 @@ function CalendarScreen({ navigation, route }) {
               <FlatList
                 data={dayTasks.slice().sort((a, b) => {
                   // 已完成的任務排到最底下
-                  if (a.checked !== b.checked) {
-                    return a.checked ? 1 : -1;
+                  const aCompleted = a.is_completed || a.checked;
+                  const bCompleted = b.is_completed || b.checked;
+                  if (aCompleted !== bCompleted) {
+                    return aCompleted ? 1 : -1;
                   }
                   // 未完成的任務按時間排序
                   return (a.time || "").localeCompare(b.time || "");

@@ -10,14 +10,12 @@ export const TASK_FIELDS = {
   TEXT: "title",
   TIME: "time",
   DATE: "date",
-  CHECKED: "checked",
   LINK: "link",
   NOTE: "note",
 
   // 擴展欄位
   PRIORITY: "priority",
   DESCRIPTION: "description",
-  DUE_TIME: "due_time",
   IS_COMPLETED: "is_completed",
   COMPLETED_AT: "completed_at",
   TAGS: "tags",
@@ -73,12 +71,12 @@ export const createTaskObject = (taskData) => {
     [TASK_FIELDS.LINK]: taskData.link || null,
     [TASK_FIELDS.NOTE]: taskData.note || null,
     [TASK_FIELDS.DATE]: taskData.date,
-    [TASK_FIELDS.CHECKED]: taskData.checked || false,
+    // 移除 CHECKED 欄位，只使用 IS_COMPLETED
+    [TASK_FIELDS.IS_COMPLETED]: taskData.is_completed || taskData.checked || false,
+    [TASK_FIELDS.COMPLETED_AT]: taskData.completed_at || null,
     [TASK_FIELDS.PRIORITY]: taskData.priority || TASK_PRIORITIES.MEDIUM,
     [TASK_FIELDS.DESCRIPTION]: taskData.description || null,
-    [TASK_FIELDS.DUE_TIME]: taskData.due_time || null,
-    [TASK_FIELDS.IS_COMPLETED]: taskData.is_completed || false,
-    [TASK_FIELDS.COMPLETED_AT]: taskData.completed_at || null,
+    // 移除 DUE_TIME，改用 TIME（migration 會把 due_time 重新命名為 time）
     [TASK_FIELDS.TAGS]: taskData.tags || [],
     [TASK_FIELDS.ORDER_INDEX]: taskData.order_index || 0,
   };

@@ -278,10 +278,13 @@ export class TaskService {
     }
   }
 
-  // Toggle task checked status
-  static async toggleTaskChecked(taskId, checked) {
+  // Toggle task completed status
+  static async toggleTaskChecked(taskId, isCompleted) {
     try {
-      return await this.updateTask(taskId, { checked });
+      return await this.updateTask(taskId, { 
+        is_completed: isCompleted,
+        completed_at: isCompleted ? new Date().toISOString() : null
+      });
     } catch (error) {
       console.error("Error in toggleTaskChecked:", error);
       throw error;
