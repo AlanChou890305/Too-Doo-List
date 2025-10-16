@@ -4905,13 +4905,11 @@ export default function App() {
     setLanguageState(lang);
 
     try {
-      // Save to Supabase user settings with platform info
+      // Save to Supabase user settings (platform 會自動更新)
       const result = await UserService.updateUserSettings({
         language: lang,
-        platform: Platform.OS,
-        user_agent: UserService.getUserAgent(),
       });
-      console.log("✅ Language and platform saved to Supabase:", result);
+      console.log("✅ Language saved to Supabase:", result);
     } catch (error) {
       console.error("❌ Error saving language to Supabase:", error);
       // Fallback to AsyncStorage
@@ -4924,13 +4922,11 @@ export default function App() {
     setThemeModeState(mode);
 
     try {
-      // Save to Supabase user settings with platform info
+      // Save to Supabase user settings (platform 會自動更新)
       const result = await UserService.updateUserSettings({
         theme: mode,
-        platform: Platform.OS,
-        user_agent: UserService.getUserAgent(),
       });
-      console.log("✅ Theme and platform saved to Supabase:", result);
+      console.log("✅ Theme saved to Supabase:", result);
     } catch (error) {
       console.error("❌ Error saving theme to Supabase:", error);
     }
