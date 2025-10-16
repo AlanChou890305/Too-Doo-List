@@ -24,8 +24,49 @@ export class UserService {
         .single();
 
       if (error) {
+        // If user_settings doesn't exist, create it with defaults
+        if (error.code === 'PGRST116') {
+          console.log("📝 Creating default user settings for new user");
+          const defaultSettings = {
+            language: "en",
+            theme: "light",
+            notifications_enabled: true,
+          };
+          
+          try {
+            const { data: newData, error: createError } = await supabase
+              .from("user_settings")
+              .insert({
+                user_id: user.id,
+                ...defaultSettings,
+                platform: Platform.OS,
+                user_agent: this.getUserAgent(),
+              })
+              .select()
+              .single();
+            
+            if (createError) {
+              console.error("Error creating user settings:", createError);
+              return defaultSettings;
+            }
+            
+            console.log("✅ Default user settings created");
+            return {
+              language: newData.language || "en",
+              theme: newData.theme || "light",
+              notifications_enabled: newData.notifications_enabled !== false,
+              display_name: newData.display_name,
+              platform: newData.platform,
+              last_active_at: newData.last_active_at,
+            };
+          } catch (insertError) {
+            console.error("Error inserting user settings:", insertError);
+            return defaultSettings;
+          }
+        }
+        
         console.error("Error fetching user settings:", error);
-        // Return default settings if not found
+        // Return default settings if other error
         return {
           language: "en",
           theme: "light",
@@ -76,6 +117,8 @@ export class UserService {
         .upsert({
           user_id: user.id,
           ...settingsWithPlatform,
+        }, {
+          onConflict: 'user_id'
         })
         .select()
         .single();
@@ -193,11 +236,23 @@ export class UserService {
         return;
       }
 
+      // 先確保 user_settings 記錄存在
+      await this.getUserSettings();
+
       // 更新平台資訊和最後活動時間
-      await this.updateUserSettings({
-        platform: Platform.OS,
-        user_agent: this.getUserAgent(),
-      });
+      const { error } = await supabase
+        .from("user_settings")
+        .update({
+          platform: Platform.OS,
+          user_agent: this.getUserAgent(),
+          last_active_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error("Error updating platform info:", error);
+        return;
+      }
 
       console.log(`📱 Platform info updated: ${Platform.OS}`);
     } catch (error) {
