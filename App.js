@@ -255,6 +255,8 @@ const translations = {
     lightMode: "Light Mode",
     darkMode: "Dark Mode",
     appearance: "Appearance",
+    byContinuing: "By continuing, you agree to our",
+    and: "and",
   },
   zh: {
     settings: "設定",
@@ -410,6 +412,8 @@ const translations = {
     lightMode: "淺色模式",
     darkMode: "深色模式",
     appearance: "外觀",
+    byContinuing: "繼續使用即表示您同意我們的",
+    and: "和",
   },
 };
 
@@ -440,6 +444,8 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const SplashScreen = ({ navigation }) => {
+  const { theme } = useContext(ThemeContext);
+  const { t } = useContext(LanguageContext);
   useEffect(() => {
     // Handle OAuth callback if this is a redirect from OAuth
     const handleOAuthCallback = async () => {
@@ -1524,7 +1530,7 @@ const SplashScreen = ({ navigation }) => {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: theme.background,
         justifyContent: "center",
         alignItems: "center",
       }}
@@ -1546,7 +1552,7 @@ const SplashScreen = ({ navigation }) => {
           style={{
             fontSize: 32,
             fontWeight: "bold",
-            color: "#3d3d4e",
+            color: theme.text,
             marginBottom: 48,
             letterSpacing: 1,
           }}
@@ -1558,17 +1564,17 @@ const SplashScreen = ({ navigation }) => {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: "#fff",
-              borderColor: "#dadada",
+              backgroundColor: theme.card,
+              borderColor: theme.cardBorder,
               borderWidth: 1,
               borderRadius: 4,
               paddingVertical: 12,
               justifyContent: "center",
               marginBottom: 10,
               width: "100%",
-              shadowColor: "#000",
+              shadowColor: theme.shadow,
               shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
+              shadowOpacity: theme.shadowOpacity,
               shadowRadius: 2,
               elevation: 1,
             }}
@@ -1580,7 +1586,11 @@ const SplashScreen = ({ navigation }) => {
               resizeMode="contain"
             />
             <Text
-              style={{ color: "#4285F4", fontWeight: "bold", fontSize: 16 }}
+              style={{
+                color: theme.mode === "dark" ? theme.text : "#4285F4",
+                fontWeight: "bold",
+                fontSize: 16,
+              }}
             >
               Sign in with Google
             </Text>
@@ -1596,20 +1606,26 @@ const SplashScreen = ({ navigation }) => {
           alignItems: "center",
         }}
       >
-        <Text style={{ color: "#888", fontSize: 13, textAlign: "center" }}>
-          By continuing, you agree to our{" "}
+        <Text
+          style={{
+            color: theme.textSecondary,
+            fontSize: 13,
+            textAlign: "center",
+          }}
+        >
+          {t.byContinuing}{" "}
           <Text
-            style={{ color: "#6c63ff", fontWeight: "bold" }}
+            style={{ color: theme.primary, fontWeight: "bold" }}
             onPress={() => navigation.navigate("Terms")}
           >
-            Terms of Use
+            {t.terms}
           </Text>{" "}
-          and{" "}
+          {t.and}{" "}
           <Text
-            style={{ color: "#6c63ff", fontWeight: "bold" }}
+            style={{ color: theme.primary, fontWeight: "bold" }}
             onPress={() => navigation.navigate("Privacy")}
           >
-            Privacy Policy
+            {t.privacy}
           </Text>
           .
         </Text>
@@ -1618,504 +1634,20 @@ const SplashScreen = ({ navigation }) => {
   );
 };
 
-function LoginScreen({ navigation }) {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-
-      // Check if user is in incognito mode and warn them
-      if (Platform.OS === "web") {
-        try {
-          // Test if localStorage is available (incognito mode often restricts this)
-          const testKey = "__incognito_test__";
-          localStorage.setItem(testKey, "test");
-          localStorage.removeItem(testKey);
-        } catch (error) {
-          console.warn("Possible incognito mode detected");
-          const proceed = confirm(
-            "You appear to be using incognito/private browsing mode. " +
-              "Google Sign-In may not work properly in this mode. " +
-              "Would you like to continue anyway?"
-          );
-          if (!proceed) {
-            return;
-          }
-        }
-      }
-
-      // Use the correct scheme from app.json
-      const redirectUrl = AuthSession.makeRedirectUri({
-        scheme: "too-doo-list",
-        path: "auth/callback",
-      });
-
-      // Start the OAuth flow
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-          queryParams: {
-            access_type: "offline",
-            prompt: "select_account",
-          },
-        },
-      });
-
-      if (error) {
-        console.error("OAuth error:", error);
-        throw error;
-      }
-
-      // Open the URL in the browser
-      if (data?.url) {
-        const result = await WebBrowser.openAuthSessionAsync(
-          data.url,
-          redirectUrl
-        );
-
-        if (result.type === "success") {
-          // The URL will be handled by the deep link listener in supabaseClient.js
-          const url = new URL(result.url);
-          const params = new URLSearchParams(url.hash.substring(1));
-
-          const accessToken = params.get("access_token");
-          const refreshToken = params.get("refresh_token");
-
-          if (accessToken && refreshToken) {
-            const { data: sessionData, error: sessionError } =
-              await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              });
-
-            if (sessionError) {
-              console.error("Session error:", sessionError);
-              throw sessionError;
-            }
-
-            // Navigate to main app if successful
-            if (sessionData?.session) {
-              navigation.navigate("Main");
-            }
-          }
-        } else if (result.type === "cancel") {
-          Alert.alert("Cancelled", "Sign in was cancelled");
-        }
-      }
-    } catch (error) {
-      console.error("Google Sign In Error:", error);
-      Alert.alert("Error", error.message || "Failed to sign in with Google");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#fff",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <TouchableOpacity
-        style={{
-          position: "absolute",
-          top: 36,
-          left: 16,
-          flexDirection: "row",
-          alignItems: "center",
-          padding: 8,
-          zIndex: 10,
-        }}
-        onPress={() => {
-          if (navigation.canGoBack()) navigation.goBack();
-        }}
-        hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-      >
-        <MaterialIcons name="arrow-back" size={28} color="#6c63ff" />
-        <Text style={{ color: "#6c63ff", fontSize: 18, marginLeft: 4 }}>
-          Back
-        </Text>
-      </TouchableOpacity>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          width: "100%",
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: "bold",
-            color: "#6c63ff",
-            marginBottom: 32,
-          }}
-        >
-          Login
-        </Text>
-        <View style={{ width: 260 }}>
-          <Text
-            style={{
-              marginBottom: 4,
-              color: "#3d3d4e",
-              fontWeight: "600",
-              fontSize: 15,
-            }}
-          >
-            Email
-          </Text>
-          <TextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            style={{
-              borderWidth: 1,
-              borderColor: "#bbb",
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 16,
-              fontSize: 16,
-              backgroundColor: "#fafafa",
-            }}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <Text
-            style={{
-              marginBottom: 4,
-              color: "#3d3d4e",
-              fontWeight: "600",
-              fontSize: 15,
-            }}
-          >
-            Password
-          </Text>
-          <TextInput
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            style={{
-              borderWidth: 1,
-              borderColor: "#bbb",
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 20,
-              fontSize: 16,
-              backgroundColor: "#fafafa",
-            }}
-            secureTextEntry
-          />
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#6c63ff",
-              borderRadius: 8,
-              paddingVertical: 14,
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-            onPress={() => {
-              /* TODO: Implement email login logic */
-            }}
-            disabled={loading}
-          >
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 18 }}>
-              {loading ? "Loading..." : "Login with Email"}
-            </Text>
-          </TouchableOpacity>
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 16,
-            }}
-          >
-            <View style={{ flex: 1, height: 1, backgroundColor: "#ddd" }} />
-            <Text style={{ marginHorizontal: 12, color: "#888" }}>OR</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: "#ddd" }} />
-          </View>
-
-          <TouchableOpacity
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#fff",
-              borderWidth: 1,
-              borderColor: "#ddd",
-              borderRadius: 8,
-              paddingVertical: 14,
-              marginBottom: 16,
-            }}
-            onPress={handleGoogleSignIn}
-            disabled={loading}
-          >
-            <Image
-              source={{ uri: "https://www.google.com/favicon.ico" }}
-              style={{ width: 20, height: 20, marginRight: 12 }}
-            />
-            <Text style={{ color: "#444", fontWeight: "600", fontSize: 16 }}>
-              {loading ? "Signing in..." : "Continue with Google"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View
-        style={{
-          position: "absolute",
-          bottom: 24,
-          left: 0,
-          right: 0,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "#888", fontSize: 13, textAlign: "center" }}>
-          By continuing, you agree to our{" "}
-          <Text
-            style={{ color: "#6c63ff", fontWeight: "bold" }}
-            onPress={() => navigation.navigate("Terms")}
-          >
-            Terms of Use
-          </Text>{" "}
-          and{" "}
-          <Text
-            style={{ color: "#6c63ff", fontWeight: "bold" }}
-            onPress={() => navigation.navigate("Privacy")}
-          >
-            Privacy Policy
-          </Text>
-          .
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-function SignupScreen({ navigation }) {
-  const [username, setUsername] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [confirmPassword, setConfirmPassword] = React.useState("");
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#fff",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <TouchableOpacity
-        style={{
-          position: "absolute",
-          top: 36,
-          left: 16,
-          flexDirection: "row",
-          alignItems: "center",
-          padding: 8,
-          zIndex: 10,
-        }}
-        onPress={() => {
-          if (navigation.canGoBack()) navigation.goBack();
-        }}
-        hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-      >
-        <MaterialIcons name="arrow-back" size={28} color="#6c63ff" />
-        <Text style={{ color: "#6c63ff", fontSize: 18, marginLeft: 4 }}>
-          Back
-        </Text>
-      </TouchableOpacity>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          width: "100%",
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: "bold",
-            color: "#6c63ff",
-            marginBottom: 32,
-          }}
-        >
-          Sign Up
-        </Text>
-        <View style={{ width: 260 }}>
-          <Text
-            style={{
-              marginBottom: 4,
-              color: "#3d3d4e",
-              fontWeight: "600",
-              fontSize: 15,
-            }}
-          >
-            Username
-          </Text>
-          <TextInput
-            placeholder="Username"
-            value={username}
-            onChangeText={setUsername}
-            style={{
-              borderWidth: 1,
-              borderColor: "#bbb",
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 16,
-              fontSize: 16,
-              backgroundColor: "#fafafa",
-            }}
-            autoCapitalize="none"
-          />
-          <Text
-            style={{
-              marginBottom: 4,
-              color: "#3d3d4e",
-              fontWeight: "600",
-              fontSize: 15,
-            }}
-          >
-            Email
-          </Text>
-          <TextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            style={{
-              borderWidth: 1,
-              borderColor: "#bbb",
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 16,
-              fontSize: 16,
-              backgroundColor: "#fafafa",
-            }}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <Text
-            style={{
-              marginBottom: 4,
-              color: "#3d3d4e",
-              fontWeight: "600",
-              fontSize: 15,
-            }}
-          >
-            Password
-          </Text>
-          <TextInput
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            style={{
-              borderWidth: 1,
-              borderColor: "#bbb",
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 16,
-              fontSize: 16,
-              backgroundColor: "#fafafa",
-            }}
-            secureTextEntry
-          />
-          <Text
-            style={{
-              marginBottom: 4,
-              color: "#3d3d4e",
-              fontWeight: "600",
-              fontSize: 15,
-            }}
-          >
-            Confirm Password
-          </Text>
-          <TextInput
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            style={{
-              borderWidth: 1,
-              borderColor: "#bbb",
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 20,
-              fontSize: 16,
-              backgroundColor: "#fafafa",
-            }}
-            secureTextEntry
-          />
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#6c63ff",
-              borderRadius: 8,
-              paddingVertical: 14,
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-            onPress={() => {
-              /* TODO: Implement signup logic */
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 18 }}>
-              Sign Up
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View
-        style={{
-          position: "absolute",
-          bottom: 24,
-          left: 0,
-          right: 0,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "#888", fontSize: 13, textAlign: "center" }}>
-          By continuing, you agree to our{" "}
-          <Text
-            style={{ color: "#6c63ff", fontWeight: "bold" }}
-            onPress={() => navigation.navigate("Terms")}
-          >
-            Terms of Use
-          </Text>{" "}
-          and{" "}
-          <Text
-            style={{ color: "#6c63ff", fontWeight: "bold" }}
-            onPress={() => navigation.navigate("Privacy")}
-          >
-            Privacy Policy
-          </Text>
-          .
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
-}
-
 function TermsScreen() {
   const { t } = useContext(LanguageContext);
+  const { theme } = useContext(ThemeContext);
   const navigation = useNavigation();
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "rgb(247, 247, 250)" }}
+      style={{ flex: 1, backgroundColor: theme.backgroundSecondary }}
       accessibilityViewIsModal={true}
       accessibilityLabel="Terms of Use Screen"
     >
       {/* Custom Header with Back Chevron */}
       <View
         style={{
-          backgroundColor: "rgb(247, 247, 250)",
+          backgroundColor: theme.backgroundSecondary,
           height: 64,
           flexDirection: "row",
           alignItems: "center",
@@ -2133,7 +1665,7 @@ function TermsScreen() {
               y1={6}
               x2={4}
               y2={14}
-              stroke="#222"
+              stroke={theme.text}
               strokeWidth={2.2}
               strokeLinecap="round"
             />
@@ -2142,7 +1674,7 @@ function TermsScreen() {
               y1={14}
               x2={12}
               y2={22}
-              stroke="#222"
+              stroke={theme.text}
               strokeWidth={2.2}
               strokeLinecap="round"
             />
@@ -2163,7 +1695,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 20,
-            color: "#333",
+            color: theme.text,
             fontWeight: "bold",
             marginBottom: 16,
             textAlign: "center",
@@ -2175,7 +1707,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 14,
-            color: "#666",
+            color: theme.textSecondary,
             marginBottom: 20,
             textAlign: "center",
           }}
@@ -2186,7 +1718,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2196,7 +1728,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2207,7 +1739,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2217,7 +1749,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2228,7 +1760,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2238,7 +1770,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2249,7 +1781,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2259,7 +1791,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2270,7 +1802,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2280,7 +1812,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2291,7 +1823,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2301,7 +1833,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2312,7 +1844,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2322,7 +1854,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2333,7 +1865,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2343,7 +1875,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2354,7 +1886,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2364,7 +1896,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2375,7 +1907,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2385,7 +1917,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 20,
             lineHeight: 22,
           }}
@@ -2396,7 +1928,7 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 14,
-            color: "#888",
+            color: theme.textTertiary,
             marginTop: 20,
             textAlign: "center",
             fontStyle: "italic",
@@ -2411,17 +1943,18 @@ function TermsScreen() {
 
 function PrivacyScreen() {
   const { t } = useContext(LanguageContext);
+  const { theme } = useContext(ThemeContext);
   const navigation = useNavigation();
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "rgb(247, 247, 250)" }}
+      style={{ flex: 1, backgroundColor: theme.backgroundSecondary }}
       accessibilityViewIsModal={true}
       accessibilityLabel="Privacy Policy Screen"
     >
       {/* Custom Header with Back Chevron */}
       <View
         style={{
-          backgroundColor: "rgb(247, 247, 250)",
+          backgroundColor: theme.backgroundSecondary,
           height: 64,
           flexDirection: "row",
           alignItems: "center",
@@ -2439,7 +1972,7 @@ function PrivacyScreen() {
               y1={6}
               x2={4}
               y2={14}
-              stroke="#222"
+              stroke={theme.text}
               strokeWidth={2.2}
               strokeLinecap="round"
             />
@@ -2448,7 +1981,7 @@ function PrivacyScreen() {
               y1={14}
               x2={12}
               y2={22}
-              stroke="#222"
+              stroke={theme.text}
               strokeWidth={2.2}
               strokeLinecap="round"
             />
@@ -2469,7 +2002,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 20,
-            color: "#333",
+            color: theme.text,
             fontWeight: "bold",
             marginBottom: 16,
             textAlign: "center",
@@ -2481,7 +2014,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 14,
-            color: "#666",
+            color: theme.textSecondary,
             marginBottom: 20,
             textAlign: "center",
           }}
@@ -2492,7 +2025,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2502,7 +2035,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2513,7 +2046,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2523,7 +2056,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2536,7 +2069,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2546,7 +2079,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2557,7 +2090,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2567,7 +2100,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2578,7 +2111,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2588,7 +2121,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2599,7 +2132,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2609,7 +2142,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2620,7 +2153,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2630,7 +2163,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2641,7 +2174,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2651,7 +2184,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2662,7 +2195,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2672,7 +2205,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2683,7 +2216,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2693,7 +2226,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2704,7 +2237,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2714,7 +2247,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 16,
             lineHeight: 22,
           }}
@@ -2725,7 +2258,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 16,
-            color: "#444",
+            color: theme.text,
             fontWeight: "600",
             marginBottom: 8,
           }}
@@ -2735,7 +2268,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: "#444",
+            color: theme.text,
             marginBottom: 20,
             lineHeight: 22,
           }}
@@ -2746,7 +2279,7 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 14,
-            color: "#888",
+            color: theme.textTertiary,
             marginTop: 20,
             textAlign: "center",
             fontStyle: "italic",
@@ -3505,7 +3038,7 @@ function SettingScreen() {
 
 function CalendarScreen({ navigation, route }) {
   const { language, t } = useContext(LanguageContext);
-  const { theme } = useContext(ThemeContext);
+  const { theme, themeMode } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
   const getCurrentDate = () => {
     const today = new Date();
@@ -3535,6 +3068,8 @@ function CalendarScreen({ navigation, route }) {
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [tempDate, setTempDate] = useState(null);
   const [tempTime, setTempTime] = useState(null);
+  const scrollViewRef = useRef(null); // 日曆 ScrollView
+  const modalScrollViewRef = useRef(null); // Modal ScrollView
 
   // 格式化日期輸入 (YYYY-MM-DD)
   const formatDateInput = (text) => {
@@ -3579,8 +3114,6 @@ function CalendarScreen({ navigation, route }) {
       setTaskDate(selectedDate);
     }
   }, [selectedDate, modalVisible]);
-
-  const scrollViewRef = useRef(null);
 
   // Load tasks from Supabase
   useEffect(() => {
@@ -4288,6 +3821,7 @@ function CalendarScreen({ navigation, route }) {
               <View style={styles.modalHeaderSpacer} />
             </View>
             <ScrollView
+              ref={modalScrollViewRef}
               style={styles.modalScrollView}
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: 100 }}
@@ -4317,6 +3851,14 @@ function CalendarScreen({ navigation, route }) {
                     returnKeyType="done"
                     accessibilityLabel="Task title input"
                     accessibilityHint="Enter the task title"
+                    onFocus={() => {
+                      setTimeout(() => {
+                        modalScrollViewRef.current?.scrollTo({
+                          y: 0,
+                          animated: true,
+                        });
+                      }, 100);
+                    }}
                     onSubmitEditing={() => {
                       // 當用戶按 Enter 時，直接儲存任務（時間是可選的）
                       if (taskText.trim()) {
@@ -4354,6 +3896,12 @@ function CalendarScreen({ navigation, route }) {
                       accessibilityHint="Enter a URL link for this task"
                       onFocus={() => {
                         setLinkInputFocused(true);
+                        setTimeout(() => {
+                          modalScrollViewRef.current?.scrollTo({
+                            y: 50,
+                            animated: true,
+                          });
+                        }, 100);
                       }}
                       onBlur={() => {
                         setLinkInputFocused(false);
@@ -4427,7 +3975,7 @@ function CalendarScreen({ navigation, route }) {
                           fontFamily: "inherit",
                           outline: "none",
                           height: 50,
-                          color: "#333",
+                          color: theme.text,
                           cursor: "pointer",
                           position: "relative",
                           textAlign: "left",
@@ -4437,9 +3985,7 @@ function CalendarScreen({ navigation, route }) {
                   ) : (
                     <TouchableOpacity
                       onPress={() => {
-                        console.log(
-                          "📅 Date field clicked, setting datePickerVisible to true"
-                        );
+                        Keyboard.dismiss(); // 關閉鍵盤
                         setTempDate(taskDate ? new Date(taskDate) : new Date());
                         setDatePickerVisible(true);
                       }}
@@ -4524,7 +4070,7 @@ function CalendarScreen({ navigation, route }) {
                           fontFamily: "inherit",
                           outline: "none",
                           height: 50,
-                          color: "#333",
+                          color: theme.text,
                           cursor: "pointer",
                           position: "relative",
                           textAlign: "left",
@@ -4534,9 +4080,7 @@ function CalendarScreen({ navigation, route }) {
                   ) : (
                     <TouchableOpacity
                       onPress={() => {
-                        console.log(
-                          "🕐 Time field clicked, setting timePickerVisible to true"
-                        );
+                        Keyboard.dismiss(); // 關閉鍵盤
                         const now = new Date();
                         setTempTime(
                           taskTime
@@ -4610,6 +4154,13 @@ function CalendarScreen({ navigation, route }) {
                     textAlignVertical="top"
                     accessibilityLabel="Task note input"
                     accessibilityHint="Enter additional notes for this task"
+                    onFocus={() => {
+                      setTimeout(() => {
+                        modalScrollViewRef.current?.scrollToEnd({
+                          animated: true,
+                        });
+                      }, 100);
+                    }}
                   />
                 </View>
               </View>
@@ -4813,7 +4364,8 @@ function CalendarScreen({ navigation, route }) {
         >
           <View
             style={{
-              backgroundColor: "#fff",
+              backgroundColor:
+                theme.mode === "dark" ? theme.background : "#fff",
               borderTopLeftRadius: 16,
               borderTopRightRadius: 16,
               paddingBottom: insets.bottom,
@@ -4828,14 +4380,15 @@ function CalendarScreen({ navigation, route }) {
                 paddingHorizontal: 16,
                 paddingVertical: 12,
                 borderBottomWidth: 1,
-                borderBottomColor: "#f0f0f0",
+                borderBottomColor:
+                  theme.mode === "dark" ? "#2a2a2a" : "#f0f0f0",
               }}
             >
               <TouchableOpacity
                 onPress={() => setDatePickerVisible(false)}
                 style={{ paddingVertical: 8, paddingHorizontal: 8 }}
               >
-                <Text style={{ color: "#007AFF", fontSize: 17 }}>
+                <Text style={{ color: theme.primary, fontSize: 17 }}>
                   {t.cancel}
                 </Text>
               </TouchableOpacity>
@@ -4855,7 +4408,11 @@ function CalendarScreen({ navigation, route }) {
                 style={{ paddingVertical: 8, paddingHorizontal: 8 }}
               >
                 <Text
-                  style={{ color: "#007AFF", fontSize: 17, fontWeight: "600" }}
+                  style={{
+                    color: theme.primary,
+                    fontSize: 17,
+                    fontWeight: "600",
+                  }}
                 >
                   {t.confirm}
                 </Text>
@@ -4867,6 +4424,8 @@ function CalendarScreen({ navigation, route }) {
                   value={tempDate}
                   mode="date"
                   display={Platform.OS === "ios" ? "inline" : "calendar"}
+                  themeVariant={themeMode === "dark" ? "dark" : "light"}
+                  accentColor={theme.primary}
                   onChange={(event, selectedDate) => {
                     if (selectedDate) {
                       setTempDate(selectedDate);
@@ -4907,7 +4466,8 @@ function CalendarScreen({ navigation, route }) {
         >
           <View
             style={{
-              backgroundColor: "#fff",
+              backgroundColor:
+                theme.mode === "dark" ? theme.background : "#fff",
               borderTopLeftRadius: 16,
               borderTopRightRadius: 16,
               paddingBottom: insets.bottom,
@@ -4922,14 +4482,15 @@ function CalendarScreen({ navigation, route }) {
                 paddingHorizontal: 16,
                 paddingVertical: 12,
                 borderBottomWidth: 1,
-                borderBottomColor: "#f0f0f0",
+                borderBottomColor:
+                  theme.mode === "dark" ? "#2a2a2a" : "#f0f0f0",
               }}
             >
               <TouchableOpacity
                 onPress={() => setTimePickerVisible(false)}
                 style={{ paddingVertical: 8, paddingHorizontal: 8 }}
               >
-                <Text style={{ color: "#007AFF", fontSize: 17 }}>
+                <Text style={{ color: theme.primary, fontSize: 17 }}>
                   {t.cancel}
                 </Text>
               </TouchableOpacity>
@@ -4948,7 +4509,11 @@ function CalendarScreen({ navigation, route }) {
                 style={{ paddingVertical: 8, paddingHorizontal: 8 }}
               >
                 <Text
-                  style={{ color: "#007AFF", fontSize: 17, fontWeight: "600" }}
+                  style={{
+                    color: theme.primary,
+                    fontSize: 17,
+                    fontWeight: "600",
+                  }}
                 >
                   {t.confirm}
                 </Text>
@@ -4960,6 +4525,8 @@ function CalendarScreen({ navigation, route }) {
                   value={tempTime}
                   mode="time"
                   display="spinner"
+                  themeVariant={themeMode === "dark" ? "dark" : "light"}
+                  accentColor={theme.primary}
                   onChange={(event, selectedTime) => {
                     if (selectedTime) {
                       setTempTime(selectedTime);
@@ -5444,12 +5011,14 @@ export default function App() {
           }}
         >
           <Stack.Navigator
-            screenOptions={{ headerShown: false }}
+            screenOptions={{
+              headerShown: false,
+              gestureEnabled: true,
+              gestureDirection: "horizontal",
+            }}
             initialRouteName="Splash"
           >
             <Stack.Screen name="Splash" component={SplashScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Signup" component={SignupScreen} />
             <Stack.Screen
               name="MainTabs"
               component={MainTabs}
@@ -5464,7 +5033,9 @@ export default function App() {
               component={TermsScreen}
               options={{
                 headerShown: false,
-                presentation: "modal",
+                presentation: "card",
+                gestureEnabled: true,
+                gestureDirection: "horizontal",
               }}
             />
             <Stack.Screen
@@ -5472,7 +5043,9 @@ export default function App() {
               component={PrivacyScreen}
               options={{
                 headerShown: false,
-                presentation: "modal",
+                presentation: "card",
+                gestureEnabled: true,
+                gestureDirection: "horizontal",
               }}
             />
             <Stack.Screen

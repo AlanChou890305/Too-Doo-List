@@ -69,7 +69,7 @@ export const lightTheme = {
   calendarToday: "#6c63ff",
   calendarTodayText: "#ffffff",
   calendarWeekend: "#ff5252",
-  calendarSelected: "#e3f2fd",
+  calendarSelected: "#f3e5f5", // 淡紫色（品牌色系）
 
   // Task
   taskChecked: "#999999",
@@ -126,7 +126,7 @@ export const darkTheme = {
 
   // 複選框
   checkbox: "#8b84ff",
-  checkboxUnchecked: "#808080",
+  checkboxUnchecked: "#f5f5f5", // 深色模式用白色
 
   // Modal
   modalOverlay: "rgba(0, 0, 0, 0.7)",
