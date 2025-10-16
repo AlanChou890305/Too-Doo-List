@@ -3349,7 +3349,7 @@ function CalendarScreen({ navigation, route }) {
           link: taskLink,
           date: targetDate,
           note: taskNote,
-          checked: false,
+          is_completed: false,
         });
 
         // Schedule notification for new task (native only)
