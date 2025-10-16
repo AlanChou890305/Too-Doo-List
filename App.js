@@ -3656,7 +3656,9 @@ function CalendarScreen({ navigation, route }) {
         <View style={styles.taskTimeContainer}>
           {item.time ? (
             <Text style={[styles.taskTimeRight, { color: theme.primary }]}>
-              {item.time}
+              {typeof item.time === 'string' && item.time.length > 5 
+                ? item.time.substring(0, 5) 
+                : item.time}
             </Text>
           ) : null}
           {moveMode && taskToMove && taskToMove.id === item.id ? (
