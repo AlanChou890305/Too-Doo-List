@@ -69,7 +69,7 @@ export const lightTheme = {
   calendarToday: "#6c63ff",
   calendarTodayText: "#ffffff",
   calendarWeekend: "#ff5252",
-  calendarSelected: "#f3e5f5", // 淡紫色（品牌色系）
+  calendarSelected: "#e3f2fd", // 淡藍色
 
   // Task
   taskChecked: "#999999",

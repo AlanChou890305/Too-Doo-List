@@ -842,7 +842,14 @@ const SplashScreen = ({ navigation }) => {
             provider: user.app_metadata?.provider,
           });
           console.warn("[checkSession] Navigating to main app...");
-          navigateToMainApp();
+          // Check if already navigated to prevent double navigation
+          if (!hasNavigated) {
+            navigateToMainApp();
+          } else {
+            console.warn(
+              "⚠️ [checkSession] Navigation skipped - already navigated"
+            );
+          }
         } else {
           console.warn(
             "[checkSession] No existing session found, showing login screen"
