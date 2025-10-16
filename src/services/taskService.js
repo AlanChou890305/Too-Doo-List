@@ -51,7 +51,8 @@ export class TaskService {
           link: task.link,
           note: task.note,
           date: task.date,
-          checked: task.checked,
+          checked: task.is_completed || task.checked || false, // 支援新舊欄位
+          is_completed: task.is_completed || task.checked || false,
           user: {
             id: user.id,
             email: user.email,
@@ -105,7 +106,8 @@ export class TaskService {
           link: task.link,
           note: task.note,
           date: task.date,
-          checked: task.checked,
+          checked: task.is_completed || task.checked || false, // 支援新舊欄位
+          is_completed: task.is_completed || task.checked || false,
           user: {
             id: user.id,
             email: user.email,
@@ -144,16 +146,14 @@ export class TaskService {
         user_id: user.id,
         user_display_name: userDisplayName,
         title: task.title,
-        time: task.time || null,
+        time: task.time || null, // 統一使用 time 欄位
         link: task.link || null,
         note: task.note || null,
         date: task.date,
-        checked: task.checked || false,
+        is_completed: task.is_completed || task.checked || false, // 支援舊的 checked 欄位
+        completed_at: task.completed_at || null,
         priority: task.priority || "medium",
         description: task.description || null,
-        due_time: task.due_time || null,
-        is_completed: task.is_completed || false,
-        completed_at: task.completed_at || null,
         tags: task.tags || [],
         order_index: task.order_index || 0,
       };
@@ -190,7 +190,8 @@ export class TaskService {
         link: data.link,
         note: data.note,
         date: data.date,
-        checked: data.checked,
+        checked: data.is_completed || data.checked || false, // 支援新舊欄位
+        is_completed: data.is_completed || data.checked || false,
       };
     } catch (error) {
       console.error("Error in addTask:", error);
@@ -240,7 +241,8 @@ export class TaskService {
         link: data.link,
         note: data.note,
         date: data.date,
-        checked: data.checked,
+        checked: data.is_completed || data.checked || false, // 支援新舊欄位
+        is_completed: data.is_completed || data.checked || false,
       };
     } catch (error) {
       console.error("Error in updateTask:", error);

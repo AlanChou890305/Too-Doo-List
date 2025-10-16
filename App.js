@@ -447,6 +447,7 @@ const SplashScreen = ({ navigation }) => {
   const { theme } = useContext(ThemeContext);
   const { t } = useContext(LanguageContext);
   const [hasNavigated, setHasNavigated] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   useEffect(() => {
     // Handle OAuth callback if this is a redirect from OAuth
@@ -1200,6 +1201,15 @@ const SplashScreen = ({ navigation }) => {
   }, [navigation]);
 
   const handleGoogleSignIn = async () => {
+    // Prevent multiple simultaneous sign-in attempts
+    if (isSigningIn) {
+      console.warn(
+        "⚠️ Sign-in already in progress, ignoring duplicate request"
+      );
+      return;
+    }
+
+    setIsSigningIn(true);
     console.group("Google Authentication");
     try {
       console.warn("VERBOSE: Starting Google authentication process");
@@ -1222,10 +1232,13 @@ const SplashScreen = ({ navigation }) => {
 
       if (existingSession) {
         console.warn("VERBOSE: User is already signed in");
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "MainTabs" }],
-        });
+        if (!hasNavigated) {
+          setHasNavigated(true);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "MainTabs" }],
+          });
+        }
         return;
       }
 
@@ -1376,6 +1389,8 @@ const SplashScreen = ({ navigation }) => {
                   console.warn(
                     "🎯 [CRITICAL] (SIGNED_IN event should trigger navigation)"
                   );
+                  
+                  setIsSigningIn(false);
                   return;
                 } else if (accessToken && refreshToken) {
                   // Direct token flow
@@ -1405,6 +1420,8 @@ const SplashScreen = ({ navigation }) => {
                   console.warn(
                     "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
                   );
+                  
+                  setIsSigningIn(false);
                   return;
                 }
               }
@@ -1423,6 +1440,7 @@ const SplashScreen = ({ navigation }) => {
             return;
           } else if (result.type === "cancel") {
             console.warn("VERBOSE: User cancelled the auth flow");
+            setIsSigningIn(false);
             Alert.alert(
               "Sign In Cancelled",
               "You cancelled the sign in process."
@@ -1430,6 +1448,7 @@ const SplashScreen = ({ navigation }) => {
             return;
           } else if (result.type === "dismiss") {
             console.warn("VERBOSE: Auth flow was dismissed");
+            setIsSigningIn(false);
             return;
           }
 
@@ -1457,6 +1476,7 @@ const SplashScreen = ({ navigation }) => {
                 sessionCheckError
               );
               if (attempt >= maxAttempts) {
+                setIsSigningIn(false);
                 Alert.alert(
                   "Authentication Error",
                   "Failed to complete sign in. Please try again."
@@ -1482,6 +1502,7 @@ const SplashScreen = ({ navigation }) => {
                 console.error(
                   "[Auth Fallback] All attempts exhausted, no session found"
                 );
+                setIsSigningIn(false);
                 Alert.alert(
                   "Sign In Issue",
                   "Authentication completed but session was not established. Please try signing in again.\n\nIf this persists, try restarting the app."
@@ -1495,6 +1516,7 @@ const SplashScreen = ({ navigation }) => {
 
               // Manually trigger navigation if auth listener hasn't done it yet
               console.warn("[Auth Fallback] Manually triggering navigation...");
+              setIsSigningIn(false);
               navigation.reset({
                 index: 0,
                 routes: [{ name: "MainTabs" }],
@@ -1543,10 +1565,14 @@ const SplashScreen = ({ navigation }) => {
           {
             text: "OK",
             style: "default",
+            onPress: () => setIsSigningIn(false),
           },
           {
             text: "Retry",
-            onPress: handleGoogleSignIn,
+            onPress: () => {
+              setIsSigningIn(false);
+              setTimeout(() => handleGoogleSignIn(), 100);
+            },
             style: "cancel",
           },
         ],
@@ -1554,6 +1580,7 @@ const SplashScreen = ({ navigation }) => {
       );
     } finally {
       console.groupEnd();
+      setIsSigningIn(false);
     }
   };
 
@@ -1610,21 +1637,36 @@ const SplashScreen = ({ navigation }) => {
               elevation: 1,
             }}
             onPress={handleGoogleSignIn}
+            disabled={isSigningIn}
           >
-            <Image
-              source={require("./assets/google-logo.png")}
-              style={{ width: 24, height: 24, marginRight: 8 }}
-              resizeMode="contain"
-            />
-            <Text
-              style={{
-                color: theme.mode === "dark" ? theme.text : "#4285F4",
-                fontWeight: "bold",
-                fontSize: 16,
-              }}
-            >
-              Sign in with Google
-            </Text>
+            {isSigningIn ? (
+              <Text
+                style={{
+                  color: theme.mode === "dark" ? theme.text : "#4285F4",
+                  fontWeight: "bold",
+                  fontSize: 16,
+                }}
+              >
+                Signing in...
+              </Text>
+            ) : (
+              <>
+                <Image
+                  source={require("./assets/google-logo.png")}
+                  style={{ width: 24, height: 24, marginRight: 8 }}
+                  resizeMode="contain"
+                />
+                <Text
+                  style={{
+                    color: theme.mode === "dark" ? theme.text : "#4285F4",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                  }}
+                >
+                  Sign in with Google
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
