@@ -740,7 +740,12 @@ const SplashScreen = ({ navigation }) => {
             }
 
             console.warn("🚀 Navigating to main app...");
-            navigateToMainApp();
+            // Check if already navigated to prevent double navigation
+            if (!hasNavigated) {
+              navigateToMainApp();
+            } else {
+              console.warn("⚠️ Navigation skipped - already navigated");
+            }
           } catch (error) {
             console.error("Error in auth state change handler:", error);
           }
