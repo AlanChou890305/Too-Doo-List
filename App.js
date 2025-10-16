@@ -446,6 +446,8 @@ const Stack = createStackNavigator();
 const SplashScreen = ({ navigation }) => {
   const { theme } = useContext(ThemeContext);
   const { t } = useContext(LanguageContext);
+  const [hasNavigated, setHasNavigated] = useState(false);
+
   useEffect(() => {
     // Handle OAuth callback if this is a redirect from OAuth
     const handleOAuthCallback = async () => {
@@ -646,6 +648,11 @@ const SplashScreen = ({ navigation }) => {
     const navigateToMainApp = () => {
       console.warn("📍 [navigateToMainApp] Function called");
 
+      if (hasNavigated) {
+        console.warn("📍 [navigateToMainApp] ⚠️ Already navigated, skipping");
+        return;
+      }
+
       if (!navigation) {
         console.error(
           "📍 [navigateToMainApp] ❌ Navigation object is not available"
@@ -658,6 +665,7 @@ const SplashScreen = ({ navigation }) => {
       );
 
       try {
+        setHasNavigated(true);
         navigation.reset({
           index: 0,
           routes: [{ name: "MainTabs" }],
@@ -666,6 +674,7 @@ const SplashScreen = ({ navigation }) => {
       } catch (error) {
         console.error("📍 [navigateToMainApp] ❌ Navigation error:", error);
         console.error("📍 [navigateToMainApp] Error stack:", error.stack);
+        setHasNavigated(false); // Reset flag on error
       }
     };
 
@@ -737,6 +746,7 @@ const SplashScreen = ({ navigation }) => {
           }
         } else if (event === "SIGNED_OUT") {
           // Navigate back to splash screen when user logs out
+          setHasNavigated(false); // Reset navigation flag
           navigation.reset({
             index: 0,
             routes: [{ name: "Splash" }],
@@ -5037,6 +5047,18 @@ export default function App() {
     >
       <LanguageContext.Provider value={{ language, setLanguage, t }}>
         <NavigationContainer
+          linking={{
+            prefixes: ["https://to-do-mvp.vercel.app", "http://localhost:8081"],
+            config: {
+              screens: {
+                Splash: "",
+                MainTabs: "app",
+                Terms: "terms",
+                Privacy: "privacy",
+                ComingSoon: "coming-soon",
+              },
+            },
+          }}
           onStateChange={() => {
             if (typeof document !== "undefined") {
               document.title = "To Do";

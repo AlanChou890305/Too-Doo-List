@@ -16,7 +16,8 @@ module.exports = {
     ios: {
       bundleIdentifier: "com.cty0305.too.doo.list",
       supportsTablet: true,
-      associatedDomains: ["applinks:YOUR_APP_LINK_DOMAIN"],
+      deploymentTarget: "13.0",
+      associatedDomains: ["applinks:to-do-mvp.vercel.app"],
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         CFBundleURLTypes: [
@@ -72,7 +73,7 @@ module.exports = {
         },
         { property: "og:image", content: "./assets/logo.png" },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://too-doo-list.netlify.app" },
+        { property: "og:url", content: "https://to-do-mvp.vercel.app" },
         { property: "og:site_name", content: "To Do" },
         { name: "twitter:card", content: "summary_large_image" },
         {
