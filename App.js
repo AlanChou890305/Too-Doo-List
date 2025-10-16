@@ -720,8 +720,17 @@ const SplashScreen = ({ navigation }) => {
             console.warn("✅ User verified from session!");
             console.warn("User email:", user.email);
             console.warn("User ID:", user.id);
-            console.warn("🚀 Navigating to main app...");
 
+            // 更新用戶平台資訊
+            try {
+              await UserService.updatePlatformInfo();
+              console.log("📱 Platform info updated successfully");
+            } catch (platformError) {
+              console.error("Error updating platform info:", platformError);
+              // 不阻止登入流程
+            }
+
+            console.warn("🚀 Navigating to main app...");
             navigateToMainApp();
           } catch (error) {
             console.error("Error in auth state change handler:", error);
@@ -4849,8 +4858,24 @@ export default function App() {
       }
     };
 
+    // 每次 App 啟動時都更新平台資訊
+    const updatePlatformOnStart = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          await UserService.updatePlatformInfo();
+          console.log("📱 Platform info updated on app start");
+        }
+      } catch (error) {
+        console.error("Error updating platform on start:", error);
+      }
+    };
+
     loadLanguage();
     loadTheme();
+    updatePlatformOnStart();
   }, []);
 
   const setLanguage = async (lang) => {
@@ -4858,9 +4883,13 @@ export default function App() {
     setLanguageState(lang);
 
     try {
-      // Save to Supabase user settings
-      const result = await UserService.updateUserSettings({ language: lang });
-      console.log("✅ Language saved to Supabase:", result);
+      // Save to Supabase user settings with platform info
+      const result = await UserService.updateUserSettings({
+        language: lang,
+        platform: Platform.OS,
+        user_agent: UserService.getUserAgent(),
+      });
+      console.log("✅ Language and platform saved to Supabase:", result);
     } catch (error) {
       console.error("❌ Error saving language to Supabase:", error);
       // Fallback to AsyncStorage
@@ -4873,9 +4902,13 @@ export default function App() {
     setThemeModeState(mode);
 
     try {
-      // Save to Supabase user settings
-      const result = await UserService.updateUserSettings({ theme: mode });
-      console.log("✅ Theme saved to Supabase:", result);
+      // Save to Supabase user settings with platform info
+      const result = await UserService.updateUserSettings({
+        theme: mode,
+        platform: Platform.OS,
+        user_agent: UserService.getUserAgent(),
+      });
+      console.log("✅ Theme and platform saved to Supabase:", result);
     } catch (error) {
       console.error("❌ Error saving theme to Supabase:", error);
     }
