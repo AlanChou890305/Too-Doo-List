@@ -63,19 +63,27 @@ export const validateTaskFields = (fields) => {
 
 // 創建安全的任務物件
 export const createTaskObject = (taskData) => {
+  // 輔助函數：將空字串轉為 null
+  const cleanString = (value) => {
+    if (typeof value === 'string' && value.trim() === '') {
+      return null;
+    }
+    return value || null;
+  };
+
   const safeTask = {
     [TASK_FIELDS.USER_ID]: taskData.user_id,
     [TASK_FIELDS.USER_DISPLAY_NAME]: taskData.user_display_name,
     [TASK_FIELDS.TEXT]: taskData.title,
-    [TASK_FIELDS.TIME]: taskData.time || null,
-    [TASK_FIELDS.LINK]: taskData.link || null,
-    [TASK_FIELDS.NOTE]: taskData.note || null,
+    [TASK_FIELDS.TIME]: cleanString(taskData.time),
+    [TASK_FIELDS.LINK]: cleanString(taskData.link),
+    [TASK_FIELDS.NOTE]: cleanString(taskData.note),
     [TASK_FIELDS.DATE]: taskData.date,
     // 移除 CHECKED 欄位，只使用 IS_COMPLETED
     [TASK_FIELDS.IS_COMPLETED]: taskData.is_completed || taskData.checked || false,
     [TASK_FIELDS.COMPLETED_AT]: taskData.completed_at || null,
     [TASK_FIELDS.PRIORITY]: taskData.priority || TASK_PRIORITIES.MEDIUM,
-    [TASK_FIELDS.DESCRIPTION]: taskData.description || null,
+    [TASK_FIELDS.DESCRIPTION]: cleanString(taskData.description),
     // 移除 DUE_TIME，改用 TIME（migration 會把 due_time 重新命名為 time）
     [TASK_FIELDS.TAGS]: taskData.tags || [],
     [TASK_FIELDS.ORDER_INDEX]: taskData.order_index || 0,

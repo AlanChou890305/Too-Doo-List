@@ -440,6 +440,19 @@ function getToday() {
   return `${year}-${month}-${day}`;
 }
 
+// 格式化時間為 HH:MM（移除秒數）
+function formatTimeDisplay(time) {
+  if (!time) return "";
+  if (typeof time !== "string") return time;
+
+  // 如果是 HH:MM:SS 格式，只取 HH:MM
+  if (time.length > 5 && time.includes(":")) {
+    return time.substring(0, 5);
+  }
+
+  return time;
+}
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -1389,7 +1402,7 @@ const SplashScreen = ({ navigation }) => {
                   console.warn(
                     "🎯 [CRITICAL] (SIGNED_IN event should trigger navigation)"
                   );
-                  
+
                   setIsSigningIn(false);
                   return;
                 } else if (accessToken && refreshToken) {
@@ -1420,7 +1433,7 @@ const SplashScreen = ({ navigation }) => {
                   console.warn(
                     "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
                   );
-                  
+
                   setIsSigningIn(false);
                   return;
                 }
@@ -3279,6 +3292,15 @@ function CalendarScreen({ navigation, route }) {
       const targetDate = taskDate || selectedDate;
 
       if (editingTask) {
+        console.log("Updating existing task:", editingTask.id);
+        console.log("Update data:", {
+          title: taskText,
+          time: taskTime,
+          link: taskLink,
+          date: targetDate,
+          note: taskNote,
+        });
+
         // Cancel old notification if exists (支援新舊格式)
         if (editingTask.notificationIds) {
           await cancelTaskNotification(editingTask.notificationIds);
@@ -3393,6 +3415,12 @@ function CalendarScreen({ navigation, route }) {
   };
 
   const showDeleteConfirm = () => {
+    console.log(
+      "showDeleteConfirm called, setting deleteConfirmVisible to true"
+    );
+    console.log("editingTask:", editingTask);
+    console.log("modalVisible:", modalVisible);
+    console.log("deleteConfirmVisible:", deleteConfirmVisible);
     setDeleteConfirmVisible(true);
   };
 
@@ -3600,7 +3628,13 @@ function CalendarScreen({ navigation, route }) {
       // Update local state
       const dayTasks = tasks[task.date] ? [...tasks[task.date]] : [];
       const updatedTasks = dayTasks.map((t) =>
-        t.id === task.id ? { ...t, checked: newCompletedState, is_completed: newCompletedState } : t
+        t.id === task.id
+          ? {
+              ...t,
+              checked: newCompletedState,
+              is_completed: newCompletedState,
+            }
+          : t
       );
       setTasks({ ...tasks, [task.date]: updatedTasks });
     } catch (error) {
@@ -3616,7 +3650,7 @@ function CalendarScreen({ navigation, route }) {
         onPress={() => toggleTaskChecked(item)}
         activeOpacity={0.7}
       >
-        {(item.is_completed || item.checked) ? (
+        {item.is_completed || item.checked ? (
           <MaterialIcons name="check-box" size={24} color={theme.primary} />
         ) : (
           <MaterialIcons
@@ -3644,7 +3678,12 @@ function CalendarScreen({ navigation, route }) {
           <Text
             style={[
               styles.taskText,
-              { color: (item.is_completed || item.checked) ? theme.textTertiary : theme.text },
+              {
+                color:
+                  item.is_completed || item.checked
+                    ? theme.textTertiary
+                    : theme.text,
+              },
               (item.is_completed || item.checked) && styles.taskTextChecked,
             ]}
             numberOfLines={1}
@@ -3656,9 +3695,7 @@ function CalendarScreen({ navigation, route }) {
         <View style={styles.taskTimeContainer}>
           {item.time ? (
             <Text style={[styles.taskTimeRight, { color: theme.primary }]}>
-              {typeof item.time === 'string' && item.time.length > 5 
-                ? item.time.substring(0, 5) 
-                : item.time}
+              {formatTimeDisplay(item.time)}
             </Text>
           ) : null}
           {moveMode && taskToMove && taskToMove.id === item.id ? (
@@ -3853,7 +3890,7 @@ function CalendarScreen({ navigation, route }) {
     <Modal
       animationType="slide"
       transparent={false}
-      visible={modalVisible}
+      visible={modalVisible && !deleteConfirmVisible}
       onRequestClose={() => setModalVisible(false)}
       accessibilityViewIsModal={true}
       accessibilityLabel="Task Creation/Edit Modal"

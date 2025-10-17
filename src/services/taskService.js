@@ -146,14 +146,14 @@ export class TaskService {
         user_id: user.id,
         user_display_name: userDisplayName,
         title: task.title,
-        time: task.time || null, // 統一使用 time 欄位
-        link: task.link || null,
-        note: task.note || null,
+        time: (task.time && task.time.trim() !== '') ? task.time : null, // 空字串轉為 null
+        link: (task.link && task.link.trim() !== '') ? task.link : null,
+        note: (task.note && task.note.trim() !== '') ? task.note : null,
         date: task.date,
         is_completed: task.is_completed || task.checked || false, // 支援舊的 checked 欄位
         completed_at: task.completed_at || null,
         priority: task.priority || "medium",
-        description: task.description || null,
+        description: (task.description && task.description.trim() !== '') ? task.description : null,
         tags: task.tags || [],
         order_index: task.order_index || 0,
       };
@@ -216,8 +216,18 @@ export class TaskService {
         user.email?.split("@")[0] ||
         "User";
 
+      // 清理更新資料，確保空字串轉為 null
+      const cleanedUpdates = {};
+      Object.entries(updates).forEach(([key, value]) => {
+        if (typeof value === 'string' && value.trim() === '') {
+          cleanedUpdates[key] = null;
+        } else {
+          cleanedUpdates[key] = value;
+        }
+      });
+
       const updateData = {
-        ...updates,
+        ...cleanedUpdates,
         user_display_name: userDisplayName,
       };
 
