@@ -69,7 +69,11 @@ import { getTheme, lightTheme, darkTheme } from "./src/config/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Navigation
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  useNavigation,
+  useFocusEffect,
+} from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 
@@ -744,14 +748,20 @@ const SplashScreen = ({ navigation }) => {
             console.warn("User email:", user.email);
             console.warn("User ID:", user.id);
 
-            // 更新用戶平台資訊
-            try {
-              await UserService.updatePlatformInfo();
-              console.log("📱 Platform info updated successfully");
-            } catch (platformError) {
-              console.error("Error updating platform info:", platformError);
-              // 不阻止登入流程
-            }
+            // 重置登入狀態
+            setIsSigningIn(false);
+
+            // 更新用戶平台資訊（不阻止登入流程）
+            UserService.updatePlatformInfo()
+              .then(() => {
+                console.log("📱 Platform info updated successfully");
+              })
+              .catch((platformError) => {
+                console.error(
+                  "❌ Error updating platform info:",
+                  platformError
+                );
+              });
 
             console.warn("🚀 Navigating to main app...");
             // Check if already navigated to prevent double navigation
@@ -1245,13 +1255,8 @@ const SplashScreen = ({ navigation }) => {
 
       if (existingSession) {
         console.warn("VERBOSE: User is already signed in");
-        if (!hasNavigated) {
-          setHasNavigated(true);
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "MainTabs" }],
-          });
-        }
+        // Let the auth state change listener handle navigation
+        console.warn("⏳ Waiting for auth state listener to navigate...");
         return;
       }
 
@@ -2408,6 +2413,14 @@ function SettingScreen() {
     getUserProfile();
   }, []);
 
+  // 當頁面獲得焦點時，關閉所有下拉選單
+  useFocusEffect(
+    React.useCallback(() => {
+      setLanguageDropdownVisible(false);
+      setThemeDropdownVisible(false);
+    }, [])
+  );
+
   const openModal = (text) => {
     setModalText(text);
     setModalVisible(true);
@@ -2658,7 +2671,8 @@ function SettingScreen() {
               style={{
                 borderTopWidth: 1,
                 borderTopColor: theme.divider,
-                backgroundColor: theme.backgroundTertiary,
+                backgroundColor:
+                  themeMode === "light" ? "#ffffff" : theme.backgroundTertiary,
               }}
             >
               <TouchableOpacity
@@ -2757,7 +2771,8 @@ function SettingScreen() {
               style={{
                 borderTopWidth: 1,
                 borderTopColor: theme.divider,
-                backgroundColor: theme.backgroundTertiary,
+                backgroundColor:
+                  themeMode === "light" ? "#ffffff" : theme.backgroundTertiary,
               }}
             >
               <TouchableOpacity
@@ -3332,10 +3347,7 @@ function CalendarScreen({ navigation, route }) {
           );
 
           if (notificationIds.length > 0) {
-            // Update task with notification IDs
-            await TaskService.updateTask(updatedTask.id, {
-              notificationIds: notificationIds,
-            });
+            // Store notification IDs in local state only (不存到資料庫)
             updatedTask.notificationIds = notificationIds;
           }
         }
@@ -3388,10 +3400,7 @@ function CalendarScreen({ navigation, route }) {
           );
 
           if (notificationIds.length > 0) {
-            // Update task with notification IDs
-            await TaskService.updateTask(newTask.id, {
-              notificationIds: notificationIds,
-            });
+            // Store notification IDs in local state only (不存到資料庫)
             newTask.notificationIds = notificationIds;
           }
         }
@@ -3415,13 +3424,24 @@ function CalendarScreen({ navigation, route }) {
   };
 
   const showDeleteConfirm = () => {
-    console.log(
-      "showDeleteConfirm called, setting deleteConfirmVisible to true"
+    console.log("showDeleteConfirm called, using Alert.alert");
+    Alert.alert(
+      t.deleteConfirm,
+      "",
+      [
+        {
+          text: t.cancel,
+          onPress: () => console.log("Delete cancelled"),
+          style: "cancel"
+        },
+        {
+          text: t.delete,
+          onPress: deleteTask,
+          style: "destructive"
+        }
+      ],
+      { cancelable: true }
     );
-    console.log("editingTask:", editingTask);
-    console.log("modalVisible:", modalVisible);
-    console.log("deleteConfirmVisible:", deleteConfirmVisible);
-    setDeleteConfirmVisible(true);
   };
 
   const deleteTask = async () => {
@@ -3444,7 +3464,6 @@ function CalendarScreen({ navigation, route }) {
       const newTasks = { ...tasks, [day]: filteredTasks };
       setTasks(newTasks);
 
-      setDeleteConfirmVisible(false);
       setModalVisible(false);
       setEditingTask(null);
       setTaskText("");
@@ -3455,7 +3474,6 @@ function CalendarScreen({ navigation, route }) {
       setLinkInputFocused(false);
     } catch (error) {
       console.error("Error deleting task:", error);
-      setDeleteConfirmVisible(false);
       Alert.alert("Error", "Failed to delete task. Please try again.");
     }
   };
@@ -3890,7 +3908,7 @@ function CalendarScreen({ navigation, route }) {
     <Modal
       animationType="slide"
       transparent={false}
-      visible={modalVisible && !deleteConfirmVisible}
+      visible={modalVisible}
       onRequestClose={() => setModalVisible(false)}
       accessibilityViewIsModal={true}
       accessibilityLabel="Task Creation/Edit Modal"
@@ -4351,25 +4369,31 @@ function CalendarScreen({ navigation, route }) {
     </Modal>
   );
 
-  const renderDeleteConfirmModal = () => (
-    <Modal
-      visible={deleteConfirmVisible}
-      animationType="fade"
-      transparent={true}
-      onRequestClose={() => setDeleteConfirmVisible(false)}
-      accessibilityViewIsModal={true}
-      accessibilityLabel="Delete Confirmation Modal"
-    >
-      <TouchableOpacity
-        style={{
-          flex: 1,
-          backgroundColor: theme.modalOverlay,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        activeOpacity={1}
-        onPress={() => setDeleteConfirmVisible(false)}
+  const renderDeleteConfirmModal = () => {
+    console.log("renderDeleteConfirmModal called, deleteConfirmVisible:", deleteConfirmVisible);
+    
+    if (!deleteConfirmVisible) return null;
+    
+    return (
+      <Modal
+        visible={deleteConfirmVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setDeleteConfirmVisible(false)}
+        accessibilityViewIsModal={true}
+        accessibilityLabel="Delete Confirmation Modal"
+        statusBarTranslucent={true}
       >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: theme.modalOverlay,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          activeOpacity={1}
+          onPress={() => setDeleteConfirmVisible(false)}
+        >
         <View
           style={{
             backgroundColor: theme.modalBackground,
@@ -4451,7 +4475,8 @@ function CalendarScreen({ navigation, route }) {
         </View>
       </TouchableOpacity>
     </Modal>
-  );
+    );
+  };
 
   const renderDatePickerOverlay = () => {
     if (!datePickerVisible || Platform.OS === "web") return null;
@@ -4779,7 +4804,6 @@ function CalendarScreen({ navigation, route }) {
         {renderTaskArea()}
       </View>
       {renderModal()}
-      {renderDeleteConfirmModal()}
     </View>
   );
 
