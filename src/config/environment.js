@@ -5,21 +5,23 @@
 
 // 獲取當前環境
 export const getCurrentEnvironment = () => {
-  return process.env.EXPO_PUBLIC_APP_ENV || 'development';
+  return process.env.EXPO_PUBLIC_APP_ENV || "development";
 };
 
 // 環境配置
 export const environmentConfig = {
   development: {
-    name: 'Development',
-    appName: 'Too-Doo-List Dev',
+    name: "Development",
+    appName: "Too-Doo-List Dev",
     supabase: {
-      url: process.env.EXPO_PUBLIC_SUPABASE_URL_DEV || process.env.EXPO_PUBLIC_SUPABASE_URL,
-      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      url: process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
+      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
     },
     api: {
-      baseUrl: process.env.EXPO_PUBLIC_API_BASE_URL_DEV || 'https://dev-api.yourdomain.com',
-      version: 'v1',
+      baseUrl:
+        process.env.EXPO_PUBLIC_API_BASE_URL_DEV ||
+        "https://dev-api.yourdomain.com",
+      version: "v1",
     },
     features: {
       debug: true,
@@ -28,21 +30,28 @@ export const environmentConfig = {
       notificationDebug: true,
     },
     logging: {
-      level: 'debug',
+      level: "debug",
       enableConsole: true,
     },
   },
-  
+
   staging: {
-    name: 'Staging',
-    appName: 'Too-Doo-List Staging',
+    name: "Staging",
+    appName: "Too-Doo-List Staging",
     supabase: {
-      url: process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING || process.env.EXPO_PUBLIC_SUPABASE_URL,
-      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      // 使用您現有的 Supabase 專案 (TestFlight 測試用戶正在使用的)
+      url:
+        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
+        process.env.EXPO_PUBLIC_SUPABASE_URL,
+      anonKey:
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     },
     api: {
-      baseUrl: process.env.EXPO_PUBLIC_API_BASE_URL_STAGING || 'https://staging-api.yourdomain.com',
-      version: 'v1',
+      baseUrl:
+        process.env.EXPO_PUBLIC_API_BASE_URL_STAGING ||
+        "https://staging-api.yourdomain.com",
+      version: "v1",
     },
     features: {
       debug: true,
@@ -51,21 +60,28 @@ export const environmentConfig = {
       notificationDebug: false,
     },
     logging: {
-      level: 'info',
+      level: "info",
       enableConsole: true,
     },
   },
-  
+
   production: {
-    name: 'Production',
-    appName: 'Too-Doo-List',
+    name: "Production",
+    appName: "Too-Doo-List",
     supabase: {
-      url: process.env.EXPO_PUBLIC_SUPABASE_URL_PROD || process.env.EXPO_PUBLIC_SUPABASE_URL,
-      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      // 正式環境 - 暫時使用 staging 專案，等 App Store 發布時再考慮升級
+      url:
+        process.env.EXPO_PUBLIC_SUPABASE_URL_PROD ||
+        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING,
+      anonKey:
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_PROD ||
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING,
     },
     api: {
-      baseUrl: process.env.EXPO_PUBLIC_API_BASE_URL_PROD || 'https://api.yourdomain.com',
-      version: 'v1',
+      baseUrl:
+        process.env.EXPO_PUBLIC_API_BASE_URL_PROD ||
+        "https://api.yourdomain.com",
+      version: "v1",
     },
     features: {
       debug: false,
@@ -74,7 +90,7 @@ export const environmentConfig = {
       notificationDebug: false,
     },
     logging: {
-      level: 'error',
+      level: "error",
       enableConsole: false,
     },
   },
@@ -87,13 +103,13 @@ export const getConfig = () => {
 };
 
 // 檢查是否為開發環境
-export const isDevelopment = () => getCurrentEnvironment() === 'development';
+export const isDevelopment = () => getCurrentEnvironment() === "development";
 
 // 檢查是否為測試環境
-export const isStaging = () => getCurrentEnvironment() === 'staging';
+export const isStaging = () => getCurrentEnvironment() === "staging";
 
 // 檢查是否為正式環境
-export const isProduction = () => getCurrentEnvironment() === 'production';
+export const isProduction = () => getCurrentEnvironment() === "production";
 
 // 獲取 Supabase 配置
 export const getSupabaseConfig = () => {
