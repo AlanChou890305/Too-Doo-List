@@ -1,20 +1,59 @@
+// 環境配置
+const getEnvironmentConfig = () => {
+  const env = process.env.EXPO_PUBLIC_APP_ENV || 'development';
+  
+  const configs = {
+    development: {
+      name: "To Do Dev",
+      slug: "too-doo-list-dev",
+      version: "1.8.0-dev",
+      description: "To Do - Development Environment",
+      scheme: "too-doo-list-dev",
+      bundleIdentifier: "com.cty0305.too.doo.list.dev",
+      package: "com.cty0305.too.doo.list.dev",
+    },
+    staging: {
+      name: "To Do Staging",
+      slug: "too-doo-list-staging", 
+      version: "1.8.0-staging",
+      description: "To Do - Staging Environment",
+      scheme: "too-doo-list-staging",
+      bundleIdentifier: "com.cty0305.too.doo.list.staging",
+      package: "com.cty0305.too.doo.list.staging",
+    },
+    production: {
+      name: "To Do",
+      slug: "too-doo-list",
+      version: "1.8.0",
+      description: "Simple and intuitive task management app with Google SSO",
+      scheme: "too-doo-list",
+      bundleIdentifier: "com.cty0305.too.doo.list",
+      package: "com.cty0305.too.doo.list",
+    }
+  };
+  
+  return configs[env] || configs.production;
+};
+
+const envConfig = getEnvironmentConfig();
+
 module.exports = {
   expo: {
-    name: "To Do",
-    slug: "too-doo-list",
-    version: "1.8.0",
-    description: "Simple and intuitive task management app with Google SSO",
+    name: envConfig.name,
+    slug: envConfig.slug,
+    version: envConfig.version,
+    description: envConfig.description,
     main: "node_modules/expo/AppEntry.js",
     orientation: "portrait",
     userInterfaceStyle: "light",
-    scheme: "too-doo-list",
+    scheme: envConfig.scheme,
     icon: "./assets/logo.png",
     jsEngine: "hermes",
     sdkVersion: "54.0.0",
 
     // Platform specific settings
     ios: {
-      bundleIdentifier: "com.cty0305.too.doo.list",
+      bundleIdentifier: envConfig.bundleIdentifier,
       supportsTablet: true,
       deploymentTarget: "13.0",
       associatedDomains: ["applinks:to-do-mvp.vercel.app"],
@@ -22,13 +61,13 @@ module.exports = {
         ITSAppUsesNonExemptEncryption: false,
         CFBundleURLTypes: [
           {
-            CFBundleURLSchemes: ["com.cty0305.too.doo.list"],
+            CFBundleURLSchemes: [envConfig.bundleIdentifier],
           },
         ],
       },
     },
     android: {
-      package: "com.cty0305.too.doo.list",
+      package: envConfig.package,
       intentFilters: [
         {
           action: "VIEW",
@@ -106,13 +145,12 @@ module.exports = {
       eas: {
         projectId: "a86169e7-6d37-4bee-be43-d1e709615ef9",
       },
-      // Environment variables for production builds
-      EXPO_PUBLIC_SUPABASE_URL:
-        process.env.EXPO_PUBLIC_SUPABASE_URL ||
-        "https://qerosiozltqrbehctxdn.supabase.co",
-      EXPO_PUBLIC_SUPABASE_ANON_KEY:
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlcm9zaW96bHRxcmJlaGN0eGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NTQyNzAsImV4cCI6MjA3NTIzMDI3MH0.gEzTwpl79HbrQ0KeYRvEji45vdI7SbOhZVc_wpih91E",
+      // Environment variables - 根據環境自動切換
+      EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || 'development',
+      EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      // 環境特定配置
+      environment: envConfig,
     },
 
     // Splash screen configuration

@@ -4,19 +4,25 @@ import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
+import { getSupabaseConfig, getCurrentEnvironment } from "./src/config/environment";
 
-// Supabase configuration - try multiple sources for environment variables
-const supabaseUrl =
+// 獲取當前環境的 Supabase 配置
+const supabaseConfig = getSupabaseConfig();
+const currentEnv = getCurrentEnvironment();
+
+// Supabase configuration - 優先使用環境配置管理器
+const supabaseUrl = supabaseConfig.url ||
   process.env.EXPO_PUBLIC_SUPABASE_URL ||
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey =
+
+const supabaseAnonKey = supabaseConfig.anonKey ||
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 // Validate required environment variables - but don't crash the app
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
-    "❌ Missing required environment variables:",
+    `❌ Missing required environment variables for ${currentEnv} environment:`,
     "EXPO_PUBLIC_SUPABASE_URL:",
     supabaseUrl ? "✓" : "✗",
     "EXPO_PUBLIC_SUPABASE_ANON_KEY:",
@@ -24,7 +30,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
   console.error(
     "⚠️ WARNING: App will continue with limited functionality. " +
-      "Please check your environment configuration in eas.json and app.config.js"
+      "Please check your environment configuration in .env files and app.config.js"
   );
   // Continue without throwing - this prevents SIGABRT crash
 }
@@ -82,7 +88,9 @@ try {
 
   // Log successful initialization
   if (supabaseUrl && supabaseAnonKey) {
-    console.log("✅ Supabase client initialized successfully");
+    console.log(`✅ Supabase client initialized successfully for ${currentEnv} environment`);
+    console.log(`📊 Environment: ${currentEnv}`);
+    console.log(`🔗 Supabase URL: ${supabaseUrl}`);
   } else {
     console.warn(
       "⚠️ Supabase client initialized with placeholder values - limited functionality"
