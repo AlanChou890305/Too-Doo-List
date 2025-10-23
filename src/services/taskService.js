@@ -5,6 +5,8 @@ import {
   createTaskObject,
   validateTaskCompleteness,
 } from "../types/taskTypes";
+import { scheduleTaskNotification } from "./notificationService";
+import { UserService } from "./userService";
 
 export class TaskService {
   // Get all tasks for a user
@@ -146,14 +148,17 @@ export class TaskService {
         user_id: user.id,
         user_display_name: userDisplayName,
         title: task.title,
-        time: (task.time && task.time.trim() !== '') ? task.time : null, // 空字串轉為 null
-        link: (task.link && task.link.trim() !== '') ? task.link : null,
-        note: (task.note && task.note.trim() !== '') ? task.note : null,
+        time: task.time && task.time.trim() !== "" ? task.time : null, // 空字串轉為 null
+        link: task.link && task.link.trim() !== "" ? task.link : null,
+        note: task.note && task.note.trim() !== "" ? task.note : null,
         date: task.date,
         is_completed: task.is_completed || task.checked || false, // 支援舊的 checked 欄位
         completed_at: task.completed_at || null,
         priority: task.priority || "medium",
-        description: (task.description && task.description.trim() !== '') ? task.description : null,
+        description:
+          task.description && task.description.trim() !== ""
+            ? task.description
+            : null,
         tags: task.tags || [],
         order_index: task.order_index || 0,
       };
@@ -183,7 +188,7 @@ export class TaskService {
         throw error;
       }
 
-      return {
+      const taskResult = {
         id: data.id,
         title: data.title,
         time: data.time,
@@ -193,6 +198,34 @@ export class TaskService {
         checked: data.is_completed || data.checked || false, // 支援新舊欄位
         is_completed: data.is_completed || data.checked || false,
       };
+
+      // 如果任務有時間設定，安排通知
+      if (data.time && data.date) {
+        try {
+          const userSettings = await UserService.getUserSettings();
+          const reminderSettings = userSettings.reminder_settings || {
+            enabled: true,
+            times: [30, 10],
+          };
+
+          const notificationIds = await scheduleTaskNotification(
+            taskResult,
+            "Task Reminder", // 這裡可以根據語言設定調整
+            null, // 使用用戶設定
+            reminderSettings
+          );
+
+          // 更新任務的通知ID
+          if (notificationIds.length > 0) {
+            await this.updateTask(data.id, { notificationIds });
+            taskResult.notificationIds = notificationIds;
+          }
+        } catch (error) {
+          console.error("Error scheduling notification for new task:", error);
+        }
+      }
+
+      return taskResult;
     } catch (error) {
       console.error("Error in addTask:", error);
       throw error;
@@ -219,7 +252,7 @@ export class TaskService {
       // 清理更新資料，確保空字串轉為 null
       const cleanedUpdates = {};
       Object.entries(updates).forEach(([key, value]) => {
-        if (typeof value === 'string' && value.trim() === '') {
+        if (typeof value === "string" && value.trim() === "") {
           cleanedUpdates[key] = null;
         } else {
           cleanedUpdates[key] = value;
@@ -244,7 +277,7 @@ export class TaskService {
         throw error;
       }
 
-      return {
+      const taskResult = {
         id: data.id,
         title: data.title,
         time: data.time,
@@ -254,6 +287,44 @@ export class TaskService {
         checked: data.is_completed || data.checked || false, // 支援新舊欄位
         is_completed: data.is_completed || data.checked || false,
       };
+
+      // 如果任務時間被更新，重新安排通知
+      if (updates.time !== undefined || updates.date !== undefined) {
+        try {
+          const userSettings = await UserService.getUserSettings();
+          const reminderSettings = userSettings.reminder_settings || {
+            enabled: true,
+            times: [30, 10],
+          };
+
+          // 取消舊的通知
+          if (data.notificationIds && Array.isArray(data.notificationIds)) {
+            const { cancelTaskNotification } = await import(
+              "./notificationService"
+            );
+            await cancelTaskNotification(data.notificationIds);
+          }
+
+          // 如果新時間存在，安排新通知
+          if (data.time && data.date) {
+            const notificationIds = await scheduleTaskNotification(
+              taskResult,
+              "Task Reminder",
+              null,
+              reminderSettings
+            );
+
+            if (notificationIds.length > 0) {
+              await this.updateTask(data.id, { notificationIds });
+              taskResult.notificationIds = notificationIds;
+            }
+          }
+        } catch (error) {
+          console.error("Error updating notifications for task:", error);
+        }
+      }
+
+      return taskResult;
     } catch (error) {
       console.error("Error in updateTask:", error);
       throw error;
@@ -291,9 +362,9 @@ export class TaskService {
   // Toggle task completed status
   static async toggleTaskChecked(taskId, isCompleted) {
     try {
-      return await this.updateTask(taskId, { 
+      return await this.updateTask(taskId, {
         is_completed: isCompleted,
-        completed_at: isCompleted ? new Date().toISOString() : null
+        completed_at: isCompleted ? new Date().toISOString() : null,
       });
     } catch (error) {
       console.error("Error in toggleTaskChecked:", error);

@@ -57,6 +57,7 @@ export class UserService {
               platform: newData.platform,
               last_active_at: newData.last_active_at,
               display_name: newData.display_name,
+              reminder_settings: newData.reminder_settings,
             };
           } catch (insertError) {
             console.error("Error inserting user settings:", insertError);
@@ -80,6 +81,7 @@ export class UserService {
         platform: data.platform,
         last_active_at: data.last_active_at,
         display_name: data.display_name,
+        reminder_settings: data.reminder_settings,
       };
     } catch (error) {
       console.error("Error in getUserSettings:", error);
@@ -89,6 +91,7 @@ export class UserService {
         notifications_enabled: true,
         platform: Platform.OS,
         last_active_at: null,
+        reminder_settings: { enabled: true, times: [30, 10] },
       };
     }
   }
@@ -136,6 +139,7 @@ export class UserService {
         platform: data.platform,
         last_active_at: data.last_active_at,
         display_name: data.display_name,
+        reminder_settings: data.reminder_settings,
       };
     } catch (error) {
       console.error("Error in updateUserSettings:", error);

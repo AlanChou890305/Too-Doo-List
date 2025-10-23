@@ -50,18 +50,38 @@ export async function registerForPushNotificationsAsync() {
  * @param {string} task.time - 任務時間 (HH:MM)
  * @param {string} reminderText - 提醒文字（多語系）
  * @param {Array<number>} reminderMinutes - 提醒時間點陣列（任務前幾分鐘），預設 [30]
+ * @param {Object} userReminderSettings - 用戶提醒設定
  * @returns {Promise<Array<string>>} - 通知 ID 陣列
  */
 export async function scheduleTaskNotification(
   task,
   reminderText = "Task Reminder",
-  reminderMinutes = [30] // 預設任務前 30 分鐘，未來可改為 [30, 10]
+  reminderMinutes = null, // 如果為 null，則從用戶設定中讀取
+  userReminderSettings = null
 ) {
   try {
     // 如果沒有設定時間，則不安排通知
     if (!task.time || !task.date) {
       console.log("Task has no time set, skipping notification");
       return [];
+    }
+
+    // 檢查用戶提醒設定
+    if (userReminderSettings && !userReminderSettings.enabled) {
+      console.log("User has disabled reminders, skipping notification");
+      return [];
+    }
+
+    // 決定使用哪個提醒時間設定
+    let finalReminderMinutes = reminderMinutes;
+    if (
+      reminderMinutes === null &&
+      userReminderSettings &&
+      userReminderSettings.times
+    ) {
+      finalReminderMinutes = userReminderSettings.times;
+    } else if (reminderMinutes === null) {
+      finalReminderMinutes = [30]; // 預設值
     }
 
     // 解析日期和時間
@@ -85,7 +105,7 @@ export async function scheduleTaskNotification(
     const scheduledNotificationIds = [];
 
     // 為每個提醒時間點安排通知
-    for (const minutesBefore of reminderMinutes) {
+    for (const minutesBefore of finalReminderMinutes) {
       // 計算提醒時間
       const reminderTime = new Date(
         taskTime.getTime() - minutesBefore * 60 * 1000

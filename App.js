@@ -143,6 +143,7 @@ const translations = {
     moveTask: "Move Task",
     moveTaskAlert: "Now tap a date on the calendar to move this task.",
     language: "Language",
+    languageDescription: "Choose your preferred language for the app interface",
     english: "English",
     chinese: "繁體中文(台灣)",
     months: [
@@ -256,11 +257,23 @@ const translations = {
     enableNotifications: "Enable Notifications",
     notLater: "Not Now",
     theme: "Theme",
+    themeDescription: "Choose between light and dark appearance",
     lightMode: "Light Mode",
     darkMode: "Dark Mode",
     appearance: "Appearance",
     byContinuing: "By continuing, you agree to our",
     and: "and",
+    // Reminder settings
+    reminderSettings: "Reminder Settings",
+    reminderSettingsDescription:
+      "Choose when to receive notifications before your scheduled tasks",
+    reminder30min: "30 minutes before",
+    reminder10min: "10 minutes before",
+    reminder5min: "5 minutes before",
+    reminderEnabled: "Enable reminders",
+    reminderDisabled: "Reminders disabled",
+    reminderNote:
+      "Reminders will only be sent for tasks that have a scheduled time",
   },
   zh: {
     settings: "設定",
@@ -300,6 +313,7 @@ const translations = {
     moveTask: "移動任務",
     moveTaskAlert: "請點選日曆上的日期以移動此任務。",
     language: "語言",
+    languageDescription: "選擇您偏好的應用程式介面語言",
     english: "English",
     chinese: "繁體中文(台灣)",
     months: [
@@ -413,11 +427,21 @@ const translations = {
     enableNotifications: "啟用通知",
     notLater: "暫不啟用",
     theme: "主題",
+    themeDescription: "選擇淺色或深色外觀",
     lightMode: "淺色模式",
     darkMode: "深色模式",
     appearance: "外觀",
     byContinuing: "繼續使用即表示您同意我們的",
     and: "和",
+    // 提醒設定
+    reminderSettings: "提醒設定",
+    reminderSettingsDescription: "選擇在排程任務前多久收到通知提醒",
+    reminder30min: "30分鐘前",
+    reminder10min: "10分鐘前",
+    reminder5min: "5分鐘前",
+    reminderEnabled: "啟用提醒",
+    reminderDisabled: "提醒已停用",
+    reminderNote: "提醒僅會發送給已設定時間的任務",
   },
 };
 
@@ -2393,6 +2417,11 @@ function SettingScreen() {
   const [userProfile, setUserProfile] = useState(null);
   const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
   const [themeDropdownVisible, setThemeDropdownVisible] = useState(false);
+  const [reminderSettings, setReminderSettings] = useState({
+    enabled: true,
+    times: [30, 10], // 預設30分鐘和10分鐘前提醒
+  });
+  const [reminderDropdownVisible, setReminderDropdownVisible] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -2413,13 +2442,41 @@ function SettingScreen() {
     getUserProfile();
   }, []);
 
+  // 載入提醒設定
+  useEffect(() => {
+    const loadReminderSettings = async () => {
+      try {
+        const settings = await UserService.getUserSettings();
+        if (settings.reminder_settings) {
+          setReminderSettings(settings.reminder_settings);
+        }
+      } catch (error) {
+        console.error("Error loading reminder settings:", error);
+      }
+    };
+    loadReminderSettings();
+  }, []);
+
   // 當頁面獲得焦點時，關閉所有下拉選單
   useFocusEffect(
     React.useCallback(() => {
       setLanguageDropdownVisible(false);
       setThemeDropdownVisible(false);
+      setReminderDropdownVisible(false);
     }, [])
   );
+
+  // 更新提醒設定
+  const updateReminderSettings = async (newSettings) => {
+    try {
+      setReminderSettings(newSettings);
+      await UserService.updateUserSettings({
+        reminder_settings: newSettings,
+      });
+    } catch (error) {
+      console.error("Error updating reminder settings:", error);
+    }
+  };
 
   const openModal = (text) => {
     setModalText(text);
@@ -2630,6 +2687,7 @@ function SettingScreen() {
             onPress={() => {
               setLanguageDropdownVisible(!languageDropdownVisible);
               setThemeDropdownVisible(false); // 關閉主題下拉選單
+              setReminderDropdownVisible(false); // 關閉提醒下拉選單
             }}
             activeOpacity={0.6}
             style={{
@@ -2640,9 +2698,16 @@ function SettingScreen() {
               paddingHorizontal: 20,
             }}
           >
-            <Text style={{ color: theme.text, fontSize: 16 }}>
-              {t.language}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
+              >
+                {t.language}
+              </Text>
+              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
+                {t.languageDescription}
+              </Text>
+            </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
                 style={{
@@ -2725,13 +2790,28 @@ function SettingScreen() {
               </TouchableOpacity>
             </View>
           )}
+        </View>
 
-          {/* Theme Selector */}
-          <View style={{ borderTopWidth: 1, borderTopColor: theme.divider }} />
+        {/* Theme selection block */}
+        <View
+          style={{
+            backgroundColor: theme.card,
+            borderRadius: 14,
+            marginHorizontal: 20,
+            marginTop: 8,
+            marginBottom: 0,
+            overflow: "hidden",
+            shadowColor: theme.shadow,
+            shadowOpacity: theme.shadowOpacity,
+            shadowRadius: 6,
+            elevation: 1,
+          }}
+        >
           <TouchableOpacity
             onPress={() => {
               setThemeDropdownVisible(!themeDropdownVisible);
               setLanguageDropdownVisible(false); // 關閉語言下拉選單
+              setReminderDropdownVisible(false); // 關閉提醒下拉選單
             }}
             activeOpacity={0.6}
             style={{
@@ -2742,7 +2822,16 @@ function SettingScreen() {
               paddingHorizontal: 20,
             }}
           >
-            <Text style={{ color: theme.text, fontSize: 16 }}>{t.theme}</Text>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
+              >
+                {t.theme}
+              </Text>
+              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
+                {t.themeDescription}
+              </Text>
+            </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
                 style={{
@@ -2834,6 +2923,195 @@ function SettingScreen() {
             </View>
           )}
         </View>
+
+        {/* Reminder Settings Section */}
+        <View
+          style={{
+            backgroundColor: theme.card,
+            borderRadius: 14,
+            marginHorizontal: 20,
+            marginTop: 8,
+            marginBottom: 0,
+            overflow: "hidden",
+            shadowColor: theme.shadow,
+            shadowOpacity: theme.shadowOpacity,
+            shadowRadius: 6,
+            elevation: 1,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => {
+              setReminderDropdownVisible(!reminderDropdownVisible);
+              setLanguageDropdownVisible(false);
+              setThemeDropdownVisible(false);
+            }}
+            activeOpacity={0.6}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
+              >
+                {t.reminderSettings}
+              </Text>
+              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
+                {t.reminderSettingsDescription}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 14,
+                  marginRight: 8,
+                }}
+              >
+                {reminderSettings.enabled
+                  ? t.reminderEnabled
+                  : t.reminderDisabled}
+              </Text>
+              <MaterialIcons
+                name={
+                  reminderDropdownVisible
+                    ? "keyboard-arrow-up"
+                    : "keyboard-arrow-down"
+                }
+                size={20}
+                color={theme.textTertiary}
+                style={{ marginLeft: 6 }}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {reminderDropdownVisible && (
+            <View
+              style={{
+                borderTopWidth: 1,
+                borderTopColor: theme.divider,
+                backgroundColor:
+                  themeMode === "light" ? "#ffffff" : theme.backgroundTertiary,
+                paddingVertical: 8,
+              }}
+            >
+              {/* 啟用/停用提醒 */}
+              <TouchableOpacity
+                onPress={() => {
+                  updateReminderSettings({
+                    ...reminderSettings,
+                    enabled: !reminderSettings.enabled,
+                  });
+                }}
+                activeOpacity={0.6}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                }}
+              >
+                <Text style={{ color: theme.text, fontSize: 15 }}>
+                  {t.reminderEnabled}
+                </Text>
+                <MaterialIcons
+                  name={
+                    reminderSettings.enabled
+                      ? "check-box"
+                      : "check-box-outline-blank"
+                  }
+                  size={24}
+                  color={
+                    reminderSettings.enabled
+                      ? theme.primary
+                      : theme.textTertiary
+                  }
+                />
+              </TouchableOpacity>
+
+              {reminderSettings.enabled && (
+                <>
+                  <View
+                    style={{ borderTopWidth: 1, borderTopColor: theme.divider }}
+                  />
+
+                  {/* 提醒時間選項 */}
+                  {[
+                    { value: 30, label: t.reminder30min },
+                    { value: 10, label: t.reminder10min },
+                    { value: 5, label: t.reminder5min },
+                  ].map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() => {
+                        const newTimes = reminderSettings.times.includes(
+                          option.value
+                        )
+                          ? reminderSettings.times.filter(
+                              (time) => time !== option.value
+                            )
+                          : [...reminderSettings.times, option.value].sort(
+                              (a, b) => b - a
+                            );
+
+                        updateReminderSettings({
+                          ...reminderSettings,
+                          times: newTimes,
+                        });
+                      }}
+                      activeOpacity={0.6}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        paddingVertical: 12,
+                        paddingHorizontal: 20,
+                      }}
+                    >
+                      <Text style={{ color: theme.text, fontSize: 15 }}>
+                        {option.label}
+                      </Text>
+                      <MaterialIcons
+                        name={
+                          reminderSettings.times.includes(option.value)
+                            ? "check-box"
+                            : "check-box-outline-blank"
+                        }
+                        size={24}
+                        color={
+                          reminderSettings.times.includes(option.value)
+                            ? theme.primary
+                            : theme.textTertiary
+                        }
+                      />
+                    </TouchableOpacity>
+                  ))}
+
+                  <View
+                    style={{ borderTopWidth: 1, borderTopColor: theme.divider }}
+                  />
+                  <Text
+                    style={{
+                      color: theme.textTertiary,
+                      fontSize: 12,
+                      paddingHorizontal: 20,
+                      paddingVertical: 8,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {t.reminderNote}
+                  </Text>
+                </>
+              )}
+            </View>
+          )}
+        </View>
+
         {/* Legal Section Title */}
         <Text
           style={{
@@ -2848,7 +3126,8 @@ function SettingScreen() {
         >
           {t.legal}
         </Text>
-        {/* Links */}
+
+        {/* Terms of Use */}
         <View
           style={{
             backgroundColor: theme.card,
@@ -2875,34 +3154,29 @@ function SettingScreen() {
             }}
           >
             <Text style={{ color: theme.text, fontSize: 16 }}>{t.terms}</Text>
-            <Svg width={12} height={18} style={{ marginLeft: 6 }}>
-              <Line
-                x1={3}
-                y1={4}
-                x2={9}
-                y2={9}
-                stroke={theme.textTertiary}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-              <Line
-                x1={9}
-                y1={9}
-                x2={3}
-                y2={14}
-                stroke={theme.textTertiary}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </Svg>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={20}
+              color={theme.textTertiary}
+            />
           </TouchableOpacity>
-          <View
-            style={{
-              height: 1,
-              backgroundColor: theme.divider,
-              marginLeft: 20,
-            }}
-          />
+        </View>
+
+        {/* Privacy Policy */}
+        <View
+          style={{
+            backgroundColor: theme.card,
+            borderRadius: 14,
+            marginHorizontal: 20,
+            marginTop: 8,
+            marginBottom: 0,
+            overflow: "hidden",
+            shadowColor: theme.shadow,
+            shadowOpacity: theme.shadowOpacity,
+            shadowRadius: 6,
+            elevation: 1,
+          }}
+        >
           <TouchableOpacity
             onPress={() => navigation.navigate("Privacy")}
             activeOpacity={0.6}
@@ -2915,26 +3189,11 @@ function SettingScreen() {
             }}
           >
             <Text style={{ color: theme.text, fontSize: 16 }}>{t.privacy}</Text>
-            <Svg width={12} height={18} style={{ marginLeft: 6 }}>
-              <Line
-                x1={3}
-                y1={4}
-                x2={9}
-                y2={9}
-                stroke={theme.textTertiary}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-              <Line
-                x1={9}
-                y1={9}
-                x2={3}
-                y2={14}
-                stroke={theme.textTertiary}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </Svg>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={20}
+              color={theme.textTertiary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -3432,13 +3691,13 @@ function CalendarScreen({ navigation, route }) {
         {
           text: t.cancel,
           onPress: () => console.log("Delete cancelled"),
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: t.delete,
           onPress: deleteTask,
-          style: "destructive"
-        }
+          style: "destructive",
+        },
       ],
       { cancelable: true }
     );
@@ -4370,10 +4629,13 @@ function CalendarScreen({ navigation, route }) {
   );
 
   const renderDeleteConfirmModal = () => {
-    console.log("renderDeleteConfirmModal called, deleteConfirmVisible:", deleteConfirmVisible);
-    
+    console.log(
+      "renderDeleteConfirmModal called, deleteConfirmVisible:",
+      deleteConfirmVisible
+    );
+
     if (!deleteConfirmVisible) return null;
-    
+
     return (
       <Modal
         visible={deleteConfirmVisible}
@@ -4394,87 +4656,87 @@ function CalendarScreen({ navigation, route }) {
           activeOpacity={1}
           onPress={() => setDeleteConfirmVisible(false)}
         >
-        <View
-          style={{
-            backgroundColor: theme.modalBackground,
-            borderRadius: 12,
-            minWidth: 280,
-            maxWidth: 320,
-            alignItems: "center",
-            overflow: "hidden",
-          }}
-        >
-          <View style={{ padding: 24, paddingBottom: 16 }}>
-            <Text
-              style={{
-                fontSize: 18,
-                color: theme.text,
-                textAlign: "center",
-                fontWeight: "600",
-                lineHeight: 24,
-              }}
-            >
-              {t.deleteConfirm}
-            </Text>
-          </View>
-
           <View
             style={{
-              height: 1,
-              backgroundColor: theme.divider,
-              width: "100%",
-            }}
-          />
-
-          <View
-            style={{
-              flexDirection: "row",
-              width: "100%",
+              backgroundColor: theme.modalBackground,
+              borderRadius: 12,
+              minWidth: 280,
+              maxWidth: 320,
+              alignItems: "center",
+              overflow: "hidden",
             }}
           >
-            <TouchableOpacity
-              onPress={() => setDeleteConfirmVisible(false)}
-              style={{
-                flex: 1,
-                paddingVertical: 16,
-                alignItems: "center",
-                borderRightWidth: 1,
-                borderRightColor: theme.divider,
-              }}
-            >
+            <View style={{ padding: 24, paddingBottom: 16 }}>
               <Text
                 style={{
-                  color: theme.primary,
-                  fontSize: 17,
-                  fontWeight: "400",
-                }}
-              >
-                {t.cancel}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={deleteTask}
-              style={{
-                flex: 1,
-                paddingVertical: 16,
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  color: theme.error,
-                  fontSize: 17,
+                  fontSize: 18,
+                  color: theme.text,
+                  textAlign: "center",
                   fontWeight: "600",
+                  lineHeight: 24,
                 }}
               >
-                {t.delete}
+                {t.deleteConfirm}
               </Text>
-            </TouchableOpacity>
+            </View>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.divider,
+                width: "100%",
+              }}
+            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                width: "100%",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setDeleteConfirmVisible(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  alignItems: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: theme.divider,
+                }}
+              >
+                <Text
+                  style={{
+                    color: theme.primary,
+                    fontSize: 17,
+                    fontWeight: "400",
+                  }}
+                >
+                  {t.cancel}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={deleteTask}
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: theme.error,
+                    fontSize: 17,
+                    fontWeight: "600",
+                  }}
+                >
+                  {t.delete}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    </Modal>
+        </TouchableOpacity>
+      </Modal>
     );
   };
 
