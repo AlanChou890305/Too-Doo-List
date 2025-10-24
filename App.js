@@ -20,7 +20,7 @@ console.log(
   "🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL:",
   process.env.EXPO_PUBLIC_SUPABASE_URL
 );
-console.log("🔍 APP DEBUG - 強制重新部署觸發器");
+console.log("🔍 APP DEBUG - 強制重新部署觸發器 - DEV 環境調試");
 import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
 import ReactGA from "react-ga4";
 import * as AuthSession from "expo-auth-session";
