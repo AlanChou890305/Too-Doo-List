@@ -15,11 +15,7 @@
       }
     },
     "production": {
-      "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://qerosiozltqrbehctxdn.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlcm9zaW96bHRxcmJlaGN0eGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NTQyNzAsImV4cCI6MjA3NTIzMDI3MH0.gEzTwpl79HbrQ0KeYRvEji45vdI7SbOhZVc_wpih91E"
-      }
+      "autoIncrement": true
     }
   },
   "submit": {
