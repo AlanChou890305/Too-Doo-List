@@ -7,10 +7,20 @@ import React, {
   useContext,
 } from "react";
 
-// 調試資訊
-console.log("🔍 APP DEBUG - EXPO_PUBLIC_APP_ENV:", process.env.EXPO_PUBLIC_APP_ENV);
-console.log("🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:", process.env.EXPO_PUBLIC_SUPABASE_URL_DEV);
-console.log("🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL:", process.env.EXPO_PUBLIC_SUPABASE_URL);
+// 調試資訊 - 強制重新部署
+console.log(
+  "🔍 APP DEBUG - EXPO_PUBLIC_APP_ENV:",
+  process.env.EXPO_PUBLIC_APP_ENV
+);
+console.log(
+  "🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL_DEV
+);
+console.log(
+  "🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL
+);
+console.log("🔍 APP DEBUG - 強制重新部署觸發器");
 import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
 import ReactGA from "react-ga4";
 import * as AuthSession from "expo-auth-session";
