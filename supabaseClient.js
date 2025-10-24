@@ -14,11 +14,11 @@ const supabaseConfig = getSupabaseConfig();
 const currentEnv = getCurrentEnvironment();
 
 // 調試資訊
-console.log("🔍 [Debug] Current environment:", currentEnv);
-console.log("🔍 [Debug] Supabase config:", supabaseConfig);
-console.log("🔍 [Debug] EXPO_PUBLIC_APP_ENV:", process.env.EXPO_PUBLIC_APP_ENV);
-console.log("🔍 [Debug] EXPO_PUBLIC_SUPABASE_URL_DEV:", process.env.EXPO_PUBLIC_SUPABASE_URL_DEV);
-console.log("🔍 [Debug] EXPO_PUBLIC_SUPABASE_URL:", process.env.EXPO_PUBLIC_SUPABASE_URL);
+console.log("🔍 DEBUG - Current environment:", currentEnv);
+console.log("🔍 DEBUG - Supabase config:", supabaseConfig);
+console.log("🔍 DEBUG - EXPO_PUBLIC_APP_ENV:", process.env.EXPO_PUBLIC_APP_ENV);
+console.log("🔍 DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:", process.env.EXPO_PUBLIC_SUPABASE_URL_DEV);
+console.log("🔍 DEBUG - EXPO_PUBLIC_SUPABASE_URL:", process.env.EXPO_PUBLIC_SUPABASE_URL);
 
 // Supabase configuration - 優先使用環境配置管理器
 const supabaseUrl =
