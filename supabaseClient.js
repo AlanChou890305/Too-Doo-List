@@ -4,18 +4,30 @@ import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
-import { getSupabaseConfig, getCurrentEnvironment } from "./src/config/environment";
+import {
+  getSupabaseConfig,
+  getCurrentEnvironment,
+} from "./src/config/environment";
 
 // 獲取當前環境的 Supabase 配置
 const supabaseConfig = getSupabaseConfig();
 const currentEnv = getCurrentEnvironment();
 
+// 調試資訊
+console.log("🔍 [Debug] Current environment:", currentEnv);
+console.log("🔍 [Debug] Supabase config:", supabaseConfig);
+console.log("🔍 [Debug] EXPO_PUBLIC_APP_ENV:", process.env.EXPO_PUBLIC_APP_ENV);
+console.log("🔍 [Debug] EXPO_PUBLIC_SUPABASE_URL_DEV:", process.env.EXPO_PUBLIC_SUPABASE_URL_DEV);
+console.log("🔍 [Debug] EXPO_PUBLIC_SUPABASE_URL:", process.env.EXPO_PUBLIC_SUPABASE_URL);
+
 // Supabase configuration - 優先使用環境配置管理器
-const supabaseUrl = supabaseConfig.url ||
+const supabaseUrl =
+  supabaseConfig.url ||
   process.env.EXPO_PUBLIC_SUPABASE_URL ||
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
 
-const supabaseAnonKey = supabaseConfig.anonKey ||
+const supabaseAnonKey =
+  supabaseConfig.anonKey ||
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -88,7 +100,9 @@ try {
 
   // Log successful initialization
   if (supabaseUrl && supabaseAnonKey) {
-    console.log(`✅ Supabase client initialized successfully for ${currentEnv} environment`);
+    console.log(
+      `✅ Supabase client initialized successfully for ${currentEnv} environment`
+    );
     console.log(`📊 Environment: ${currentEnv}`);
     console.log(`🔗 Supabase URL: ${supabaseUrl}`);
   } else {
