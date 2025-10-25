@@ -559,6 +559,60 @@ const SplashScreen = ({ navigation }) => {
         console.warn("OAuth callback: Starting callback handling");
         console.warn("OAuth callback: Current URL:", window.location.href);
 
+        // Check if we should redirect to native app
+        // This happens when OAuth was initiated from a native app (TestFlight/Production)
+        const url = new URL(window.location.href);
+        const shouldRedirectToNative = url.pathname.includes("auth/callback") && (
+          url.hash.includes("access_token") || 
+          url.search.includes("code=")
+        );
+
+        if (shouldRedirectToNative) {
+          console.warn("OAuth callback: Detected native app OAuth flow, preparing redirect...");
+          
+          // Determine the correct URL scheme based on hostname
+          let appScheme = "com.cty0305.too.doo.list"; // production
+          if (window.location.hostname.includes("to-do-staging")) {
+            appScheme = "com.cty0305.too.doo.list.staging";
+          } else if (window.location.hostname.includes("to-do-dev")) {
+            appScheme = "com.cty0305.too.doo.list.dev";
+          }
+
+          console.warn("OAuth callback: Using app scheme:", appScheme);
+
+          // Extract auth params from URL
+          let redirectUrl;
+          if (url.hash.includes("access_token")) {
+            // Hash fragment with tokens
+            const hashParams = new URLSearchParams(url.hash.substring(1));
+            const accessToken = hashParams.get("access_token");
+            const refreshToken = hashParams.get("refresh_token");
+            const expiresIn = hashParams.get("expires_in");
+            const tokenType = hashParams.get("token_type");
+            
+            redirectUrl = `${appScheme}://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&expires_in=${expiresIn}&token_type=${tokenType}`;
+          } else if (url.search.includes("code=")) {
+            // Query params with code
+            const code = url.searchParams.get("code");
+            const state = url.searchParams.get("state") || "";
+            redirectUrl = `${appScheme}://auth/callback?code=${code}&state=${state}`;
+          }
+
+          if (redirectUrl) {
+            console.warn("OAuth callback: Redirecting to native app:", redirectUrl);
+            try {
+              window.location.href = redirectUrl;
+              // Show user message after attempting redirect
+              setTimeout(() => {
+                alert("Please return to the To Do app. The login was successful!");
+              }, 1000);
+              return;
+            } catch (redirectError) {
+              console.error("OAuth callback: Failed to redirect to native app:", redirectError);
+            }
+          }
+        }
+
         // Check for OAuth errors in the URL
         const urlParams = new URLSearchParams(window.location.search);
         const oauthError = urlParams.get("error");

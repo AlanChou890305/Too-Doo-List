@@ -12,18 +12,6 @@
   ],
   "rewrites": [
     {
-      "source": "/auth/callback",
-      "destination": "/auth/callback.html"
-    },
-    {
-      "source": "/app/(.*)",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/auth/(.*)",
-      "destination": "/index.html"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
