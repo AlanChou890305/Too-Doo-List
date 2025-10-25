@@ -14,32 +14,18 @@
     {
       "source": "/auth/callback",
       "destination": "/auth/callback.html"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/_expo/(.*)",
-      "dest": "/_expo/$1"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "source": "/auth/(.*)",
+      "destination": "/index.html"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
+      "source": "/app/(.*)",
+      "destination": "/index.html"
     },
     {
-      "src": "/auth/(.*)",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/app/(.*)",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
