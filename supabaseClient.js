@@ -17,8 +17,14 @@ const currentEnv = getCurrentEnvironment();
 console.log("🔍 DEBUG - Current environment:", currentEnv);
 console.log("🔍 DEBUG - Supabase config:", supabaseConfig);
 console.log("🔍 DEBUG - EXPO_PUBLIC_APP_ENV:", process.env.EXPO_PUBLIC_APP_ENV);
-console.log("🔍 DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:", process.env.EXPO_PUBLIC_SUPABASE_URL_DEV);
-console.log("🔍 DEBUG - EXPO_PUBLIC_SUPABASE_URL:", process.env.EXPO_PUBLIC_SUPABASE_URL);
+console.log(
+  "🔍 DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL_DEV
+);
+console.log(
+  "🔍 DEBUG - EXPO_PUBLIC_SUPABASE_URL:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL
+);
 
 // Supabase configuration - 優先使用環境配置管理器
 const supabaseUrl =
@@ -148,6 +154,8 @@ try {
 const handleOpenURL = async (event) => {
   console.log("🔗 ========================================");
   console.log("🔗 [Deep Link] Received URL:", event.url);
+  console.log("🔗 [Deep Link] Current environment:", currentEnv);
+  console.log("🔗 [Deep Link] Supabase URL:", supabaseUrl);
   console.log("🔗 ========================================");
 
   // Check if this is a Supabase auth callback
@@ -186,6 +194,13 @@ const handleOpenURL = async (event) => {
         hasRefreshToken: !!refreshToken,
         hasCode: !!code,
         hasError: !!error,
+      });
+
+      console.log("🔗 [Deep Link] Full URL details:", {
+        url: event.url,
+        pathname: url.pathname,
+        search: url.search,
+        hash: url.hash,
       });
 
       if (error) {

@@ -7,14 +7,59 @@ import React, {
   useContext,
 } from "react";
 
+// 獲取重定向 URL
+const getRedirectUrl = () => {
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+
+  const urls = {
+    development: "https://to-do-dev-alan.vercel.app",
+    staging: "https://to-do-staging.vercel.app",
+    production: "https://to-do-mvp.vercel.app",
+  };
+
+  return urls[env] || urls.production;
+};
+
 // 調試資訊 - 強制重新部署
 console.log("🚨🚨🚨 環境變數調試開始 🚨🚨🚨");
-console.log("🔍 APP DEBUG - EXPO_PUBLIC_APP_ENV:", process.env.EXPO_PUBLIC_APP_ENV);
-console.log("🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:", process.env.EXPO_PUBLIC_SUPABASE_URL_DEV);
-console.log("🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL:", process.env.EXPO_PUBLIC_SUPABASE_URL);
-console.log("🔍 APP DEBUG - 所有環境變數:", Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC')));
+console.log(
+  "🔍 APP DEBUG - EXPO_PUBLIC_APP_ENV:",
+  process.env.EXPO_PUBLIC_APP_ENV
+);
+console.log(
+  "🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL_DEV
+);
+console.log(
+  "🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL
+);
+console.log(
+  "🔍 APP DEBUG - 所有環境變數:",
+  Object.keys(process.env).filter((key) => key.startsWith("EXPO_PUBLIC"))
+);
 console.log("🔍 APP DEBUG - 強制重新部署觸發器 - DEV 環境調試");
 console.log("🚨🚨🚨 環境變數調試結束 🚨🚨🚨");
+
+// 添加更明顯的調試資訊
+console.log("🔥🔥🔥 TESTFLIGHT DEBUG START 🔥🔥🔥");
+console.log(
+  "🔥 CURRENT ENVIRONMENT:",
+  process.env.EXPO_PUBLIC_APP_ENV || "NOT SET"
+);
+console.log(
+  "🔥 SUPABASE URL DEV:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL_DEV || "NOT SET"
+);
+console.log(
+  "🔥 SUPABASE URL STAGING:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING || "NOT SET"
+);
+console.log(
+  "🔥 SUPABASE URL:",
+  process.env.EXPO_PUBLIC_SUPABASE_URL || "NOT SET"
+);
+console.log("🔥🔥🔥 TESTFLIGHT DEBUG END 🔥🔥🔥");
 import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
 import ReactGA from "react-ga4";
 import * as AuthSession from "expo-auth-session";
@@ -1296,9 +1341,21 @@ const SplashScreen = ({ navigation }) => {
       // Use the correct redirect URL for Expo
       const getRedirectUrl = () => {
         if (Platform.OS !== "web") {
-          // For standalone apps (TestFlight), use Vercel callback page
+          // For standalone apps (TestFlight), use Vercel callback page based on environment
           // The page will redirect back to app using custom URI scheme
-          return "https://to-do-mvp.vercel.app/auth/callback";
+          const currentEnv = process.env.EXPO_PUBLIC_APP_ENV || "development";
+          console.log(
+            "🔍 DEBUG - Current environment for redirect:",
+            currentEnv
+          );
+
+          if (currentEnv === "staging") {
+            return "https://to-do-staging.vercel.app/auth/callback";
+          } else if (currentEnv === "development") {
+            return "https://to-do-dev-alan.vercel.app/auth/callback";
+          } else {
+            return "https://to-do-mvp.vercel.app/auth/callback";
+          }
         }
 
         // For web, always return the current origin
@@ -5434,7 +5491,7 @@ export default function App() {
       <LanguageContext.Provider value={{ language, setLanguage, t }}>
         <NavigationContainer
           linking={{
-            prefixes: ["https://to-do-mvp.vercel.app", "http://localhost:8081"],
+            prefixes: [getRedirectUrl(), "http://localhost:8081"],
             config: {
               screens: {
                 Splash: "",

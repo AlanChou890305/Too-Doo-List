@@ -1,7 +1,33 @@
+// 獲取關聯域名
+const getAssociatedDomains = () => {
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+
+  const domains = {
+    development: ["applinks:to-do-dev-alan.vercel.app"],
+    staging: ["applinks:to-do-staging.vercel.app"],
+    production: ["applinks:to-do-mvp.vercel.app"],
+  };
+
+  return domains[env] || domains.production;
+};
+
+// 獲取重定向 URL
+const getRedirectUrl = () => {
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+
+  const urls = {
+    development: "https://to-do-dev-alan.vercel.app",
+    staging: "https://to-do-staging.vercel.app",
+    production: "https://to-do-mvp.vercel.app",
+  };
+
+  return urls[env] || urls.production;
+};
+
 // 環境配置
 const getEnvironmentConfig = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || 'development';
-  
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+
   const configs = {
     development: {
       name: "To Do Dev",
@@ -14,7 +40,7 @@ const getEnvironmentConfig = () => {
     },
     staging: {
       name: "To Do Staging",
-      slug: "too-doo-list-staging", 
+      slug: "too-doo-list-staging",
       version: "1.8.0-staging",
       description: "To Do - Staging Environment",
       scheme: "too-doo-list-staging",
@@ -29,9 +55,9 @@ const getEnvironmentConfig = () => {
       scheme: "too-doo-list",
       bundleIdentifier: "com.cty0305.too.doo.list",
       package: "com.cty0305.too.doo.list",
-    }
+    },
   };
-  
+
   return configs[env] || configs.production;
 };
 
@@ -56,7 +82,7 @@ module.exports = {
       bundleIdentifier: envConfig.bundleIdentifier,
       supportsTablet: true,
       deploymentTarget: "13.0",
-      associatedDomains: ["applinks:to-do-mvp.vercel.app"],
+      associatedDomains: getAssociatedDomains(),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         CFBundleURLTypes: [
@@ -74,7 +100,7 @@ module.exports = {
           autoVerify: true,
           data: [
             {
-              scheme: "too-doo-list",
+              scheme: envConfig.scheme,
               host: "auth",
               pathPrefix: "/",
             },
@@ -112,7 +138,7 @@ module.exports = {
         },
         { property: "og:image", content: "./assets/logo.png" },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://to-do-mvp.vercel.app" },
+        { property: "og:url", content: getRedirectUrl() },
         { property: "og:site_name", content: "To Do" },
         { name: "twitter:card", content: "summary_large_image" },
         {
@@ -146,7 +172,7 @@ module.exports = {
         projectId: "a86169e7-6d37-4bee-be43-d1e709615ef9",
       },
       // Environment variables - 根據環境自動切換
-      EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || 'development',
+      EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || "development",
       // 環境特定配置
       environment: envConfig,
     },
