@@ -87,7 +87,7 @@ module.exports = {
         ITSAppUsesNonExemptEncryption: false,
         CFBundleURLTypes: [
           {
-            CFBundleURLSchemes: [envConfig.bundleIdentifier],
+            CFBundleURLSchemes: [envConfig.scheme],
           },
         ],
       },
