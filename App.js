@@ -1337,6 +1337,21 @@ const SplashScreen = ({ navigation }) => {
       }
     };
 
+    // For web platform, also check if current URL is an OAuth callback
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      const currentUrl = window.location.href;
+      const isOAuthCallback =
+        currentUrl.includes("auth/callback") ||
+        currentUrl.includes("access_token") ||
+        currentUrl.includes("code=") ||
+        currentUrl.includes("error=");
+
+      if (isOAuthCallback) {
+        console.warn("🔗 [Web] Current URL is OAuth callback, handling...");
+        handleOAuthCallback();
+      }
+    }
+
     // Cleanup
     return () => {
       // Clear all fallback timeouts
