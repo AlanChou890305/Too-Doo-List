@@ -572,11 +572,11 @@ const SplashScreen = ({ navigation }) => {
           );
 
           // Determine the correct URL scheme based on hostname
-          let appScheme = "com.cty0305.too.doo.list"; // production
+          let appScheme = "too-doo-list"; // production
           if (window.location.hostname.includes("to-do-staging")) {
-            appScheme = "com.cty0305.too.doo.list.staging";
+            appScheme = "too-doo-list-staging";
           } else if (window.location.hostname.includes("to-do-dev")) {
-            appScheme = "com.cty0305.too.doo.list.dev";
+            appScheme = "too-doo-list-dev";
           }
 
           console.warn("OAuth callback: Using app scheme:", appScheme);
