@@ -562,14 +562,15 @@ const SplashScreen = ({ navigation }) => {
         // Check if we should redirect to native app
         // This happens when OAuth was initiated from a native app (TestFlight/Production)
         const url = new URL(window.location.href);
-        const shouldRedirectToNative = url.pathname.includes("auth/callback") && (
-          url.hash.includes("access_token") || 
-          url.search.includes("code=")
-        );
+        const shouldRedirectToNative =
+          url.pathname.includes("auth/callback") &&
+          (url.hash.includes("access_token") || url.search.includes("code="));
 
         if (shouldRedirectToNative) {
-          console.warn("OAuth callback: Detected native app OAuth flow, preparing redirect...");
-          
+          console.warn(
+            "OAuth callback: Detected native app OAuth flow, preparing redirect..."
+          );
+
           // Determine the correct URL scheme based on hostname
           let appScheme = "com.cty0305.too.doo.list"; // production
           if (window.location.hostname.includes("to-do-staging")) {
@@ -589,7 +590,7 @@ const SplashScreen = ({ navigation }) => {
             const refreshToken = hashParams.get("refresh_token");
             const expiresIn = hashParams.get("expires_in");
             const tokenType = hashParams.get("token_type");
-            
+
             redirectUrl = `${appScheme}://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&expires_in=${expiresIn}&token_type=${tokenType}`;
           } else if (url.search.includes("code=")) {
             // Query params with code
@@ -599,16 +600,24 @@ const SplashScreen = ({ navigation }) => {
           }
 
           if (redirectUrl) {
-            console.warn("OAuth callback: Redirecting to native app:", redirectUrl);
+            console.warn(
+              "OAuth callback: Redirecting to native app:",
+              redirectUrl
+            );
             try {
               window.location.href = redirectUrl;
               // Show user message after attempting redirect
               setTimeout(() => {
-                alert("Please return to the To Do app. The login was successful!");
+                alert(
+                  "Please return to the To Do app. The login was successful!"
+                );
               }, 1000);
               return;
             } catch (redirectError) {
-              console.error("OAuth callback: Failed to redirect to native app:", redirectError);
+              console.error(
+                "OAuth callback: Failed to redirect to native app:",
+                redirectError
+              );
             }
           }
         }
