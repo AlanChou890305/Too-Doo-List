@@ -10,6 +10,12 @@
       }
     }
   ],
+  "rewrites": [
+    {
+      "source": "/auth/callback",
+      "destination": "/auth/callback.html"
+    }
+  ],
   "routes": [
     {
       "src": "/_expo/(.*)",
@@ -22,10 +28,6 @@
     {
       "src": "/assets/(.*)",
       "dest": "/assets/$1"
-    },
-    {
-      "src": "/auth/callback",
-      "dest": "/auth/callback.html"
     },
     {
       "src": "/auth/(.*)",
