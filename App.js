@@ -1337,20 +1337,6 @@ const SplashScreen = ({ navigation }) => {
       }
     };
 
-    // For web platform, also check if current URL is an OAuth callback
-    if (Platform.OS === "web" && typeof window !== "undefined") {
-      const currentUrl = window.location.href;
-      const isOAuthCallback =
-        currentUrl.includes("auth/callback") ||
-        currentUrl.includes("access_token") ||
-        currentUrl.includes("code=") ||
-        currentUrl.includes("error=");
-
-      if (isOAuthCallback) {
-        console.warn("🔗 [Web] Current URL is OAuth callback, handling...");
-        handleOAuthCallback();
-      }
-    }
 
     // Cleanup
     return () => {
@@ -5294,6 +5280,21 @@ export default function App() {
       if (titleTag) {
         observer.observe(titleTag, { childList: true });
       }
+      
+      // Check if current URL is an OAuth callback
+      const currentUrl = window.location.href;
+      const isOAuthCallback = 
+        currentUrl.includes("auth/callback") ||
+        currentUrl.includes("access_token") ||
+        currentUrl.includes("code=") ||
+        currentUrl.includes("error=");
+      
+      if (isOAuthCallback) {
+        console.warn("🔗 [Web] Current URL is OAuth callback, handling...");
+        console.warn("🔗 [Web] Current URL:", currentUrl);
+        handleOAuthCallback();
+      }
+      
       return () => observer.disconnect();
     }
   }, []);
