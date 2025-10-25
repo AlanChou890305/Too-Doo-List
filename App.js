@@ -6,63 +6,6 @@ import React, {
   createContext,
   useContext,
 } from "react";
-import { Platform } from "react-native";
-
-// 🚨 CRITICAL: Handle OAuth callback IMMEDIATELY before React initializes
-// This ensures the redirect happens as fast as possible
-if (Platform.OS === "web" && typeof window !== "undefined") {
-  const currentUrl = window.location.href;
-  const url = new URL(currentUrl);
-
-  // Check if this is an OAuth callback
-  const isOAuthCallback =
-    url.pathname.includes("/auth/callback") &&
-    (url.hash.includes("access_token") || url.search.includes("code="));
-
-  if (isOAuthCallback) {
-    console.warn(
-      "🚨 [IMMEDIATE] OAuth callback detected, redirecting to native app..."
-    );
-    console.warn("🚨 [IMMEDIATE] Current URL:", currentUrl);
-
-    // Determine the correct URL scheme
-    let appScheme = "too-doo-list";
-    if (window.location.hostname.includes("to-do-staging")) {
-      appScheme = "too-doo-list-staging";
-    } else if (window.location.hostname.includes("to-do-dev")) {
-      appScheme = "too-doo-list-dev";
-    }
-
-    console.warn("🚨 [IMMEDIATE] Using app scheme:", appScheme);
-
-    // Build redirect URL
-    let redirectUrl;
-    if (url.hash.includes("access_token")) {
-      const hashParams = new URLSearchParams(url.hash.substring(1));
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-      const expiresIn = hashParams.get("expires_in");
-      const tokenType = hashParams.get("token_type");
-
-      redirectUrl = `${appScheme}://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&expires_in=${expiresIn}&token_type=${tokenType}`;
-    } else if (url.search.includes("code=")) {
-      const code = url.searchParams.get("code");
-      const state = url.searchParams.get("state") || "";
-      redirectUrl = `${appScheme}://auth/callback?code=${code}&state=${state}`;
-    }
-
-    if (redirectUrl) {
-      console.warn("🚨 [IMMEDIATE] Redirecting to:", redirectUrl);
-      window.location.href = redirectUrl;
-
-      // Show a message to the user
-      setTimeout(() => {
-        document.body.innerHTML =
-          '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the To Do app.</div></div>';
-      }, 100);
-    }
-  }
-}
 
 // 獲取重定向 URL
 const getRedirectUrl = () => {
@@ -140,6 +83,62 @@ import {
   KeyboardAvoidingView,
   Keyboard,
 } from "react-native";
+
+// 🚨 CRITICAL: Handle OAuth callback IMMEDIATELY before React initializes
+// This ensures the redirect happens as fast as possible
+if (Platform.OS === "web" && typeof window !== "undefined") {
+  const currentUrl = window.location.href;
+  const url = new URL(currentUrl);
+
+  // Check if this is an OAuth callback
+  const isOAuthCallback =
+    url.pathname.includes("/auth/callback") &&
+    (url.hash.includes("access_token") || url.search.includes("code="));
+
+  if (isOAuthCallback) {
+    console.warn(
+      "🚨 [IMMEDIATE] OAuth callback detected, redirecting to native app..."
+    );
+    console.warn("🚨 [IMMEDIATE] Current URL:", currentUrl);
+
+    // Determine the correct URL scheme
+    let appScheme = "too-doo-list";
+    if (window.location.hostname.includes("to-do-staging")) {
+      appScheme = "too-doo-list-staging";
+    } else if (window.location.hostname.includes("to-do-dev")) {
+      appScheme = "too-doo-list-dev";
+    }
+
+    console.warn("🚨 [IMMEDIATE] Using app scheme:", appScheme);
+
+    // Build redirect URL
+    let redirectUrl;
+    if (url.hash.includes("access_token")) {
+      const hashParams = new URLSearchParams(url.hash.substring(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      const expiresIn = hashParams.get("expires_in");
+      const tokenType = hashParams.get("token_type");
+
+      redirectUrl = `${appScheme}://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&expires_in=${expiresIn}&token_type=${tokenType}`;
+    } else if (url.search.includes("code=")) {
+      const code = url.searchParams.get("code");
+      const state = url.searchParams.get("state") || "";
+      redirectUrl = `${appScheme}://auth/callback?code=${code}&state=${state}`;
+    }
+
+    if (redirectUrl) {
+      console.warn("🚨 [IMMEDIATE] Redirecting to:", redirectUrl);
+      window.location.href = redirectUrl;
+
+      // Show a message to the user
+      setTimeout(() => {
+        document.body.innerHTML =
+          '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the To Do app.</div></div>';
+      }, 100);
+    }
+  }
+}
 
 // Global error handler for uncaught errors
 if (Platform.OS !== "web") {
