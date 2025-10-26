@@ -6,7 +6,7 @@
     <string>development</string>
     <key>com.apple.developer.associated-domains</key>
     <array>
-      <string>applinks:to-do-staging.vercel.app</string>
+      <string>applinks:to-do-mvp.vercel.app</string>
     </array>
   </dict>
 </plist>

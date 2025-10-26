@@ -6,6 +6,8 @@ import React, {
   createContext,
   useContext,
 } from "react";
+import VersionUpdateModal from "./src/components/VersionUpdateModal";
+import { versionService } from "./src/services/versionService";
 
 // 獲取重定向 URL
 const getRedirectUrl = () => {
@@ -13,8 +15,8 @@ const getRedirectUrl = () => {
 
   const urls = {
     development: "https://to-do-dev-alan.vercel.app",
-    production: "https://to-do-mvp.vercel.app",
-    staging: "https://to-do-mvp.vercel.app", // Legacy: same as production
+    production: "https://to-do-staging.vercel.app",
+    staging: "https://to-do-staging.vercel.app", // Legacy: same as production
   };
 
   return urls[env] || urls.production;
@@ -383,6 +385,21 @@ const translations = {
     reminderDisabled: "Reminders disabled",
     reminderNote:
       "Reminders will only be sent for tasks that have a scheduled time",
+    // Version update translations
+    versionUpdateAvailable: "Version Update Available",
+    forceUpdateRequired: "This update is required",
+    currentVersion: "Current Version",
+    latestVersion: "Latest Version",
+    whatsNew: "What's New",
+    updateBenefits: "Update Benefits",
+    bugFixes: "Bug fixes and stability improvements",
+    newFeatures: "New features and improvements",
+    securityUpdates: "Security updates",
+    performanceImprovements: "Performance optimizations",
+    updateLater: "Update Later",
+    updateNow: "Update Now",
+    error: "Error",
+    updateLinkError: "Unable to open update link. Please manually check for updates in App Store or TestFlight.",
   },
   zh: {
     settings: "設定",
@@ -551,6 +568,21 @@ const translations = {
     reminderEnabled: "啟用提醒",
     reminderDisabled: "提醒已停用",
     reminderNote: "提醒僅會發送給已設定時間的任務",
+    // 版本更新翻譯
+    versionUpdateAvailable: "版本更新可用",
+    forceUpdateRequired: "此更新為必要更新",
+    currentVersion: "當前版本",
+    latestVersion: "最新版本",
+    whatsNew: "更新內容",
+    updateBenefits: "更新好處",
+    bugFixes: "錯誤修正和穩定性改善",
+    newFeatures: "新功能和改進",
+    securityUpdates: "安全性更新",
+    performanceImprovements: "性能優化",
+    updateLater: "稍後更新",
+    updateNow: "立即更新",
+    error: "錯誤",
+    updateLinkError: "無法開啟更新連結，請手動前往 App Store 或 TestFlight 檢查更新。",
   },
 };
 
@@ -1461,12 +1493,20 @@ const SplashScreen = ({ navigation }) => {
             "🔍 DEBUG - Current environment for redirect:",
             currentEnv
           );
+          console.log(
+            "🔍 DEBUG - All EXPO_PUBLIC env vars:",
+            Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC'))
+          );
+          console.log(
+            "🔍 DEBUG - EXPO_PUBLIC_APP_ENV value:",
+            process.env.EXPO_PUBLIC_APP_ENV
+          );
 
           if (currentEnv === "development") {
             return "https://to-do-dev-alan.vercel.app/auth/callback";
           } else {
             // Production (includes legacy 'staging')
-            return "https://to-do-mvp.vercel.app/auth/callback";
+            return "https://to-do-staging.vercel.app/auth/callback";
           }
         }
 
@@ -5276,6 +5316,10 @@ export default function App() {
     NotoSansTC_700Bold,
   });
 
+  // Version update state
+  const [versionUpdateVisible, setVersionUpdateVisible] = useState(false);
+  const [versionUpdateInfo, setVersionUpdateInfo] = useState(null);
+
   useEffect(() => {
     // Add Google Fonts for web only - keep it simple for native
     if (Platform.OS === "web" && typeof document !== "undefined") {
@@ -5360,6 +5404,33 @@ export default function App() {
       };
       requestNotificationPermissions();
     }
+  }, []);
+
+  // Check for version updates on app start
+  useEffect(() => {
+    const checkVersionUpdate = async () => {
+      try {
+        console.log('🔍 [App] 開始檢查版本更新...');
+        console.log('🔍 [App] 當前環境:', process.env.EXPO_PUBLIC_APP_ENV);
+        const updateInfo = await versionService.checkForUpdates();
+        console.log('🔍 [App] 版本檢查結果:', updateInfo);
+        
+        if (updateInfo.hasUpdate) {
+          console.log('🔄 [App] 發現新版本:', updateInfo.latestVersion);
+          setVersionUpdateInfo(updateInfo);
+          setVersionUpdateVisible(true);
+        } else {
+          console.log('✅ [App] 當前版本已是最新版本');
+        }
+      } catch (error) {
+        console.error('❌ [App] 版本檢查失敗:', error);
+      }
+    };
+
+    // 延遲 1 秒後檢查版本，避免影響 app 啟動速度
+    const timer = setTimeout(checkVersionUpdate, 1000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -5671,6 +5742,14 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
+        
+        {/* Version Update Modal */}
+        <VersionUpdateModal
+          visible={versionUpdateVisible}
+          onClose={() => setVersionUpdateVisible(false)}
+          updateInfo={versionUpdateInfo}
+          forceUpdate={versionUpdateInfo?.forceUpdate || false}
+        />
       </LanguageContext.Provider>
     </ThemeContext.Provider>
   );
