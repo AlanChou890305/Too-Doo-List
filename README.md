@@ -97,7 +97,7 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 
 **Production 環境:**
 - Git Branch: `main`
-- Domain: `to-do-mvp.vercel.app`
+- Domain: `to-do-dev-alan.vercel.app`
 - Supabase: `to-do-production`
 
 詳細設定請參考 [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)

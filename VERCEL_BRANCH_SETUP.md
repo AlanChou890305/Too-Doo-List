@@ -213,7 +213,7 @@ export const environmentConfig = {
   - [ ] 所有變數都勾選三個環境
 
 - [ ] **Domain**
-  - [ ] Production Domain = `to-do-mvp.vercel.app`
+  - [ ] Production Domain = `to-do-dev-alan.vercel.app`
 
 ---
 
@@ -262,7 +262,7 @@ git push origin main
 # To Do Production 應該自動開始部署
 
 # 5. 部署完成後訪問
-# https://to-do-mvp.vercel.app
+# https://to-do-dev-alan.vercel.app
 
 # 6. 打開 Console (F12)
 # 應該看到：
@@ -298,7 +298,7 @@ Supabase URL: qerosiozltqrbehctxdn.supabase.co
 Debug Mode: enabled
 ```
 
-**Production (to-do-mvp.vercel.app):**
+**Production (to-do-dev-alan.vercel.app):**
 ```
 Current environment: production
 Supabase URL: ajbusqpjsjcuzzxuueij.supabase.co
@@ -356,7 +356,7 @@ Debug Mode: disabled
 2. **推送:** `git push origin develop`
 3. **自動部署:** Vercel 自動部署到 `to-do-staging.vercel.app`
 4. **測試:** 在 Staging 環境測試
-5. **發布:** 合併到 `main` → 自動部署到 `to-do-mvp.vercel.app`
+5. **發布:** 合併到 `main` → 自動部署到 `to-do-dev-alan.vercel.app`
 
 簡單、清晰、自動化！🚀
 

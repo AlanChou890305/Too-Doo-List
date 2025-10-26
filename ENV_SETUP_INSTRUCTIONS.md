@@ -183,7 +183,7 @@ Authorized redirect URIs:
 **Production:**
 ```
 Authorized redirect URIs:
-- https://to-do-mvp.vercel.app/auth/callback
+- https://to-do-dev-alan.vercel.app/auth/callback
 ```
 
 **檢查點:**
@@ -203,8 +203,8 @@ Authentication → URL Configuration:
 **Production Project (to-do-production):**
 ```
 Authentication → URL Configuration:
-- Site URL: https://to-do-mvp.vercel.app
-- Redirect URLs: https://to-do-mvp.vercel.app/auth/callback
+- Site URL: https://to-do-dev-alan.vercel.app
+- Redirect URLs: https://to-do-dev-alan.vercel.app/auth/callback
 ```
 
 **檢查點:**
@@ -233,7 +233,7 @@ Authentication → URL Configuration:
 ### Production 環境驗證
 ```bash
 # 1. 訪問 Production URL
-# https://to-do-mvp.vercel.app
+# https://to-do-dev-alan.vercel.app
 
 # 2. 開啟 Console (F12)
 

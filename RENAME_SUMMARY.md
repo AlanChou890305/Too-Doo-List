@@ -84,7 +84,7 @@ Region:           ap-southeast-1 (Singapore)
 ```
 Git Branch:       main
 Vercel Project:   To Do Production
-Vercel Domain:    to-do-mvp.vercel.app
+Vercel Domain:    to-do-dev-alan.vercel.app
 Supabase Project: to-do-production (原 to-do-dev)
 Supabase ID:      ajbusqpjsjcuzzxuueij
 Region:           ap-south-1 (Mumbai)
@@ -140,7 +140,7 @@ Staging:
 - https://to-do-staging.vercel.app/auth/callback
 
 Production:
-- https://to-do-mvp.vercel.app/auth/callback
+- https://to-do-dev-alan.vercel.app/auth/callback
 ```
 
 #### Supabase Dashboard
@@ -157,8 +157,8 @@ Authentication → URL Configuration:
 
 ```
 Authentication → URL Configuration:
-- Site URL: https://to-do-mvp.vercel.app
-- Redirect URLs: https://to-do-mvp.vercel.app/auth/callback
+- Site URL: https://to-do-dev-alan.vercel.app
+- Redirect URLs: https://to-do-dev-alan.vercel.app/auth/callback
 ```
 
 ## 📊 更新摘要

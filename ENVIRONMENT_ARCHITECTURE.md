@@ -89,7 +89,7 @@ EXPO_PUBLIC_ENABLE_ANALYTICS=false
 |-----|---------|
 | **Git Branch** | `main` |
 | **Vercel Project** | To Do Production |
-| **Vercel Domain** | `to-do-mvp.vercel.app` |
+| **Vercel Domain** | `to-do-dev-alan.vercel.app` |
 | **Supabase Project** | to-do-production (原 to-do-dev) |
 | **Supabase ID** | ajbusqpjsjcuzzxuueij |
 | **Supabase Region** | ap-south-1 (Mumbai) |
@@ -171,7 +171,7 @@ git merge develop
 git push origin main
 
 # Vercel 自動部署到 Production
-# 訪問: https://to-do-mvp.vercel.app
+# 訪問: https://to-do-dev-alan.vercel.app
 ```
 
 ---
@@ -217,7 +217,7 @@ git push origin main
 | **目的** | 開發和測試 | 正式環境 |
 | **Git Branch** | `develop` | `main` |
 | **Vercel Project** | To Do Staging | To Do Production |
-| **Vercel URL** | to-do-staging.vercel.app | to-do-mvp.vercel.app |
+| **Vercel URL** | to-do-staging.vercel.app | to-do-dev-alan.vercel.app |
 | **Supabase Project** | to-do-staging | to-do-production |
 | **Supabase ID** | qerosiozlt... | ajbusqpjsj... |
 | **Region** | Singapore | Mumbai |

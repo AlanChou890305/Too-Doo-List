@@ -108,7 +108,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     if (window.location.hostname.includes("to-do-dev")) {
       appScheme = "too-doo-list-dev"; // Development
     }
-    // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
+    // Note: to-do-staging.vercel.app and to-do-dev-alan.vercel.app both use production scheme
 
     console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
 
@@ -663,7 +663,7 @@ const SplashScreen = ({ navigation }) => {
           if (window.location.hostname.includes("to-do-dev")) {
             appScheme = "too-doo-list-dev"; // Development
           }
-          // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
+          // Note: to-do-staging.vercel.app and to-do-dev-alan.vercel.app both use production scheme
 
           console.log("OAuth callback: Using app scheme:", appScheme);
 
