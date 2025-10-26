@@ -96,10 +96,10 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     (url.hash.includes("access_token") || url.search.includes("code="));
 
   if (isOAuthCallback) {
-    console.warn(
+    console.log(
       "🚨 [IMMEDIATE] OAuth callback detected, redirecting to native app..."
     );
-    console.warn("🚨 [IMMEDIATE] Current URL:", currentUrl);
+    console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
 
     // Determine the correct URL scheme
     let appScheme = "too-doo-list";
@@ -109,7 +109,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
       appScheme = "too-doo-list-dev";
     }
 
-    console.warn("🚨 [IMMEDIATE] Using app scheme:", appScheme);
+    console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
 
     // Build redirect URL
     let redirectUrl;
@@ -128,7 +128,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     }
 
     if (redirectUrl) {
-      console.warn("🚨 [IMMEDIATE] Redirecting to:", redirectUrl);
+      console.log("🚨 [IMMEDIATE] Redirecting to:", redirectUrl);
       window.location.href = redirectUrl;
 
       // Show a message to the user
@@ -606,14 +606,14 @@ const SplashScreen = ({ navigation }) => {
       try {
         // Only handle OAuth callback on web platform
         if (Platform.OS !== "web" || typeof window === "undefined") {
-          console.warn(
+          console.log(
             "OAuth callback: Not on web platform, skipping callback handling"
           );
           return;
         }
 
-        console.warn("OAuth callback: Starting callback handling");
-        console.warn("OAuth callback: Current URL:", window.location.href);
+        console.log("OAuth callback: Starting callback handling");
+        console.log("OAuth callback: Current URL:", window.location.href);
 
         // Check if we should redirect to native app
         // This happens when OAuth was initiated from a native app (TestFlight/Production)
@@ -623,7 +623,7 @@ const SplashScreen = ({ navigation }) => {
           (url.hash.includes("access_token") || url.search.includes("code="));
 
         if (shouldRedirectToNative) {
-          console.warn(
+          console.log(
             "OAuth callback: Detected native app OAuth flow, preparing redirect..."
           );
 
@@ -635,7 +635,7 @@ const SplashScreen = ({ navigation }) => {
             appScheme = "too-doo-list-dev";
           }
 
-          console.warn("OAuth callback: Using app scheme:", appScheme);
+          console.log("OAuth callback: Using app scheme:", appScheme);
 
           // Extract auth params from URL
           let redirectUrl;
@@ -656,7 +656,7 @@ const SplashScreen = ({ navigation }) => {
           }
 
           if (redirectUrl) {
-            console.warn(
+            console.log(
               "OAuth callback: Redirecting to native app:",
               redirectUrl
             );
@@ -789,10 +789,10 @@ const SplashScreen = ({ navigation }) => {
           return;
         }
 
-        console.warn("OAuth callback: Session data:", data);
+        console.log("OAuth callback: Session data:", data);
 
         if (data?.session) {
-          console.warn("OAuth callback: User session found");
+          console.log("OAuth callback: User session found");
           // Force a refresh of the auth state
           const {
             data: { user },
@@ -807,10 +807,10 @@ const SplashScreen = ({ navigation }) => {
             return;
           }
 
-          console.warn("OAuth callback: User verified, navigating to main app");
+          console.log("OAuth callback: User verified, navigating to main app");
           navigateToMainApp();
         } else {
-          console.warn("OAuth callback: No session found in callback");
+          console.log("OAuth callback: No session found in callback");
 
           // Add fallback mechanisms for incognito mode or session issues
 
@@ -861,10 +861,10 @@ const SplashScreen = ({ navigation }) => {
 
     // Navigate to main app
     const navigateToMainApp = () => {
-      console.warn("📍 [navigateToMainApp] Function called");
+      console.log("📍 [navigateToMainApp] Function called");
 
       if (hasNavigated) {
-        console.warn("📍 [navigateToMainApp] ⚠️ Already navigated, skipping");
+        console.log("📍 [navigateToMainApp] ⚠️ Already navigated, skipping");
         return;
       }
 
@@ -875,7 +875,7 @@ const SplashScreen = ({ navigation }) => {
         return;
       }
 
-      console.warn(
+      console.log(
         "📍 [navigateToMainApp] Navigation object exists, attempting reset..."
       );
 
@@ -885,7 +885,7 @@ const SplashScreen = ({ navigation }) => {
           index: 0,
           routes: [{ name: "MainTabs" }],
         });
-        console.warn("📍 [navigateToMainApp] ✅ Navigation reset successful!");
+        console.log("📍 [navigateToMainApp] ✅ Navigation reset successful!");
       } catch (error) {
         console.error("📍 [navigateToMainApp] ❌ Navigation error:", error);
         console.error("📍 [navigateToMainApp] Error stack:", error.stack);
@@ -896,7 +896,7 @@ const SplashScreen = ({ navigation }) => {
     // Set up auth state change listener
     const { data: { subscription: authSubscription } = {} } =
       supabase.auth.onAuthStateChange(async (event, session) => {
-        console.warn("Auth state changed:", { event, session });
+        console.log("Auth state changed:", { event, session });
 
         if (
           event === "SIGNED_IN" ||
@@ -904,14 +904,14 @@ const SplashScreen = ({ navigation }) => {
           event === "TOKEN_REFRESHED"
         ) {
           try {
-            console.warn(`Processing ${event} event...`);
+            console.log(`Processing ${event} event...`);
 
             // If we already have a session from the event, use it
             let currentSession = session;
 
             // If no session from event, try to get it
             if (!currentSession) {
-              console.warn("No session in event, fetching from Supabase...");
+              console.log("No session in event, fetching from Supabase...");
               const {
                 data: { session: fetchedSession },
                 error: sessionError,
@@ -926,12 +926,12 @@ const SplashScreen = ({ navigation }) => {
             }
 
             if (!currentSession) {
-              console.warn("No session available after auth state change");
+              console.log("No session available after auth state change");
               return;
             }
 
-            console.warn("Session found, verifying user...");
-            console.warn("Session user email:", currentSession.user?.email);
+            console.log("Session found, verifying user...");
+            console.log("Session user email:", currentSession.user?.email);
 
             // Use user directly from session to avoid API call issues
             const user = currentSession.user;
@@ -941,9 +941,9 @@ const SplashScreen = ({ navigation }) => {
               return;
             }
 
-            console.warn("✅ User verified from session!");
-            console.warn("User email:", user.email);
-            console.warn("User ID:", user.id);
+            console.log("✅ User verified from session!");
+            console.log("User email:", user.email);
+            console.log("User ID:", user.id);
 
             // 重置登入狀態
             setIsSigningIn(false);
@@ -960,12 +960,12 @@ const SplashScreen = ({ navigation }) => {
                 );
               });
 
-            console.warn("🚀 Navigating to main app...");
+            console.log("🚀 Navigating to main app...");
             // Check if already navigated to prevent double navigation
             if (!hasNavigated) {
               navigateToMainApp();
             } else {
-              console.warn("⚠️ Navigation skipped - already navigated");
+              console.log("⚠️ Navigation skipped - already navigated");
             }
           } catch (error) {
             console.error("Error in auth state change handler:", error);
@@ -1016,7 +1016,7 @@ const SplashScreen = ({ navigation }) => {
     // Check for existing session on mount
     const checkSession = async () => {
       try {
-        console.warn("[checkSession] Starting session check...");
+        console.log("[checkSession] Starting session check...");
         const {
           data: { session },
           error,
@@ -1028,9 +1028,9 @@ const SplashScreen = ({ navigation }) => {
         }
 
         if (session) {
-          console.warn("[checkSession] Existing session found!");
-          console.warn("[checkSession] Session user ID:", session.user?.id);
-          console.warn(
+          console.log("[checkSession] Existing session found!");
+          console.log("[checkSession] Session user ID:", session.user?.id);
+          console.log(
             "[checkSession] Session expires at:",
             new Date(session.expires_at * 1000).toISOString()
           );
@@ -1057,22 +1057,22 @@ const SplashScreen = ({ navigation }) => {
             return;
           }
 
-          console.warn("[checkSession] User verified:", {
+          console.log("[checkSession] User verified:", {
             id: user.id,
             email: user.email,
             provider: user.app_metadata?.provider,
           });
-          console.warn("[checkSession] Navigating to main app...");
+          console.log("[checkSession] Navigating to main app...");
           // Check if already navigated to prevent double navigation
           if (!hasNavigated) {
             navigateToMainApp();
           } else {
-            console.warn(
+            console.log(
               "⚠️ [checkSession] Navigation skipped - already navigated"
             );
           }
         } else {
-          console.warn(
+          console.log(
             "[checkSession] No existing session found, showing login screen"
           );
         }
@@ -1085,7 +1085,7 @@ const SplashScreen = ({ navigation }) => {
     // Handle deep linking for OAuth redirects
     const handleDeepLink = async (event) => {
       if (event?.url) {
-        console.warn("🔗🔗🔗 [App.js Deep Link] Received:", event.url);
+        console.log("🔗🔗🔗 [App.js Deep Link] Received:", event.url);
 
         // Check if this is an auth callback
         const isAuthCallback =
@@ -1095,7 +1095,7 @@ const SplashScreen = ({ navigation }) => {
           event.url.includes("error=");
 
         if (isAuthCallback) {
-          console.warn("🔗🔗🔗 [App.js Deep Link] Auth callback detected!");
+          console.log("🔗🔗🔗 [App.js Deep Link] Auth callback detected!");
 
           try {
             // Parse the URL - handle custom scheme URLs
@@ -1104,12 +1104,12 @@ const SplashScreen = ({ navigation }) => {
               // Hash parameters (direct token flow)
               const hashPart = event.url.split("#")[1];
               params = new URLSearchParams(hashPart);
-              console.warn("🔗🔗🔗 [App.js Deep Link] Parsing from hash");
+              console.log("🔗🔗🔗 [App.js Deep Link] Parsing from hash");
             } else if (event.url.includes("?")) {
               // Query parameters (PKCE flow)
               const queryPart = event.url.split("?")[1];
               params = new URLSearchParams(queryPart);
-              console.warn("🔗🔗🔗 [App.js Deep Link] Parsing from query");
+              console.log("🔗🔗🔗 [App.js Deep Link] Parsing from query");
             } else {
               console.error(
                 "🔗🔗🔗 [App.js Deep Link] No parameters found in URL"
@@ -1122,7 +1122,7 @@ const SplashScreen = ({ navigation }) => {
             const refreshToken = params.get("refresh_token");
             const error = params.get("error");
 
-            console.warn("🔗🔗🔗 [App.js Deep Link] Params:", {
+            console.log("🔗🔗🔗 [App.js Deep Link] Params:", {
               hasCode: !!code,
               hasAccessToken: !!accessToken,
               hasRefreshToken: !!refreshToken,
@@ -1140,7 +1140,7 @@ const SplashScreen = ({ navigation }) => {
 
             if (code) {
               // PKCE flow - exchange code for session
-              console.warn(
+              console.log(
                 "🔗🔗🔗 [App.js Deep Link] Exchanging code for session..."
               );
 
@@ -1159,16 +1159,16 @@ const SplashScreen = ({ navigation }) => {
                 return;
               }
 
-              console.warn(
+              console.log(
                 "🔗🔗🔗 [App.js Deep Link] ✅ Code exchanged successfully!"
               );
-              console.warn(
+              console.log(
                 "🔗🔗🔗 [App.js Deep Link] Session user:",
                 data?.session?.user?.email
               );
 
               // Navigate to main app
-              console.warn(
+              console.log(
                 "🔗🔗🔗 [App.js Deep Link] Navigating to main app..."
               );
               navigation.reset({
@@ -1177,7 +1177,7 @@ const SplashScreen = ({ navigation }) => {
               });
             } else if (accessToken && refreshToken) {
               // Direct token flow
-              console.warn(
+              console.log(
                 "🔗🔗🔗 [App.js Deep Link] Setting session with tokens..."
               );
 
@@ -1199,12 +1199,12 @@ const SplashScreen = ({ navigation }) => {
                 return;
               }
 
-              console.warn(
+              console.log(
                 "🔗🔗🔗 [App.js Deep Link] ✅ Session set successfully!"
               );
 
               // Navigate to main app
-              console.warn(
+              console.log(
                 "🔗🔗🔗 [App.js Deep Link] Navigating to main app..."
               );
               navigation.reset({
@@ -1227,7 +1227,7 @@ const SplashScreen = ({ navigation }) => {
             );
           }
         } else {
-          console.warn(
+          console.log(
             "🔗🔗🔗 [App.js Deep Link] Not an auth callback, ignoring"
           );
         }
@@ -1246,17 +1246,17 @@ const SplashScreen = ({ navigation }) => {
           url.search.includes("code=");
 
         if (hasAuthCallback) {
-          console.warn("Initial URL is an auth callback:", url.href);
+          console.log("Initial URL is an auth callback:", url.href);
           await handleOAuthCallback();
           return;
         }
       } else {
         // For mobile, check if app was launched with a deep link
-        console.warn("Mobile platform detected, checking for initial URL...");
+        console.log("Mobile platform detected, checking for initial URL...");
 
         try {
           const initialUrl = await Linking.getInitialURL();
-          console.warn("Initial URL:", initialUrl || "None");
+          console.log("Initial URL:", initialUrl || "None");
 
           if (
             initialUrl &&
@@ -1264,7 +1264,7 @@ const SplashScreen = ({ navigation }) => {
               initialUrl.includes("code=") ||
               initialUrl.includes("access_token="))
           ) {
-            console.warn(
+            console.log(
               "🔗🔗🔗 [App.js] App launched with auth callback URL!"
             );
             // Process the deep link
@@ -1276,14 +1276,14 @@ const SplashScreen = ({ navigation }) => {
         }
 
         // If no auth callback in initial URL, check for existing session with retry
-        console.warn(
+        console.log(
           "No auth callback in initial URL, checking for session..."
         );
 
         // Try multiple times with delays to handle OAuth callback timing
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
-            console.warn(`Session check attempt ${attempt}/3...`);
+            console.log(`Session check attempt ${attempt}/3...`);
 
             const {
               data: { session },
@@ -1296,7 +1296,7 @@ const SplashScreen = ({ navigation }) => {
                 error
               );
             } else if (session) {
-              console.warn(
+              console.log(
                 `Mobile: Session found on attempt ${attempt}, navigating to main app`
               );
               navigation.reset({
@@ -1305,7 +1305,7 @@ const SplashScreen = ({ navigation }) => {
               });
               return;
             } else {
-              console.warn(`No session found on attempt ${attempt}`);
+              console.log(`No session found on attempt ${attempt}`);
             }
 
             // Wait before next attempt (except on last attempt)
@@ -1322,7 +1322,7 @@ const SplashScreen = ({ navigation }) => {
           }
         }
 
-        console.warn(
+        console.log(
           "All session check attempts completed, proceeding to check existing session"
         );
       }
@@ -1340,17 +1340,17 @@ const SplashScreen = ({ navigation }) => {
     // Add multiple fallback checks for OAuth
     const fallbackChecks = [
       setTimeout(async () => {
-        console.warn("Fallback 1: Checking session after 2 seconds");
+        console.log("Fallback 1: Checking session after 2 seconds");
         await checkSessionAndNavigate();
       }, 2000),
 
       setTimeout(async () => {
-        console.warn("Fallback 2: Checking session after 5 seconds");
+        console.log("Fallback 2: Checking session after 5 seconds");
         await checkSessionAndNavigate();
       }, 5000),
 
       setTimeout(async () => {
-        console.warn("Fallback 3: Final session check after 10 seconds");
+        console.log("Fallback 3: Final session check after 10 seconds");
         await checkSessionAndNavigate();
       }, 10000),
     ];
@@ -1368,7 +1368,7 @@ const SplashScreen = ({ navigation }) => {
         }
 
         if (session) {
-          console.warn("Fallback: Session found, verifying user...");
+          console.log("Fallback: Session found, verifying user...");
           // Verify the user before navigating
           const {
             data: { user },
@@ -1380,11 +1380,11 @@ const SplashScreen = ({ navigation }) => {
             return;
           }
 
-          console.warn("Fallback: User verified, navigating to main app");
+          console.log("Fallback: User verified, navigating to main app");
           navigateToMainApp();
           return true; // Success
         } else {
-          console.warn("Fallback: No session found");
+          console.log("Fallback: No session found");
           return false;
         }
       } catch (error) {
@@ -1412,7 +1412,7 @@ const SplashScreen = ({ navigation }) => {
     // Check if navigation and addListener are available
     if (navigation && typeof navigation.addListener === "function") {
       const unsubscribe = navigation.addListener("state", (e) => {
-        console.warn("Navigation state changed:", e.data.state);
+        console.log("Navigation state changed:", e.data.state);
       });
       return unsubscribe;
     }
@@ -1423,16 +1423,16 @@ const SplashScreen = ({ navigation }) => {
   const handleGoogleSignIn = async () => {
     // Prevent multiple simultaneous sign-in attempts
     if (isSigningIn) {
-      console.warn(
+      console.log(
         "⚠️ Sign-in already in progress, ignoring duplicate request"
       );
       return;
     }
 
     setIsSigningIn(true);
-    console.group("Google Authentication");
+    console.log("🔐 Google Authentication - Starting...");
     try {
-      console.warn("VERBOSE: Starting Google authentication process");
+      console.log("VERBOSE: Starting Google authentication process");
 
       if (!supabase) {
         console.error("CRITICAL: Supabase client is NOT initialized");
@@ -1451,9 +1451,9 @@ const SplashScreen = ({ navigation }) => {
       }
 
       if (existingSession) {
-        console.warn("VERBOSE: User is already signed in");
+        console.log("VERBOSE: User is already signed in");
         // Let the auth state change listener handle navigation
-        console.warn("⏳ Waiting for auth state listener to navigate...");
+        console.log("⏳ Waiting for auth state listener to navigate...");
         return;
       }
 
@@ -1480,7 +1480,7 @@ const SplashScreen = ({ navigation }) => {
         // For web, always return the current origin
         // Supabase will redirect back to the same page with auth tokens/code
         const currentOrigin = window.location.origin;
-        console.warn("VERBOSE: Current origin:", currentOrigin);
+        console.log("VERBOSE: Current origin:", currentOrigin);
 
         // For web (both localhost and production), return current origin
         // This allows Supabase to redirect back to the same page with auth data
@@ -1488,11 +1488,11 @@ const SplashScreen = ({ navigation }) => {
       };
 
       const redirectUrl = getRedirectUrl();
-      console.warn("VERBOSE: Using redirect URL:", redirectUrl);
+      console.log("VERBOSE: Using redirect URL:", redirectUrl);
 
       // Debug: Log current window location for web
       if (Platform.OS === "web") {
-        console.warn("VERBOSE: Current window location:", {
+        console.log("VERBOSE: Current window location:", {
           origin: window.location.origin,
           href: window.location.href,
           pathname: window.location.pathname,
@@ -1518,11 +1518,11 @@ const SplashScreen = ({ navigation }) => {
       }
 
       if (data?.url) {
-        console.warn("VERBOSE: Opening auth URL in browser");
-        console.warn("VERBOSE: Auth URL:", data.url);
+        console.log("VERBOSE: Opening auth URL in browser");
+        console.log("VERBOSE: Auth URL:", data.url);
         if (Platform.OS === "web") {
           // For web, we need to redirect to the auth URL
-          console.warn("VERBOSE: Redirecting to:", data.url);
+          console.log("VERBOSE: Redirecting to:", data.url);
           // Use window.location.replace to avoid back button issues (web only)
           if (
             Platform.OS === "web" &&
@@ -1533,20 +1533,20 @@ const SplashScreen = ({ navigation }) => {
           }
         } else {
           // For mobile, open the auth URL in a web browser
-          console.warn("VERBOSE: Opening OAuth browser session...");
+          console.log("VERBOSE: Opening OAuth browser session...");
           const result = await WebBrowser.openAuthSessionAsync(
             data.url,
             redirectUrl
           );
-          console.warn("VERBOSE: Auth session result:", result);
+          console.log("VERBOSE: Auth session result:", result);
 
           // ✅ KEY FIX: The result.url contains the OAuth callback URL
           // We need to manually process it since iOS doesn't automatically trigger the deep link
           if (result.type === "success" && result.url) {
-            console.warn(
+            console.log(
               "🎯 [CRITICAL] WebBrowser returned with URL, processing manually..."
             );
-            console.warn("🎯 [CRITICAL] Returned URL:", result.url);
+            console.log("🎯 [CRITICAL] Returned URL:", result.url);
 
             // Parse and handle the OAuth callback URL directly
             try {
@@ -1554,11 +1554,11 @@ const SplashScreen = ({ navigation }) => {
               if (result.url.includes("#")) {
                 const hashPart = result.url.split("#")[1];
                 params = new URLSearchParams(hashPart);
-                console.warn("🎯 [CRITICAL] Parsing from hash");
+                console.log("🎯 [CRITICAL] Parsing from hash");
               } else if (result.url.includes("?")) {
                 const queryPart = result.url.split("?")[1];
                 params = new URLSearchParams(queryPart);
-                console.warn("🎯 [CRITICAL] Parsing from query");
+                console.log("🎯 [CRITICAL] Parsing from query");
               }
 
               if (params) {
@@ -1567,7 +1567,7 @@ const SplashScreen = ({ navigation }) => {
                 const refreshToken = params.get("refresh_token");
                 const error = params.get("error");
 
-                console.warn("🎯 [CRITICAL] OAuth params:", {
+                console.log("🎯 [CRITICAL] OAuth params:", {
                   hasCode: !!code,
                   hasAccessToken: !!accessToken,
                   hasRefreshToken: !!refreshToken,
@@ -1585,7 +1585,7 @@ const SplashScreen = ({ navigation }) => {
 
                 if (code) {
                   // Exchange code for session
-                  console.warn("🎯 [CRITICAL] Exchanging code for session...");
+                  console.log("🎯 [CRITICAL] Exchanging code for session...");
 
                   const { data: sessionData, error: exchangeError } =
                     await supabase.auth.exchangeCodeForSession(code);
@@ -1602,18 +1602,18 @@ const SplashScreen = ({ navigation }) => {
                     return;
                   }
 
-                  console.warn("🎯 [CRITICAL] ✅ Code exchanged successfully!");
-                  console.warn("🎯 [CRITICAL] Session:", {
+                  console.log("🎯 [CRITICAL] ✅ Code exchanged successfully!");
+                  console.log("🎯 [CRITICAL] Session:", {
                     hasSession: !!sessionData?.session,
                     userEmail: sessionData?.session?.user?.email,
                   });
 
                   // Don't navigate here - let auth state listener handle it
                   // exchangeCodeForSession triggers SIGNED_IN event which will navigate
-                  console.warn(
+                  console.log(
                     "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
                   );
-                  console.warn(
+                  console.log(
                     "🎯 [CRITICAL] (SIGNED_IN event should trigger navigation)"
                   );
 
@@ -1621,7 +1621,7 @@ const SplashScreen = ({ navigation }) => {
                   return;
                 } else if (accessToken && refreshToken) {
                   // Direct token flow
-                  console.warn("🎯 [CRITICAL] Setting session with tokens...");
+                  console.log("🎯 [CRITICAL] Setting session with tokens...");
 
                   const { data: sessionData, error: sessionError } =
                     await supabase.auth.setSession({
@@ -1641,10 +1641,10 @@ const SplashScreen = ({ navigation }) => {
                     return;
                   }
 
-                  console.warn("🎯 [CRITICAL] ✅ Session set successfully!");
+                  console.log("🎯 [CRITICAL] ✅ Session set successfully!");
 
                   // Don't navigate here - let auth state listener handle it
-                  console.warn(
+                  console.log(
                     "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
                   );
 
@@ -1666,7 +1666,7 @@ const SplashScreen = ({ navigation }) => {
 
             return;
           } else if (result.type === "cancel") {
-            console.warn("VERBOSE: User cancelled the auth flow");
+            console.log("VERBOSE: User cancelled the auth flow");
             setIsSigningIn(false);
             Alert.alert(
               "Sign In Cancelled",
@@ -1674,7 +1674,7 @@ const SplashScreen = ({ navigation }) => {
             );
             return;
           } else if (result.type === "dismiss") {
-            console.warn("VERBOSE: Auth flow was dismissed");
+            console.log("VERBOSE: Auth flow was dismissed");
             setIsSigningIn(false);
             return;
           }
@@ -1688,7 +1688,7 @@ const SplashScreen = ({ navigation }) => {
             attempt = 1,
             maxAttempts = 5
           ) => {
-            console.warn(
+            console.log(
               `[Auth Fallback] Session check attempt ${attempt}/${maxAttempts}...`
             );
 
@@ -1713,14 +1713,14 @@ const SplashScreen = ({ navigation }) => {
             }
 
             if (!newSession) {
-              console.warn(
+              console.log(
                 `[Auth Fallback] No session found on attempt ${attempt}`
               );
 
               // Retry if we haven't reached max attempts
               if (attempt < maxAttempts) {
                 const delay = 2000 * attempt; // Increasing delay: 2s, 4s, 6s, 8s
-                console.warn(`[Auth Fallback] Retrying in ${delay}ms...`);
+                console.log(`[Auth Fallback] Retrying in ${delay}ms...`);
                 setTimeout(
                   () => checkSessionWithRetry(attempt + 1, maxAttempts),
                   delay
@@ -1736,13 +1736,13 @@ const SplashScreen = ({ navigation }) => {
                 );
               }
             } else {
-              console.warn(
+              console.log(
                 `[Auth Fallback] ✅ Session found on attempt ${attempt}!`
               );
-              console.warn("[Auth Fallback] User:", newSession.user?.email);
+              console.log("[Auth Fallback] User:", newSession.user?.email);
 
               // Manually trigger navigation if auth listener hasn't done it yet
-              console.warn("[Auth Fallback] Manually triggering navigation...");
+              console.log("[Auth Fallback] Manually triggering navigation...");
               setIsSigningIn(false);
               navigation.reset({
                 index: 0,
@@ -1755,7 +1755,7 @@ const SplashScreen = ({ navigation }) => {
           setTimeout(() => checkSessionWithRetry(1, 5), 2000);
         }
       } else {
-        console.warn("VERBOSE: No URL returned from OAuth");
+        console.log("VERBOSE: No URL returned from OAuth");
       }
     } catch (error) {
       console.error("CRITICAL: Authentication Error:", {
@@ -1806,7 +1806,7 @@ const SplashScreen = ({ navigation }) => {
         { cancelable: true }
       );
     } finally {
-      console.groupEnd();
+      console.log("🔐 Google Authentication - Completed");
       setIsSigningIn(false);
     }
   };
@@ -3671,7 +3671,7 @@ function CalendarScreen({ navigation, route }) {
         } = await supabase.auth.getUser();
 
         if (!user) {
-          console.warn("No authenticated user found");
+          console.log("No authenticated user found");
           setTasks({});
           return;
         }
@@ -5345,8 +5345,8 @@ export default function App() {
         currentUrl.includes("error=");
 
       if (isOAuthCallback) {
-        console.warn("🔗 [Web] Current URL is OAuth callback, handling...");
-        console.warn("🔗 [Web] Current URL:", currentUrl);
+        console.log("🔗 [Web] Current URL is OAuth callback, handling...");
+        console.log("🔗 [Web] Current URL:", currentUrl);
         handleOAuthCallback();
       }
 
@@ -5625,7 +5625,13 @@ export default function App() {
       <LanguageContext.Provider value={{ language, setLanguage, t }}>
         <NavigationContainer
           linking={{
-            prefixes: [getRedirectUrl(), "http://localhost:8081"],
+            prefixes: [
+              getRedirectUrl(), 
+              "http://localhost:8081",
+              "too-doo-list-staging://",
+              "too-doo-list-dev://",
+              "too-doo-list://"
+            ],
             config: {
               screens: {
                 Splash: "",
