@@ -32,7 +32,7 @@ const getEnvironmentConfig = () => {
     development: {
       name: "To Do Dev",
       slug: "too-doo-list-dev",
-      version: "1.9.0-dev",
+      version: "1.9.1-dev",
       description: "To Do - Development Environment (Local + Web Testing)",
       scheme: "too-doo-list-dev",
       bundleIdentifier: "com.cty0305.too.doo.list.dev",
@@ -41,7 +41,7 @@ const getEnvironmentConfig = () => {
     production: {
       name: "To Do",
       slug: "too-doo-list",
-      version: "1.9.0",
+      version: "1.9.1",
       description: "Simple and intuitive task management app with Google SSO",
       scheme: "too-doo-list",
       bundleIdentifier: "com.cty0305.too.doo.list",
@@ -51,7 +51,7 @@ const getEnvironmentConfig = () => {
     staging: {
       name: "To Do",
       slug: "too-doo-list",
-      version: "1.9.0",
+      version: "1.9.1",
       description: "Simple and intuitive task management app with Google SSO",
       scheme: "too-doo-list",
       bundleIdentifier: "com.cty0305.too.doo.list",

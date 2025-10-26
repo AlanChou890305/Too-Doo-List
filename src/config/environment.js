@@ -12,8 +12,9 @@ export const getCurrentEnvironment = () => {
 export const environmentConfig = {
   development: {
     name: "Development",
-    appName: "Too-Doo-List Dev",
+    appName: "Too-Doo-List Staging",
     supabase: {
+      // Staging 使用 qero... project (to-do-staging, 用於開發和測試)
       url: process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
       anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
     },
@@ -39,7 +40,7 @@ export const environmentConfig = {
     name: "Production",
     appName: "Too-Doo-List",
     supabase: {
-      // Production 使用 qero... (之前稱為 staging 的專案)
+      // Production 使用 ajbu... project (to-do-production, 原 to-do-dev)
       url: process.env.EXPO_PUBLIC_SUPABASE_URL,
       anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     },
@@ -61,13 +62,14 @@ export const environmentConfig = {
     },
   },
 
-  // Legacy: Keep staging as alias for production for backward compatibility
+  // Staging 環境（開發 + 測試）
   staging: {
-    name: "Production",
-    appName: "Too-Doo-List",
+    name: "Staging",
+    appName: "Too-Doo-List Staging",
     supabase: {
-      url: process.env.EXPO_PUBLIC_SUPABASE_URL,
-      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      // Staging 使用 qero... project (to-do-staging)
+      url: process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING || process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
+      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
     },
     api: {
       baseUrl:
@@ -76,14 +78,14 @@ export const environmentConfig = {
       version: "v1",
     },
     features: {
-      debug: false,
-      analytics: true,
-      crashReporting: true,
-      notificationDebug: false,
+      debug: true,
+      analytics: false,
+      crashReporting: false,
+      notificationDebug: true,
     },
     logging: {
-      level: "error",
-      enableConsole: false,
+      level: "debug",
+      enableConsole: true,
     },
   },
 };

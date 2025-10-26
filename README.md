@@ -54,16 +54,24 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
    ```
 
 3. **Configure Environment Variables:**
-   Create a `.env` file in the root directory:
+   
+   Create a `.env.local` file in the root directory:
 
-   ```env
-   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```bash
+   # Staging 環境（本地開發預設）
+   EXPO_PUBLIC_APP_ENV=development
+   EXPO_PUBLIC_SUPABASE_URL_DEV=your_staging_supabase_url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV=your_staging_anon_key
    ```
+   
+   詳細配置請參考 [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)
 
 4. **Set up Supabase:**
 
-   - Create a new Supabase project
+   - 本專案使用雙環境架構（Staging + Production）
+   - Staging: `to-do-staging` (qerosiozltqrbehctxdn)
+   - Production: `to-do-production` (ajbusqpjsjcuzzxuueij)
+   - 詳細設定請參考 [SUPABASE_ENVIRONMENTS.md](./SUPABASE_ENVIRONMENTS.md)
    - Run the database migrations (see `SUPABASE_SETUP.md`)
    - Configure Google OAuth (see `GOOGLE_OAUTH_SETUP.md`)
 
@@ -78,14 +86,28 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 
 ### Deployment
 
-#### Netlify Deployment
+本專案採用雙環境架構：
 
-1. Connect your GitHub repository to Netlify
-2. Configure build settings:
-   - Build command: `npx expo export --platform web --output-dir dist`
-   - Publish directory: `dist`
-3. Set environment variables in Netlify dashboard
-4. Deploy!
+#### Vercel Deployment（推薦）
+
+**Staging 環境:**
+- Git Branch: `develop`
+- Domain: `to-do-staging.vercel.app`
+- Supabase: `to-do-staging`
+
+**Production 環境:**
+- Git Branch: `main`
+- Domain: `to-do-mvp.vercel.app`
+- Supabase: `to-do-production`
+
+詳細設定請參考 [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
+
+#### 快速部署步驟
+
+1. 在 Vercel 創建兩個專案（Staging & Production）
+2. 設定環境變數（參考 [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)）
+3. 連接 Git Repository
+4. 自動部署！
 
 ## 📱 Usage
 
