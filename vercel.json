@@ -12,6 +12,10 @@
   ],
   "routes": [
     {
+      "src": "/auth/callback",
+      "dest": "/auth/callback.html"
+    },
+    {
       "handle": "filesystem"
     },
     {
