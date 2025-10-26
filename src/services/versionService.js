@@ -24,15 +24,15 @@ class VersionService {
       console.log('🔍 [VersionCheck] 當前版本:', this.currentVersion);
       console.log('🔍 [VersionCheck] 當前 Build:', this.currentBuildNumber);
 
-      // 開發環境測試模式 - 強制顯示更新提示
-      const isDevelopment = process.env.EXPO_PUBLIC_APP_ENV === 'development';
-      if (isDevelopment) {
-        console.log('🧪 [VersionCheck] 開發環境測試模式 - 模擬版本更新');
+      // 測試模式 - 在 development 和 staging 環境中顯示測試更新
+      const isTestMode = process.env.EXPO_PUBLIC_APP_ENV === 'development' || process.env.EXPO_PUBLIC_APP_ENV === 'staging';
+      if (isTestMode) {
+        console.log('🧪 [VersionCheck] 測試模式 - 模擬版本更新');
         return {
           hasUpdate: true,
           latestVersion: '1.9.1',
           updateUrl: 'https://apps.apple.com/app/id1234567890', // 暫時使用 App Store 連結
-          releaseNotes: '🧪 開發測試版本更新\n\n• 測試版本檢查功能\n• 模擬更新提示\n• 改善用戶體驗\n\n這是開發環境的測試更新！',
+          releaseNotes: '🧪 測試版本更新\n\n• 測試版本檢查功能\n• 模擬更新提示\n• 改善用戶體驗\n\n這是測試環境的更新！',
           forceUpdate: false,
           buildNumber: '2'
         };

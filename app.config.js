@@ -4,8 +4,8 @@ const getAssociatedDomains = () => {
 
   const domains = {
     development: ["applinks:to-do-dev-alan.vercel.app"],
-    production: ["applinks:to-do-mvp.vercel.app"],
-    staging: ["applinks:to-do-mvp.vercel.app"], // Legacy: same as production
+    production: ["applinks:to-do-staging.vercel.app"],
+    staging: ["applinks:to-do-staging.vercel.app"], // Legacy: same as production
   };
 
   return domains[env] || domains.production;
@@ -17,8 +17,8 @@ const getRedirectUrl = () => {
 
   const urls = {
     development: "https://to-do-dev-alan.vercel.app",
-    production: "https://to-do-mvp.vercel.app",
-    staging: "https://to-do-mvp.vercel.app", // Legacy: same as production
+    production: "https://to-do-staging.vercel.app",
+    staging: "https://to-do-staging.vercel.app", // Legacy: same as production
   };
 
   return urls[env] || urls.production;
