@@ -5336,20 +5336,6 @@ export default function App() {
         observer.observe(titleTag, { childList: true });
       }
 
-      // Check if current URL is an OAuth callback
-      const currentUrl = window.location.href;
-      const isOAuthCallback =
-        currentUrl.includes("auth/callback") ||
-        currentUrl.includes("access_token") ||
-        currentUrl.includes("code=") ||
-        currentUrl.includes("error=");
-
-      if (isOAuthCallback) {
-        console.log("🔗 [Web] Current URL is OAuth callback, handling...");
-        console.log("🔗 [Web] Current URL:", currentUrl);
-        handleOAuthCallback();
-      }
-
       return () => observer.disconnect();
     }
   }, []);
