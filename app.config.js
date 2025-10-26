@@ -3,9 +3,9 @@ const getAssociatedDomains = () => {
   const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
 
   const domains = {
-    development: ["applinks:to-do-dev-alan.vercel.app"],
-    production: ["applinks:to-do-staging.vercel.app"],
-    staging: ["applinks:to-do-staging.vercel.app"], // Legacy: same as production
+    development: ["applinks:to-do-staging.vercel.app"],
+    production: ["applinks:to-do-dev-alan.vercel.app"],
+    staging: ["applinks:to-do-staging.vercel.app"], // Legacy: same as development
   };
 
   return domains[env] || domains.production;

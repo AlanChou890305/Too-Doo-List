@@ -2,7 +2,7 @@
 
 A cross-platform React Native to-do list app with calendar integration, Google SSO authentication, Supabase backend, and multi-language UI (English & Traditional Chinese).
 
-🌐 **Live Demo:** [https://to-do-mvp.netlify.app/](https://to-do-mvp.netlify.app/)
+🌐 **Live Demo:** [https://to-do-dev-alan.vercel.app/](https://to-do-dev-alan.vercel.app/)
 
 ## ✨ Features
 
