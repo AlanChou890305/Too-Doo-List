@@ -4,8 +4,8 @@ const getAssociatedDomains = () => {
 
   const domains = {
     development: ["applinks:to-do-dev-alan.vercel.app"],
-    staging: ["applinks:to-do-staging.vercel.app"],
     production: ["applinks:to-do-mvp.vercel.app"],
+    staging: ["applinks:to-do-mvp.vercel.app"], // Legacy: same as production
   };
 
   return domains[env] || domains.production;
@@ -17,8 +17,8 @@ const getRedirectUrl = () => {
 
   const urls = {
     development: "https://to-do-dev-alan.vercel.app",
-    staging: "https://to-do-staging.vercel.app",
     production: "https://to-do-mvp.vercel.app",
+    staging: "https://to-do-mvp.vercel.app", // Legacy: same as production
   };
 
   return urls[env] || urls.production;
@@ -32,25 +32,26 @@ const getEnvironmentConfig = () => {
     development: {
       name: "To Do Dev",
       slug: "too-doo-list-dev",
-      version: "1.8.0-dev",
-      description: "To Do - Development Environment",
+      version: "1.9.0-dev",
+      description: "To Do - Development Environment (Local + Web Testing)",
       scheme: "too-doo-list-dev",
       bundleIdentifier: "com.cty0305.too.doo.list.dev",
       package: "com.cty0305.too.doo.list.dev",
     },
-    staging: {
-      name: "To Do Staging",
-      slug: "too-doo-list-staging",
-      version: "1.8.0-staging",
-      description: "To Do - Staging Environment",
-      scheme: "too-doo-list-staging",
-      bundleIdentifier: "com.cty0305.too.doo.list.staging",
-      package: "com.cty0305.too.doo.list.staging",
-    },
     production: {
       name: "To Do",
       slug: "too-doo-list",
-      version: "1.8.0",
+      version: "1.9.0",
+      description: "Simple and intuitive task management app with Google SSO",
+      scheme: "too-doo-list",
+      bundleIdentifier: "com.cty0305.too.doo.list",
+      package: "com.cty0305.too.doo.list",
+    },
+    // Legacy: Keep staging for backward compatibility with existing builds
+    staging: {
+      name: "To Do",
+      slug: "too-doo-list",
+      version: "1.9.0",
       description: "Simple and intuitive task management app with Google SSO",
       scheme: "too-doo-list",
       bundleIdentifier: "com.cty0305.too.doo.list",

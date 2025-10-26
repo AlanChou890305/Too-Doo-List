@@ -13,8 +13,8 @@ const getRedirectUrl = () => {
 
   const urls = {
     development: "https://to-do-dev-alan.vercel.app",
-    staging: "https://to-do-staging.vercel.app",
     production: "https://to-do-mvp.vercel.app",
+    staging: "https://to-do-mvp.vercel.app", // Legacy: same as production
   };
 
   return urls[env] || urls.production;
@@ -101,13 +101,12 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     );
     console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
 
-    // Determine the correct URL scheme
-    let appScheme = "too-doo-list";
-    if (window.location.hostname.includes("to-do-staging")) {
-      appScheme = "too-doo-list-staging";
-    } else if (window.location.hostname.includes("to-do-dev")) {
-      appScheme = "too-doo-list-dev";
+    // Determine the correct URL scheme based on hostname
+    let appScheme = "too-doo-list"; // Default: production
+    if (window.location.hostname.includes("to-do-dev")) {
+      appScheme = "too-doo-list-dev"; // Development
     }
+    // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
 
     console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
 
@@ -628,12 +627,11 @@ const SplashScreen = ({ navigation }) => {
           );
 
           // Determine the correct URL scheme based on hostname
-          let appScheme = "too-doo-list"; // production
-          if (window.location.hostname.includes("to-do-staging")) {
-            appScheme = "too-doo-list-staging";
-          } else if (window.location.hostname.includes("to-do-dev")) {
-            appScheme = "too-doo-list-dev";
+          let appScheme = "too-doo-list"; // Default: production
+          if (window.location.hostname.includes("to-do-dev")) {
+            appScheme = "too-doo-list-dev"; // Development
           }
+          // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
 
           console.log("OAuth callback: Using app scheme:", appScheme);
 
@@ -1247,7 +1245,9 @@ const SplashScreen = ({ navigation }) => {
 
         if (hasAuthCallback) {
           console.log("Initial URL is an auth callback:", url.href);
-          await handleOAuthCallback();
+          console.log(
+            "OAuth callback already handled at module level, skipping"
+          );
           return;
         }
       } else {
@@ -1264,9 +1264,7 @@ const SplashScreen = ({ navigation }) => {
               initialUrl.includes("code=") ||
               initialUrl.includes("access_token="))
           ) {
-            console.log(
-              "🔗🔗🔗 [App.js] App launched with auth callback URL!"
-            );
+            console.log("🔗🔗🔗 [App.js] App launched with auth callback URL!");
             // Process the deep link
             await handleDeepLink({ url: initialUrl });
             return;
@@ -1276,9 +1274,7 @@ const SplashScreen = ({ navigation }) => {
         }
 
         // If no auth callback in initial URL, check for existing session with retry
-        console.log(
-          "No auth callback in initial URL, checking for session..."
-        );
+        console.log("No auth callback in initial URL, checking for session...");
 
         // Try multiple times with delays to handle OAuth callback timing
         for (let attempt = 1; attempt <= 3; attempt++) {
@@ -1423,9 +1419,7 @@ const SplashScreen = ({ navigation }) => {
   const handleGoogleSignIn = async () => {
     // Prevent multiple simultaneous sign-in attempts
     if (isSigningIn) {
-      console.log(
-        "⚠️ Sign-in already in progress, ignoring duplicate request"
-      );
+      console.log("⚠️ Sign-in already in progress, ignoring duplicate request");
       return;
     }
 
@@ -1468,11 +1462,10 @@ const SplashScreen = ({ navigation }) => {
             currentEnv
           );
 
-          if (currentEnv === "staging") {
-            return "https://to-do-staging.vercel.app/auth/callback";
-          } else if (currentEnv === "development") {
+          if (currentEnv === "development") {
             return "https://to-do-dev-alan.vercel.app/auth/callback";
           } else {
+            // Production (includes legacy 'staging')
             return "https://to-do-mvp.vercel.app/auth/callback";
           }
         }
@@ -5612,11 +5605,11 @@ export default function App() {
         <NavigationContainer
           linking={{
             prefixes: [
-              getRedirectUrl(), 
+              getRedirectUrl(),
               "http://localhost:8081",
               "too-doo-list-staging://",
               "too-doo-list-dev://",
-              "too-doo-list://"
+              "too-doo-list://",
             ],
             config: {
               screens: {

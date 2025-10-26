@@ -35,51 +35,43 @@ export const environmentConfig = {
     },
   },
 
-  staging: {
-    name: "Staging",
-    appName: "Too-Doo-List Staging",
-    supabase: {
-      // 使用您現有的 Supabase 專案 (TestFlight 測試用戶正在使用的)
-      url:
-        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
-        process.env.EXPO_PUBLIC_SUPABASE_URL,
-      anonKey:
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-    },
-    api: {
-      baseUrl:
-        process.env.EXPO_PUBLIC_API_BASE_URL_STAGING ||
-        "https://staging-api.yourdomain.com",
-      version: "v1",
-    },
-    features: {
-      debug: true,
-      analytics: false,
-      crashReporting: true,
-      notificationDebug: false,
-    },
-    logging: {
-      level: "info",
-      enableConsole: true,
-    },
-  },
-
   production: {
     name: "Production",
     appName: "Too-Doo-List",
     supabase: {
-      // 正式環境 - 暫時使用 staging 專案，等 App Store 發布時再考慮升級
-      url:
-        process.env.EXPO_PUBLIC_SUPABASE_URL_PROD ||
-        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING,
-      anonKey:
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_PROD ||
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING,
+      // Production 使用 qero... (之前稱為 staging 的專案)
+      url: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     },
     api: {
       baseUrl:
-        process.env.EXPO_PUBLIC_API_BASE_URL_PROD ||
+        process.env.EXPO_PUBLIC_API_BASE_URL ||
+        "https://api.yourdomain.com",
+      version: "v1",
+    },
+    features: {
+      debug: false,
+      analytics: true,
+      crashReporting: true,
+      notificationDebug: false,
+    },
+    logging: {
+      level: "error",
+      enableConsole: false,
+    },
+  },
+
+  // Legacy: Keep staging as alias for production for backward compatibility
+  staging: {
+    name: "Production",
+    appName: "Too-Doo-List",
+    supabase: {
+      url: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+    },
+    api: {
+      baseUrl:
+        process.env.EXPO_PUBLIC_API_BASE_URL ||
         "https://api.yourdomain.com",
       version: "v1",
     },
