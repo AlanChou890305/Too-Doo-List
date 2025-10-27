@@ -14,9 +14,9 @@ const getRedirectUrl = () => {
   const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
 
   const urls = {
-    development: "https://to-do-dev-alan.vercel.app",
-    production: "https://to-do-staging.vercel.app",
-    staging: "https://to-do-staging.vercel.app", // Legacy: same as production
+    development: "https://to-do-mvp.vercel.app",
+    production: "https://to-do-mvp.vercel.app", // Production 使用正式網域
+    staging: "https://to-do-staging.vercel.app", // Staging 使用測試網域
   };
 
   return urls[env] || urls.production;
@@ -108,7 +108,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     if (window.location.hostname.includes("to-do-dev")) {
       appScheme = "too-doo-list-dev"; // Development
     }
-    // Note: to-do-staging.vercel.app and to-do-dev-alan.vercel.app both use production scheme
+    // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
 
     console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
 
@@ -254,7 +254,6 @@ const translations = {
     moveTask: "Move Task",
     moveTaskAlert: "Now tap a date on the calendar to move this task.",
     language: "Language",
-    languageDescription: "Choose your preferred language for the app interface",
     english: "English",
     chinese: "繁體中文(台灣)",
     months: [
@@ -362,26 +361,30 @@ const translations = {
     time: "Time",
     today: "Today",
     taskReminder: "Task Reminder",
+    // 不同时间点的通知文字
+    reminder30minTitle: "Task Starting Soon",
+    reminder30minBody: "Your task is starting in 30 minutes",
+    reminder10minTitle: "Task Starting Soon",
+    reminder10minBody: "Your task is starting in 10 minutes",
+    reminder5minTitle: "Task Starting Soon",
+    reminder5minBody: "Your task is starting in 5 minutes",
     notificationPermission: "Notification Permission",
     notificationPermissionMessage:
       "To Do needs notification permission to remind you about your tasks 30 minutes before they're due.",
     enableNotifications: "Enable Notifications",
     notLater: "Not Now",
     theme: "Theme",
-    themeDescription: "Choose between light and dark appearance",
     lightMode: "Light Mode",
     darkMode: "Dark Mode",
     appearance: "Appearance",
     byContinuing: "By continuing, you agree to our",
     and: "and",
     // Reminder settings
-    reminderSettings: "Reminder Settings",
-    reminderSettingsDescription:
-      "Choose when to receive notifications before your scheduled tasks",
+    reminderSettings: "Reminder",
     reminder30min: "30 minutes before",
     reminder10min: "10 minutes before",
     reminder5min: "5 minutes before",
-    reminderEnabled: "Enable reminders",
+    reminderEnabled: "Enable",
     reminderDisabled: "Reminders disabled",
     reminderNote:
       "Reminders will only be sent for tasks that have a scheduled time",
@@ -399,7 +402,8 @@ const translations = {
     updateLater: "Update Later",
     updateNow: "Update Now",
     error: "Error",
-    updateLinkError: "Unable to open update link. Please manually check for updates in App Store or TestFlight.",
+    updateLinkError:
+      "Unable to open update link. Please manually check for updates in App Store or TestFlight.",
   },
   zh: {
     settings: "設定",
@@ -439,7 +443,6 @@ const translations = {
     moveTask: "移動任務",
     moveTaskAlert: "請點選日曆上的日期以移動此任務。",
     language: "語言",
-    languageDescription: "選擇您偏好的應用程式介面語言",
     english: "English",
     chinese: "繁體中文(台灣)",
     months: [
@@ -547,25 +550,30 @@ const translations = {
     time: "時間",
     today: "今天",
     taskReminder: "任務提醒",
+    // 不同時間點的通知文字
+    reminder30minTitle: "任務即將開始",
+    reminder30minBody: "您的任務將在 30 分鐘後開始",
+    reminder10minTitle: "任務即將開始",
+    reminder10minBody: "您的任務將在 10 分鐘後開始",
+    reminder5minTitle: "任務即將開始",
+    reminder5minBody: "您的任務將在 5 分鐘後開始",
     notificationPermission: "通知權限",
     notificationPermissionMessage:
       "To Do 需要通知權限才能在任務開始前 30 分鐘提醒您。",
     enableNotifications: "啟用通知",
     notLater: "暫不啟用",
     theme: "主題",
-    themeDescription: "選擇淺色或深色外觀",
     lightMode: "淺色模式",
     darkMode: "深色模式",
     appearance: "外觀",
     byContinuing: "繼續使用即表示您同意我們的",
     and: "和",
     // 提醒設定
-    reminderSettings: "提醒設定",
-    reminderSettingsDescription: "選擇在排程任務前多久收到通知提醒",
+    reminderSettings: "提醒",
     reminder30min: "30分鐘前",
     reminder10min: "10分鐘前",
     reminder5min: "5分鐘前",
-    reminderEnabled: "啟用提醒",
+    reminderEnabled: "啟用",
     reminderDisabled: "提醒已停用",
     reminderNote: "提醒僅會發送給已設定時間的任務",
     // 版本更新翻譯
@@ -582,7 +590,8 @@ const translations = {
     updateLater: "稍後更新",
     updateNow: "立即更新",
     error: "錯誤",
-    updateLinkError: "無法開啟更新連結，請手動前往 App Store 或 TestFlight 檢查更新。",
+    updateLinkError:
+      "無法開啟更新連結，請手動前往 App Store 或 TestFlight 檢查更新。",
   },
 };
 
@@ -663,7 +672,7 @@ const SplashScreen = ({ navigation }) => {
           if (window.location.hostname.includes("to-do-dev")) {
             appScheme = "too-doo-list-dev"; // Development
           }
-          // Note: to-do-staging.vercel.app and to-do-dev-alan.vercel.app both use production scheme
+          // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
 
           console.log("OAuth callback: Using app scheme:", appScheme);
 
@@ -1495,7 +1504,9 @@ const SplashScreen = ({ navigation }) => {
           );
           console.log(
             "🔍 DEBUG - All EXPO_PUBLIC env vars:",
-            Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC'))
+            Object.keys(process.env).filter((key) =>
+              key.startsWith("EXPO_PUBLIC")
+            )
           );
           console.log(
             "🔍 DEBUG - EXPO_PUBLIC_APP_ENV value:",
@@ -1503,10 +1514,12 @@ const SplashScreen = ({ navigation }) => {
           );
 
           if (currentEnv === "development") {
-            return "https://to-do-dev-alan.vercel.app/auth/callback";
-          } else {
-            // Production (includes legacy 'staging')
+            return "https://to-do-mvp.vercel.app/auth/callback";
+          } else if (currentEnv === "staging") {
             return "https://to-do-staging.vercel.app/auth/callback";
+          } else {
+            // Production
+            return "https://to-do-mvp.vercel.app/auth/callback";
           }
         }
 
@@ -2917,13 +2930,8 @@ function SettingScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text
-                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
-              >
+              <Text style={{ color: theme.text, fontSize: 16 }}>
                 {t.language}
-              </Text>
-              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
-                {t.languageDescription}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -3041,14 +3049,7 @@ function SettingScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text
-                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
-              >
-                {t.theme}
-              </Text>
-              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
-                {t.themeDescription}
-              </Text>
+              <Text style={{ color: theme.text, fontSize: 16 }}>{t.theme}</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
@@ -3173,13 +3174,8 @@ function SettingScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text
-                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
-              >
+              <Text style={{ color: theme.text, fontSize: 16 }}>
                 {t.reminderSettings}
-              </Text>
-              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
-                {t.reminderSettingsDescription}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -3820,7 +3816,9 @@ function CalendarScreen({ navigation, route }) {
               notificationIds: editingTask.notificationIds, // 傳遞舊的 IDs 以便取消
             },
             t.taskReminder,
-            getActiveReminderMinutes() // 從配置文件讀取提醒時間
+            getActiveReminderMinutes(), // 從配置文件讀取提醒時間
+            null, // userReminderSettings
+            t // 傳入翻譯物件
           );
 
           if (notificationIds.length > 0) {
@@ -3873,7 +3871,9 @@ function CalendarScreen({ navigation, route }) {
               time: taskTime,
             },
             t.taskReminder,
-            getActiveReminderMinutes() // 從配置文件讀取提醒時間
+            getActiveReminderMinutes(), // 從配置文件讀取提醒時間
+            null, // userReminderSettings
+            t // 傳入翻譯物件
           );
 
           if (notificationIds.length > 0) {
@@ -5410,26 +5410,26 @@ export default function App() {
   useEffect(() => {
     const checkVersionUpdate = async () => {
       try {
-        console.log('🔍 [App] 開始檢查版本更新...');
-        console.log('🔍 [App] 當前環境:', process.env.EXPO_PUBLIC_APP_ENV);
+        console.log("🔍 [App] 開始檢查版本更新...");
+        console.log("🔍 [App] 當前環境:", process.env.EXPO_PUBLIC_APP_ENV);
         const updateInfo = await versionService.checkForUpdates();
-        console.log('🔍 [App] 版本檢查結果:', updateInfo);
-        
+        console.log("🔍 [App] 版本檢查結果:", updateInfo);
+
         if (updateInfo.hasUpdate) {
-          console.log('🔄 [App] 發現新版本:', updateInfo.latestVersion);
+          console.log("🔄 [App] 發現新版本:", updateInfo.latestVersion);
           setVersionUpdateInfo(updateInfo);
           setVersionUpdateVisible(true);
         } else {
-          console.log('✅ [App] 當前版本已是最新版本');
+          console.log("✅ [App] 當前版本已是最新版本");
         }
       } catch (error) {
-        console.error('❌ [App] 版本檢查失敗:', error);
+        console.error("❌ [App] 版本檢查失敗:", error);
       }
     };
 
     // 延遲 1 秒後檢查版本，避免影響 app 啟動速度
     const timer = setTimeout(checkVersionUpdate, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -5742,7 +5742,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
-        
+
         {/* Version Update Modal */}
         <VersionUpdateModal
           visible={versionUpdateVisible}

@@ -4,8 +4,8 @@ const getAssociatedDomains = () => {
 
   const domains = {
     development: ["applinks:to-do-dev-alan.vercel.app"],
-    production: ["applinks:to-do-staging.vercel.app"],
-    staging: ["applinks:to-do-staging.vercel.app"], // Legacy: same as production
+    production: ["applinks:to-do-mvp.vercel.app"], // Production 使用正式網域
+    staging: ["applinks:to-do-staging.vercel.app"], // Staging 使用測試網域
   };
 
   return domains[env] || domains.production;
@@ -17,8 +17,8 @@ const getRedirectUrl = () => {
 
   const urls = {
     development: "https://to-do-dev-alan.vercel.app",
-    production: "https://to-do-staging.vercel.app",
-    staging: "https://to-do-staging.vercel.app", // Legacy: same as production
+    production: "https://to-do-mvp.vercel.app", // Production 使用正式網域
+    staging: "https://to-do-staging.vercel.app", // Staging 使用測試網域
   };
 
   return urls[env] || urls.production;
@@ -47,15 +47,14 @@ const getEnvironmentConfig = () => {
       bundleIdentifier: "com.cty0305.too.doo.list",
       package: "com.cty0305.too.doo.list",
     },
-    // Legacy: Keep staging for backward compatibility with existing builds
     staging: {
-      name: "To Do",
-      slug: "too-doo-list",
+      name: "To Do Testing",
+      slug: "too-doo-list-staging",
       version: "1.9.1",
-      description: "Simple and intuitive task management app with Google SSO",
-      scheme: "too-doo-list",
-      bundleIdentifier: "com.cty0305.too.doo.list",
-      package: "com.cty0305.too.doo.list",
+      description: "To Do - Testing Environment",
+      scheme: "too-doo-list-staging",
+      bundleIdentifier: "com.cty0305.too.doo.list.staging",
+      package: "com.cty0305.too.doo.list.staging",
     },
   };
 

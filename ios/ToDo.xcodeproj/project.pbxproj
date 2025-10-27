@@ -8,25 +8,25 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1E5456718993BA832F3A6729 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C2D268B9608F3DED14FEDCF2 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		9CEE158BD574512E028CA240 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FBBB880BF4AC331048F498F /* ExpoModulesProvider.swift */; };
-		9D3F88356B3D7FC8C9EFD862 /* libPods-ToDo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B4E7758E63D71D7675FA50C6 /* libPods-ToDo.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		D31183108ACB28C8AF92274E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D8B5ECAE574E158D281B94D /* ExpoModulesProvider.swift */; };
+		E12877E4FB0948B4372C5387 /* libPods-ToDo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09125C26DFA2F1C360951C7A /* libPods-ToDo.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		F2A3FCEA615A017124FA5309 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A021482F89EDF5DFF0EF0960 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		09125C26DFA2F1C360951C7A /* libPods-ToDo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ToDo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* ToDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ToDo/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ToDo/Info.plist; sourceTree = "<group>"; };
-		1FBBB880BF4AC331048F498F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ToDo/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		63B0A12C120FAB500057806C /* Pods-ToDo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo.release.xcconfig"; path = "Target Support Files/Pods-ToDo/Pods-ToDo.release.xcconfig"; sourceTree = "<group>"; };
-		9B1A5F45D9679FAE2072DED2 /* Pods-ToDo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo.debug.xcconfig"; path = "Target Support Files/Pods-ToDo/Pods-ToDo.debug.xcconfig"; sourceTree = "<group>"; };
-		A021482F89EDF5DFF0EF0960 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ToDo/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2D8B5ECAE574E158D281B94D /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ToDo/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		7EF2F376F3908ABC414FA151 /* Pods-ToDo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo.debug.xcconfig"; path = "Target Support Files/Pods-ToDo/Pods-ToDo.debug.xcconfig"; sourceTree = "<group>"; };
+		965FB42961D206A385B92A47 /* Pods-ToDo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo.release.xcconfig"; path = "Target Support Files/Pods-ToDo/Pods-ToDo.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = ToDo/SplashScreen.storyboard; sourceTree = "<group>"; };
-		B4E7758E63D71D7675FA50C6 /* libPods-ToDo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ToDo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		C2D268B9608F3DED14FEDCF2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ToDo/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ToDo/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* ToDo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ToDo-Bridging-Header.h"; path = "ToDo/ToDo-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -37,22 +37,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9D3F88356B3D7FC8C9EFD862 /* libPods-ToDo.a in Frameworks */,
+				E12877E4FB0948B4372C5387 /* libPods-ToDo.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		12B7E95E0D84332F2D78E4C6 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				9B1A5F45D9679FAE2072DED2 /* Pods-ToDo.debug.xcconfig */,
-				63B0A12C120FAB500057806C /* Pods-ToDo.release.xcconfig */,
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* ToDo */ = {
 			isa = PBXGroup;
 			children = (
@@ -62,26 +53,35 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				A021482F89EDF5DFF0EF0960 /* PrivacyInfo.xcprivacy */,
+				C2D268B9608F3DED14FEDCF2 /* PrivacyInfo.xcprivacy */,
 			);
 			name = ToDo;
+			sourceTree = "<group>";
+		};
+		234E5F2513DC547C84BF959A /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				7EF2F376F3908ABC414FA151 /* Pods-ToDo.debug.xcconfig */,
+				965FB42961D206A385B92A47 /* Pods-ToDo.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				B4E7758E63D71D7675FA50C6 /* libPods-ToDo.a */,
+				09125C26DFA2F1C360951C7A /* libPods-ToDo.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		2E676AF863BBB8794C9871C0 /* ExpoModulesProviders */ = {
+		342B08A9AC0220F6D04FABAA /* ToDo */ = {
 			isa = PBXGroup;
 			children = (
-				FCD34F73D9F30B447B04175D /* ToDo */,
+				2D8B5ECAE574E158D281B94D /* ExpoModulesProvider.swift */,
 			);
-			name = ExpoModulesProviders;
+			name = ToDo;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -98,8 +98,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				12B7E95E0D84332F2D78E4C6 /* Pods */,
-				2E676AF863BBB8794C9871C0 /* ExpoModulesProviders */,
+				234E5F2513DC547C84BF959A /* Pods */,
+				C4787A6CEA58C0977343F35F /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -123,12 +123,12 @@
 			path = ToDo/Supporting;
 			sourceTree = "<group>";
 		};
-		FCD34F73D9F30B447B04175D /* ToDo */ = {
+		C4787A6CEA58C0977343F35F /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				1FBBB880BF4AC331048F498F /* ExpoModulesProvider.swift */,
+				342B08A9AC0220F6D04FABAA /* ToDo */,
 			);
-			name = ToDo;
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,13 +139,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ToDo" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				0E2EB924AC03755A7C35BC64 /* [Expo] Configure project */,
+				A8D7C457A675FF5EA977943C /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				B8A55C3FE843F0AFE3B2B737 /* [CP] Embed Pods Frameworks */,
+				C67A065565E4BB8980963025 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -195,7 +195,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				F2A3FCEA615A017124FA5309 /* PrivacyInfo.xcprivacy in Resources */,
+				1E5456718993BA832F3A6729 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,30 +241,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		0E2EB924AC03755A7C35BC64 /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/.xcode.env",
-				"$(SRCROOT)/.xcode.env.local",
-				"$(SRCROOT)/ToDo/ToDo.entitlements",
-				"$(SRCROOT)/Pods/Target Support Files/Pods-ToDo/expo-configure-project.sh",
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(SRCROOT)/Pods/Target Support Files/Pods-ToDo/ExpoModulesProvider.swift",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-ToDo/expo-configure-project.sh\"\n";
-		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -309,7 +285,31 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ToDo/Pods-ToDo-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B8A55C3FE843F0AFE3B2B737 /* [CP] Embed Pods Frameworks */ = {
+		A8D7C457A675FF5EA977943C /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/ToDo/ToDo.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-ToDo/expo-configure-project.sh",
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Pods/Target Support Files/Pods-ToDo/ExpoModulesProvider.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-ToDo/expo-configure-project.sh\"\n";
+		};
+		C67A065565E4BB8980963025 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -339,7 +339,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				9CEE158BD574512E028CA240 /* ExpoModulesProvider.swift in Sources */,
+				D31183108ACB28C8AF92274E /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -348,7 +348,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9B1A5F45D9679FAE2072DED2 /* Pods-ToDo.debug.xcconfig */;
+			baseConfigurationReference = 7EF2F376F3908ABC414FA151 /* Pods-ToDo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -373,7 +373,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list.staging;
 				PRODUCT_NAME = ToDo;
 				SWIFT_OBJC_BRIDGING_HEADER = "ToDo/ToDo-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -385,7 +385,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 63B0A12C120FAB500057806C /* Pods-ToDo.release.xcconfig */;
+			baseConfigurationReference = 965FB42961D206A385B92A47 /* Pods-ToDo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -405,7 +405,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list.staging;
 				PRODUCT_NAME = ToDo;
 				SWIFT_OBJC_BRIDGING_HEADER = "ToDo/ToDo-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
