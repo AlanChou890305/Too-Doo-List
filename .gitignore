@@ -170,4 +170,7 @@ coverage/
 *.tmp
 *.temp
 *.cache
-*.lock
+*.lockandroid/
+
+# Android directory (not used)
+android/

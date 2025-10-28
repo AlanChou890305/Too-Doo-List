@@ -1,8 +1,32 @@
----
-alwaysApply: true
----
-
 # Too-Doo-List 專案開發規則
+
+## 平台支援
+
+### iOS 優先開發
+
+本專案**僅支援 iOS 平台**，不需要 Android 原生專案。
+
+**重要規則：**
+
+- ❌ 不要執行 `npx expo prebuild` 時生成 Android 專案
+- ❌ 不要提交 `android/` 目錄到 Git
+- ✅ iOS 原生專案（`ios/`）可以提交，但最好也在 `.gitignore` 中
+- ✅ 使用 Xcode 進行本地建置和測試
+
+**正確的 prebuild 流程：**
+
+```bash
+# 僅生成 iOS 專案
+npx expo prebuild --platform ios --clean
+```
+
+或在 `.easrc` 或環境變數中設定：
+
+```bash
+EXPO_NO_ANDROID=1 npx expo prebuild
+```
+
+---
 
 ## 版本管理 (Semantic Versioning)
 
@@ -493,4 +517,10 @@ git diff --cached
 
 # 搜尋可能的敏感資訊
 git diff --cached | grep -i "password\|api_key\|secret\|token"
+```
+
+git diff --cached | grep -i "password\|api_key\|secret\|token"
+
+```
+
 ```

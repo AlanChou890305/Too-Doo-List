@@ -41,7 +41,7 @@ const getEnvironmentConfig = () => {
     production: {
       name: "To Do",
       slug: "too-doo-list",
-      version: "1.9.1",
+      version: "1.0",
       description: "Simple and intuitive task management app with Google SSO",
       scheme: "too-doo-list",
       bundleIdentifier: "com.cty0305.too.doo.list",

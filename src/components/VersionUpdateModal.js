@@ -8,8 +8,10 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Linking,
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
+import { getUpdateUrl, getUpdateButtonText, getUpdateErrorMessage } from '../config/updateUrls';
 
 const VersionUpdateModal = ({ 
   visible, 
@@ -17,6 +19,11 @@ const VersionUpdateModal = ({
   updateInfo,
   forceUpdate = false 
 }) => {
+  // Web 版本會自動更新，不需要顯示版本更新 modal
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
   // 如果沒有 updateInfo 或不可見，不渲染
   if (!visible || !updateInfo) {
     return null;
@@ -24,22 +31,39 @@ const VersionUpdateModal = ({
 
   const handleUpdate = async () => {
     try {
+      let urlToOpen;
+      
       if (updateInfo?.updateUrl) {
-        await WebBrowser.openBrowserAsync(updateInfo.updateUrl);
+        urlToOpen = updateInfo.updateUrl;
       } else {
-        // 預設更新連結
-        if (Platform.OS === 'ios') {
-          await WebBrowser.openBrowserAsync('https://apps.apple.com/app/id1234567890');
+        // 根據環境決定預設更新連結
+        const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
+        urlToOpen = getUpdateUrl(appEnv);
+      }
+
+      console.log('🔗 [VersionUpdate] 嘗試開啟 URL:', urlToOpen);
+
+      // 檢查是否為 URL scheme
+      if (urlToOpen.startsWith('itms-') || urlToOpen.startsWith('itunes://')) {
+        // 使用 Linking API 開啟 URL scheme
+        const canOpen = await Linking.canOpenURL(urlToOpen);
+        if (canOpen) {
+          await Linking.openURL(urlToOpen);
         } else {
-          await WebBrowser.openBrowserAsync('https://play.google.com/store/apps/details?id=com.cty0305.too.doo.list');
+          throw new Error('無法開啟 URL scheme');
         }
+      } else {
+        // 使用 WebBrowser 開啟 HTTP/HTTPS 連結
+        await WebBrowser.openBrowserAsync(urlToOpen);
       }
     } catch (error) {
       console.error('❌ [VersionUpdate] 開啟更新連結失敗:', error);
-      Alert.alert(
-        'Error',
-        '無法開啟更新連結，請手動前往 App Store 或 TestFlight 檢查更新。'
-      );
+      
+      // 根據環境顯示不同的錯誤訊息
+      const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
+      const errorMessage = getUpdateErrorMessage(appEnv);
+      
+      Alert.alert('Error', errorMessage);
     }
   };
 
@@ -126,7 +150,10 @@ const VersionUpdateModal = ({
               onPress={handleUpdate}
             >
               <Text style={styles.updateButtonText}>
-                立即更新
+                {(() => {
+                  const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
+                  return getUpdateButtonText(appEnv);
+                })()}
               </Text>
             </TouchableOpacity>
           </View>
