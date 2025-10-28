@@ -60,6 +60,23 @@
             ReferencedContainer = "container:ToDo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "EXPO_PUBLIC_SUPABASE_URL"
+            value = "https://ajbusqpjsjcuzzxuueij.supabase.co"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "EXPO_PUBLIC_SUPABASE_ANON_KEY"
+            value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqYnVzcXBqc2pjdXp6eHV1ZWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyNDIwNDgsImV4cCI6MjA3NjgxODA0OH0.yiz9ZWafK1kM0HeK80xw7jISqi57WrAkZzybgiH4Byo"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "EXPO_PUBLIC_APP_ENV"
+            value = "production"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

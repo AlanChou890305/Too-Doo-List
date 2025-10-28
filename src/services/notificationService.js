@@ -1,6 +1,37 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
+/**
+ * 根據提醒時間點生成個性化的通知文字
+ * @param {number} minutesBefore - 任務前幾分鐘提醒
+ * @param {Object} translations - 多語系翻譯物件
+ * @returns {Object} - 包含 title 和 body 的物件
+ */
+function getNotificationText(minutesBefore, translations) {
+  switch (minutesBefore) {
+    case 30:
+      return {
+        title: translations.reminder30minTitle || "Task Starting Soon",
+        body: translations.reminder30minBody || "Your task is starting in 30 minutes"
+      };
+    case 10:
+      return {
+        title: translations.reminder10minTitle || "Task Starting Soon", 
+        body: translations.reminder10minBody || "Your task is starting in 10 minutes"
+      };
+    case 5:
+      return {
+        title: translations.reminder5minTitle || "Task Starting Soon",
+        body: translations.reminder5minBody || "Your task is starting in 5 minutes"
+      };
+    default:
+      return {
+        title: translations.taskReminder || "Task Reminder",
+        body: `Your task is starting in ${minutesBefore} minutes`
+      };
+  }
+}
+
 // 設定通知處理器
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -57,7 +88,8 @@ export async function scheduleTaskNotification(
   task,
   reminderText = "Task Reminder",
   reminderMinutes = null, // 如果為 null，則從用戶設定中讀取
-  userReminderSettings = null
+  userReminderSettings = null,
+  translations = null // 新增多語系翻譯參數
 ) {
   try {
     // 如果沒有設定時間，則不安排通知
@@ -119,11 +151,14 @@ export async function scheduleTaskNotification(
         continue;
       }
 
+      // 生成個性化的通知文字
+      const notificationText = getNotificationText(minutesBefore, translations || {});
+      
       // 安排通知
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
-          title: reminderText,
-          body: task.text,
+          title: notificationText.title,
+          body: `${notificationText.body}: ${task.text}`,
           data: {
             taskId: task.id,
             minutesBefore: minutesBefore,

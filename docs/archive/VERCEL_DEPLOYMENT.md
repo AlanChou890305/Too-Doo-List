@@ -14,7 +14,7 @@
 - **Production 環境**（正式）
   - Git Branch: `main`
   - Vercel Project: `To Do Production`
-  - Domain: `to-do-dev-alan.vercel.app` (或自訂)
+  - Domain: `to-do-mvp.vercel.app` (或自訂)
   - Supabase: `to-do-production` (ajbusqpjsjcuzzxuueij)
 
 ## 📋 Vercel Project 設定
@@ -86,7 +86,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY_PROD=your-production-anon-key
 ```
 
 **Domains:**
-- Production: `to-do-dev-alan.vercel.app` (或自訂域名)
+- Production: `to-do-mvp.vercel.app` (或自訂域名)
 - Preview: 自動為每個 commit 生成預覽 URL
 
 ## 🔄 部署流程
@@ -138,7 +138,7 @@ git push origin main
 # 5. Vercel 自動觸發部署
 # - 使用 Production 環境變數
 # - 連接到 to-do-production Supabase
-# - 部署到 to-do-dev-alan.vercel.app
+# - 部署到 to-do-mvp.vercel.app
 ```
 
 **自動部署觸發條件:**
@@ -192,7 +192,6 @@ Authorized redirect URIs:
 ```
 Authorized redirect URIs:
 - https://to-do-mvp.vercel.app/auth/callback
-- https://your-custom-domain.com/auth/callback (if custom domain)
 ```
 
 ### Supabase Dashboard
@@ -209,9 +208,9 @@ Authentication → URL Configuration:
 **Production Project (to-do-production):**
 ```
 Authentication → URL Configuration:
-- Site URL: https://to-do-dev-alan.vercel.app
+- Site URL: https://to-do-mvp.vercel.app
 - Redirect URLs:
-  - https://to-do-dev-alan.vercel.app/auth/callback
+  - https://to-do-mvp.vercel.app/auth/callback
   - exp://localhost:8081 (for TestFlight testing)
 ```
 
@@ -281,7 +280,7 @@ staging.yourdomain.com → to-do-staging.vercel.app
 
 **Production:**
 ```
-app.yourdomain.com → to-do-dev-alan.vercel.app
+app.yourdomain.com → to-do-mvp.vercel.app
 ```
 
 ## 🚨 故障排除

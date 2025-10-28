@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Application from 'expo-application';
 import { supabase } from '../../supabaseClient';
+import { getUpdateUrl } from '../config/updateUrls';
 
 /**
  * 版本檢查服務
@@ -23,15 +24,39 @@ class VersionService {
       console.log('🔍 [VersionCheck] 開始檢查版本更新...');
       console.log('🔍 [VersionCheck] 當前版本:', this.currentVersion);
       console.log('🔍 [VersionCheck] 當前 Build:', this.currentBuildNumber);
+      console.log('🔍 [VersionCheck] 當前平台:', Platform.OS);
 
-      // 測試模式 - 在 development 和 staging 環境中顯示測試更新
-      const isTestMode = process.env.EXPO_PUBLIC_APP_ENV === 'development' || process.env.EXPO_PUBLIC_APP_ENV === 'staging';
+      // Web 版本會自動更新，不需要檢查版本
+      if (Platform.OS === 'web') {
+        console.log('🌐 [VersionCheck] Web 平台 - 跳過版本檢查（自動更新）');
+        return {
+          hasUpdate: false,
+          latestVersion: this.currentVersion,
+          updateUrl: null,
+          releaseNotes: null,
+          forceUpdate: false
+        };
+      }
+
+      // 測試模式 - 在 staging 環境中顯示測試更新
+      const isTestMode = process.env.EXPO_PUBLIC_APP_ENV === 'staging';
       if (isTestMode) {
         console.log('🧪 [VersionCheck] 測試模式 - 模擬版本更新');
+        
+        // 根據環境決定更新連結
+        const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
+        const updateUrl = getUpdateUrl(appEnv);
+        
+        if (appEnv === 'staging') {
+          console.log('🧪 [VersionCheck] Staging 環境 - 導向 TestFlight');
+        } else {
+          console.log('🧪 [VersionCheck] Development 環境 - 導向 App Store');
+        }
+        
         return {
           hasUpdate: true,
           latestVersion: '1.9.1',
-          updateUrl: 'https://apps.apple.com/app/id1234567890', // 暫時使用 App Store 連結
+          updateUrl: updateUrl,
           releaseNotes: '🧪 測試版本更新\n\n• 測試版本檢查功能\n• 模擬更新提示\n• 改善用戶體驗\n\n這是測試環境的更新！',
           forceUpdate: false,
           buildNumber: '2'
@@ -50,18 +75,20 @@ class VersionService {
 
       if (error) {
         console.log('⚠️ [VersionCheck] 無法獲取版本資訊:', error.message);
-        // 如果無法獲取版本資訊，使用預設值
+        // 如果無法獲取版本資訊，根據環境使用預設值
+        const defaultUpdateUrl = this.getDefaultUpdateUrl();
         return {
           hasUpdate: false,
           latestVersion: this.currentVersion,
-          updateUrl: null,
+          updateUrl: defaultUpdateUrl,
           releaseNotes: null,
           forceUpdate: false
         };
       }
 
       this.latestVersion = data.version;
-      this.updateUrl = data.update_url;
+      // 如果資料庫中有 update_url，使用資料庫的值；否則根據環境決定
+      this.updateUrl = data.update_url || this.getDefaultUpdateUrl();
 
       console.log('🔍 [VersionCheck] 最新版本:', this.latestVersion);
       console.log('🔍 [VersionCheck] 最新 Build:', data.build_number);
@@ -93,6 +120,15 @@ class VersionService {
   }
 
   /**
+   * 根據環境獲取預設更新連結
+   * @returns {string} 更新連結
+   */
+  getDefaultUpdateUrl() {
+    const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
+    return getUpdateUrl(appEnv);
+  }
+
+  /**
    * 比較版本號
    * @param {string} current - 當前版本
    * @param {string} latest - 最新版本
@@ -118,19 +154,15 @@ class VersionService {
 
   /**
    * 開啟更新連結
-   * @param {string} updateUrl - 更新 URL
+   * @param {string} updateUrl - 更新 URL（可選，如果不提供則根據環境決定）
    */
-  async openUpdateUrl(updateUrl) {
+  async openUpdateUrl(updateUrl = null) {
     try {
-      if (Platform.OS === 'ios') {
-        // iOS: 開啟 App Store 或 TestFlight
-        const { openBrowserAsync } = await import('expo-web-browser');
-        await openBrowserAsync(updateUrl);
-      } else if (Platform.OS === 'android') {
-        // Android: 開啟 Google Play Store
-        const { openBrowserAsync } = await import('expo-web-browser');
-        await openBrowserAsync(updateUrl);
-      }
+      const url = updateUrl || this.getDefaultUpdateUrl();
+      console.log('🔗 [VersionCheck] 開啟更新連結:', url);
+      
+      const { openBrowserAsync } = await import('expo-web-browser');
+      await openBrowserAsync(url);
     } catch (error) {
       console.error('❌ [VersionCheck] 無法開啟更新連結:', error);
     }

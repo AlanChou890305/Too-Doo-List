@@ -14,9 +14,9 @@ const getRedirectUrl = () => {
   const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
 
   const urls = {
-    development: "https://to-do-dev-alan.vercel.app",
-    production: "https://to-do-staging.vercel.app",
-    staging: "https://to-do-staging.vercel.app", // Legacy: same as production
+    development: "https://to-do-mvp.vercel.app",
+    production: "https://to-do-mvp.vercel.app", // Production 使用正式網域
+    staging: "https://to-do-staging.vercel.app", // Staging 使用測試網域
   };
 
   return urls[env] || urls.production;
@@ -108,7 +108,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     if (window.location.hostname.includes("to-do-dev")) {
       appScheme = "too-doo-list-dev"; // Development
     }
-    // Note: to-do-staging.vercel.app and to-do-dev-alan.vercel.app both use production scheme
+    // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
 
     console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
 
@@ -254,7 +254,6 @@ const translations = {
     moveTask: "Move Task",
     moveTaskAlert: "Now tap a date on the calendar to move this task.",
     language: "Language",
-    languageDescription: "Choose your preferred language for the app interface",
     english: "English",
     chinese: "繁體中文(台灣)",
     months: [
@@ -281,78 +280,78 @@ const translations = {
     termsLastUpdated: "Last updated:",
     termsAcceptance: "1. Acceptance of Terms",
     termsAcceptanceText:
-      'By accessing and using To Do ("the App"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.',
-    termsDescription: "2. Description of Service",
+      'Welcome to To Do ("we," "our company," or "the Service Provider"). By accessing, downloading, installing, or using our task management application, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree to any part of these terms, please discontinue use of the Service immediately.',
+    termsDescription: "2. Service Description",
     termsDescriptionText:
-      "To Do is a task management application that allows users to create, organize, and manage their daily tasks and schedules. The app provides calendar integration, Google Single Sign-On authentication, and task organization features.",
+      "To Do is a comprehensive personal task management application designed to help users effectively organize and manage their daily tasks and schedules. Our Service provides the following key features:\n• Task creation, editing, and deletion\n• Calendar integration and task scheduling\n• Google Single Sign-On (SSO) authentication\n• Cross-device data synchronization\n• Task reminder notifications\n• Personalized settings and preference management\n• Secure cloud storage and backup",
     termsAccounts: "3. User Accounts and Authentication",
     termsAccountsText:
-      "• You may create an account using Google Single Sign-On (SSO)\n• You are responsible for maintaining the confidentiality of your account\n• You agree to provide accurate and complete information\n• You are responsible for all activities that occur under your account",
-    termsContent: "4. User Content and Data",
+      "Account Creation:\n• You must create an account using Google Single Sign-On (SSO)\n• You must be at least 13 years old to use this Service\n• You agree to provide accurate, complete, and truthful information\n• You are responsible for maintaining the security of your account\n\nAccount Responsibilities:\n• You are responsible for maintaining the confidentiality of your account credentials\n• You are fully responsible for all activities that occur under your account\n• You must immediately notify us of any unauthorized use of your account\n• You may not transfer your account to any third party\n• You must comply with all applicable laws and regulations",
+    termsContent: "4. User Content and Data Ownership",
     termsContentText:
-      "• You retain ownership of all content you create within the app\n• You are solely responsible for your content and data\n• We do not claim ownership of your personal tasks or information\n• You grant us necessary permissions to provide the service",
-    termsAcceptableUse: "5. Acceptable Use",
+      "Content Ownership:\n• You retain complete ownership of all content you create within the App\n• This includes, but is not limited to, task titles, descriptions, notes, links, and attachments\n• You maintain all intellectual property rights to your content\n\nData Usage:\n• You are solely responsible for your content and data\n• We do not claim ownership of your personal tasks or information\n• You grant us necessary technical permissions to provide the Service\n• We will not use your personal content for commercial purposes\n• We respect your privacy and data protection rights",
+    termsAcceptableUse: "5. Acceptable Use Policy",
     termsAcceptableUseText:
-      "You agree not to:\n• Use the app for any unlawful purpose or in violation of any laws\n• Attempt to gain unauthorized access to the app or its systems\n• Interfere with or disrupt the app's functionality\n• Create content that is harmful, offensive, or violates others' rights",
+      "You agree not to:\n• Use the Service for any unlawful purpose or in violation of any applicable laws\n• Attempt to gain unauthorized access to the App or its related systems\n• Interfere with, disrupt, or damage the normal operation of the Service\n• Create, upload, or share harmful, offensive, discriminatory, or rights-violating content\n• Engage in any activities that may compromise the security of the Service\n• Use automated tools or bots to access the Service\n• Reverse engineer, decompile, or disassemble the App\n• Violate any third-party rights or intellectual property laws",
     termsPrivacy: "6. Privacy and Data Protection",
     termsPrivacyText:
-      "Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information. By using the app, you consent to the collection and use of information as described in our Privacy Policy.",
-    termsAvailability: "7. Service Availability",
+      "We take your privacy seriously. Our data processing practices are governed by our Privacy Policy, which provides detailed information about how we collect, use, store, and protect your personal information.\n\nImportant Points:\n• Please carefully review our Privacy Policy\n• By using the Service, you consent to our data processing practices\n• We implement industry-standard security measures to protect your data\n• You have the right to control your personal information\n• We comply with applicable data protection laws and regulations",
+    termsAvailability: "7. Service Availability and Maintenance",
     termsAvailabilityText:
-      "• We strive to maintain high service availability but cannot guarantee uninterrupted access\n• We may perform maintenance that temporarily affects service\n• We reserve the right to modify or discontinue the service at any time",
-    termsLiability: "8. Limitation of Liability",
+      "Service Commitment:\n• We strive to provide a stable and reliable service experience\n• However, we cannot guarantee absolute uninterrupted service\n• We maintain high availability standards and monitor our systems continuously\n\nMaintenance and Updates:\n• We may perform scheduled maintenance that temporarily affects service\n• We reserve the right to modify, suspend, or discontinue the Service at any time\n• We will provide advance notice of significant changes when possible\n• We schedule maintenance during off-peak hours whenever possible\n• We regularly update the Service to improve functionality and security",
+    termsLiability: "8. Limitation of Liability and Disclaimers",
     termsLiabilityText:
-      'The app is provided "as is" without warranties of any kind. We shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the app.',
-    termsChanges: "9. Changes to Terms",
+      "Disclaimers:\n• The Service is provided 'as is' without warranties of any kind, express or implied\n• We do not guarantee error-free, uninterrupted, or completely secure service\n• We disclaim all warranties regarding merchantability, fitness for a particular purpose, and non-infringement\n\nLimitation of Liability:\n• To the maximum extent permitted by law, we shall not be liable for:\n  - Direct, indirect, incidental, or consequential damages\n  - Any losses resulting from use or inability to use the Service\n  - Data loss, business interruption, or other commercial losses\n  - Damages exceeding the amount paid for the Service in the past 12 months",
+    termsChanges: "9. Modifications to Terms",
     termsChangesText:
-      "We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting. Your continued use of the app constitutes acceptance of the modified terms.",
-    termsContact: "10. Contact Information",
+      "Right to Modify:\n• We reserve the right to modify these Terms of Use at any time\n• Significant changes will be communicated through in-app notifications or email\n• Modified terms will take effect immediately upon posting\n• We will provide at least 30 days' notice for material changes\n\nAcceptance of Changes:\n• Your continued use of the Service constitutes acceptance of modified terms\n• If you disagree with the changes, please discontinue use and delete your account\n• We recommend reviewing these terms periodically to stay informed of updates\n• You can access the current terms at any time through the App",
+    termsContact: "10. Contact Information and Dispute Resolution",
     termsContactText:
-      "If you have any questions about these Terms of Use, please contact us through the app's support channels.",
+      "Technical Support:\n• For technical issues, please contact us through the in-app support feature\n• We will respond to your inquiries within a reasonable timeframe\n• Support is available during business hours (Monday-Friday, 9 AM - 6 PM)\n\nDispute Resolution:\n• We encourage resolving disputes through friendly negotiation\n• These terms are governed by the laws of the jurisdiction where our company is incorporated\n• Any legal proceedings should be brought in the appropriate courts\n• We are committed to fair and transparent dispute resolution processes",
     termsAcknowledgment:
-      "By using To Do, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use.",
+      "Thank you for choosing To Do. By using our Service, you acknowledge that you have thoroughly read, understood, and agree to be bound by these Terms of Use. We are committed to providing you with an excellent task management experience.",
     // Privacy Policy translations
     privacyTitle: "Privacy Policy",
     privacyLastUpdated: "Last updated:",
-    privacyIntroduction: "1. Introduction",
+    privacyIntroduction: "1. Policy Overview",
     privacyIntroductionText:
-      'To Do ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our task management application.',
-    privacyInformation: "2. Information We Collect",
-    privacyAccountInfo: "Account Information:",
+      'To Do ("we," "our company," or "the Service Provider") recognizes the importance of personal privacy and is committed to protecting the security of your personal data. This Privacy Policy provides detailed information about how we collect, use, store, protect, and share your personal information when you use the To Do task management application.\n\nWe are committed to complying with relevant laws and regulations, including data protection laws, to ensure your privacy rights are fully protected.',
+    privacyInformation: "2. Types of Personal Data We Collect",
+    privacyAccountInfo: "Account-Related Data:",
     privacyAccountInfoText:
-      "• Email address (via Google SSO)\n• Display name\n• Profile picture (if provided by Google)\n\nTask Data:\n• Task titles, descriptions, and content\n• Due dates and times\n• Task categories and priorities\n• Links and attachments\n\nUsage Data:\n• App usage patterns and preferences\n• Device information and settings",
-    privacyUse: "3. How We Use Your Information",
+      "Basic Account Information:\n• Email address (obtained through Google SSO)\n• Display name (customizable)\n• Profile picture (if provided by Google account)\n• Account creation time and last login time\n\nTask Management Data:\n• Task titles, descriptions, and detailed content\n• Task due dates and reminder times\n• Task categories, priorities, and tags\n• Task links and attachment information\n• Task completion status and history\n\nUsage Behavior Data:\n• Application usage frequency and patterns\n• Feature usage preferences and settings\n• Device information and operating system version\n• Error reports and performance data (anonymized)",
+    privacyUse: "3. Purposes and Legal Basis for Data Processing",
     privacyUseText:
-      "We use your information to:\n• Provide and maintain the app's functionality\n• Sync your tasks across devices\n• Improve our services and user experience\n• Provide customer support\n• Ensure security and prevent fraud",
-    privacyStorage: "4. Data Storage and Security",
+      "We use your personal data for the following purposes:\n\nService Provision:\n• Provide core task management functionality\n• Sync your task data across devices\n• Send task reminder notifications\n• Maintain and improve service quality\n\nTechnical Support:\n• Diagnose and resolve technical issues\n• Provide customer service and technical support\n• Conduct system maintenance and updates\n\nSecurity Protection:\n• Prevent unauthorized access\n• Detect and prevent fraudulent activities\n• Protect system and data security\n\nLegal Basis:\n• Based on your explicit consent\n• To fulfill our service contract with you\n• To comply with legal obligations\n• To protect our legitimate interests",
+    privacyStorage: "4. Data Storage and Security Protection Measures",
     privacyStorageText:
-      "• Your data is stored securely using Supabase cloud infrastructure\n• We implement industry-standard security measures\n• Data is encrypted in transit and at rest\n• Access to your data is restricted to authorized personnel only\n• We regularly review and update our security practices",
-    privacySharing: "5. Data Sharing and Disclosure",
+      "Data Storage:\n• Secure storage using Supabase cloud infrastructure\n• Data distributed across multiple geographic locations\n• Regular data backup and disaster recovery testing\n• Redundant systems to ensure data availability\n\nSecurity Measures:\n• Industry-standard encryption technology (AES-256)\n• Data transmission encrypted using TLS 1.3\n• Multi-layered access control and authentication\n• Regular security vulnerability scans and penetration testing\n• Comprehensive data access logging and monitoring systems\n• Regular security audits and compliance assessments\n\nPersonnel Management:\n• Only authorized personnel can access personal data\n• All employees sign confidentiality agreements\n• Regular privacy protection training\n• Established data processing standard operating procedures",
+    privacySharing: "5. Data Sharing and Third-Party Disclosure",
     privacySharingText:
-      "We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:\n• With your explicit consent\n• To comply with legal obligations\n• To protect our rights and prevent fraud\n• With service providers who assist in app operations (under strict confidentiality agreements)",
-    privacyThirdParty: "6. Third-Party Services",
+      "We commit not to sell, rent, or trade your personal data. We only share your data in the following circumstances:\n\nWith Your Consent:\n• When you have given explicit consent\n• You may withdraw consent at any time\n• Clear opt-in mechanisms for data sharing\n\nLegal Requirements:\n• To comply with court orders or legal requirements\n• To cooperate with government investigations\n• To protect our legitimate rights and interests\n• To respond to valid legal requests\n\nService Providers:\n• Collaborate with trusted third-party service providers (such as Google, Supabase)\n• Sign strict data protection agreements\n• Ensure third parties follow the same privacy protection standards\n• Regularly review third-party compliance\n• Maintain oversight of data processing activities\n\nEmergency Situations:\n• To protect your life or the lives of others\n• To prevent significant harm from occurring\n• To respond to public health emergencies",
+    privacyThirdParty: "6. Third-Party Service Integration",
     privacyThirdPartyText:
-      "Our app integrates with:\n• Google: For authentication via Google SSO\n• Supabase: For secure data storage and backend services\n\nThese services have their own privacy policies, which we encourage you to review.",
-    privacyRights: "7. Your Rights and Choices",
+      "This application integrates the following third-party services:\n\nGoogle Services:\n• Google Single Sign-On (SSO) authentication\n• Used for identity verification and account management\n• Subject to Google's Privacy Policy\n• Limited data sharing for authentication purposes\n\nSupabase Platform:\n• Cloud database and backend services\n• Provides secure data storage and API services\n• Subject to Supabase's data protection policy\n• Encrypted data transmission and storage\n\nImportant Reminders:\n• These third-party services have their own privacy policies\n• We encourage you to review the relevant policies\n• We regularly review third-party service compliance\n• We take immediate appropriate action if security issues are discovered\n• We maintain contracts that require data protection standards",
+    privacyRights: "7. Your Privacy Rights",
     privacyRightsText:
-      "You have the right to:\n• Access your personal data\n• Correct inaccurate information\n• Delete your account and associated data\n• Export your task data\n• Opt out of certain data processing activities\n• Withdraw consent at any time",
-    privacyRetention: "8. Data Retention",
+      "Under applicable laws and regulations, you have the following rights:\n\nRight of Access:\n• Request information about the personal data we hold about you\n• Understand the purposes and methods of data processing\n• Obtain information about data processing activities\n• Receive a copy of your personal data\n\nRight of Rectification:\n• Request correction of inaccurate personal data\n• Request completion of incomplete personal data\n• Modify some data through app settings\n• Update your profile information\n\nRight of Erasure:\n• Request deletion of your personal data\n• Delete your account and associated data\n• Request restriction of data processing in specific circumstances\n• Right to be forgotten\n\nRight of Data Portability:\n• Request your data in a structured format\n• Transfer data to other service providers\n• Download backup of your task data\n• Export your data in common formats\n\nRight to Withdraw Consent:\n• Withdraw consent for data processing at any time\n• Stop receiving certain types of notifications\n• Adjust privacy setting preferences\n• Opt out of marketing communications",
+    privacyRetention: "8. Data Retention Periods",
     privacyRetentionText:
-      "• We retain your data for as long as your account is active\n• You can delete your account at any time through the app settings\n• Some data may be retained for legal or security purposes\n• Deleted data is permanently removed from our systems",
-    privacyChildren: "9. Children's Privacy",
+      "We retain your personal data according to the following principles:\n\nDuring Account Active Period:\n• Retain data continuously while your account is active\n• Used for service provision and technical support\n• Maintain service quality and security\n• Support account recovery if needed\n\nAfter Account Deletion:\n• Immediately delete personally identifiable data\n• Anonymized statistical data may be retained for analysis\n• Legal requirement exceptions apply\n• Complete data removal within 30 days\n\nSpecial Circumstances:\n• May extend retention during legal proceedings\n• May extend retention during security incident investigations\n• Maximum retention not exceeding 7 years (legal requirement limit)\n• Compliance with regulatory requirements\n\nData Destruction:\n• Use secure deletion technology\n• Ensure data cannot be recovered\n• Regular verification of deletion effectiveness\n• Certificate of data destruction when required",
+    privacyChildren: "9. Children's Privacy Protection",
     privacyChildrenText:
-      "Our app is not intended for children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us immediately.",
+      "Age Restrictions:\n• This service is not intended for children under 13\n• We do not knowingly collect personal data from children under 13\n• We immediately delete any such data if discovered\n• Age verification mechanisms in place\n\nParental Supervision:\n• We recommend parental supervision of minor children using this service\n• Please contact us immediately if you discover inappropriate use\n• We will cooperate with parents for appropriate handling\n• Parental consent required for users under 16\n\nSpecial Protection:\n• More cautious data processing for minors\n• Additional privacy protection measures\n• Regular policy reviews\n• Enhanced security for minor accounts\n• Educational resources for parents",
     privacyInternational: "10. International Data Transfers",
     privacyInternationalText:
-      "Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your data in accordance with this Privacy Policy.",
-    privacyChanges: "11. Changes to This Policy",
+      "Transfer Scope:\n• Your data may be transferred to regions outside your country\n• Primarily for cloud services and technical support\n• Follow international data protection standards\n• Limited to necessary service operations\n\nProtection Measures:\n• Sign data protection agreements with recipients\n• Ensure appropriate technical and organizational measures\n• Regular assessment of transfer security\n• Compliance with relevant international regulations\n• Standard Contractual Clauses where applicable\n\nYour Rights:\n• Request information about data transfer details\n• Request restrictions on international transfers\n• Withdraw consent for transfers at any time\n• Object to transfers based on legitimate interests",
+    privacyChanges: "11. Policy Updates and Notifications",
     privacyChangesText:
-      'We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy in the app and updating the "Last updated" date. Your continued use of the app after such changes constitutes acceptance of the updated policy.',
-    privacyContact: "12. Contact Us",
+      "Update Process:\n• We regularly review and update this Privacy Policy\n• Significant changes will be announced 30 days in advance\n• Notify through in-app notifications or email\n• Update date displayed at the top of the policy\n• Version control and change tracking\n\nTypes of Changes:\n• Addition of new data collection types\n• Modification of data use purposes\n• Updates to security protection measures\n• Adjustments to your rights content\n• Changes in legal requirements\n\nAcceptance of Changes:\n• Continued use of the service constitutes acceptance of the new policy\n• If you disagree with changes, you may discontinue use and delete your account\n• We recommend reviewing the latest policy content regularly\n• Clear communication about material changes\n• Easy access to previous versions",
+    privacyContact: "12. Contact Us and Complaint Channels",
     privacyContactText:
-      "If you have any questions about this Privacy Policy or our data practices, please contact us through the app's support channels or email us at privacy@todo-app.com.",
+      "Privacy Inquiries:\n• In-app support feature\n• Email: privacy@todo-app.com\n• We will respond within 7 business days\n• Dedicated privacy officer contact\n\nData Protection Complaints:\n• Submit complaints if you have concerns about data processing\n• We take every complaint seriously\n• Provide clear processing results and explanations\n• Escalation procedures for unresolved issues\n\nRegulatory Authorities:\n• Contact relevant supervisory authorities if dissatisfied with our response\n• Data Protection Authority in your jurisdiction\n• Legal remedies available\n• Independent dispute resolution mechanisms",
     privacyAcknowledgment:
-      "By using To Do, you acknowledge that you have read and understood this Privacy Policy and agree to the collection, use, and disclosure of your information as described herein.",
+      "Thank you for trusting To Do. We are committed to continuously improving our privacy protection measures to provide you with secure and reliable task management services. If you have any privacy-related questions, please don't hesitate to contact us.",
     googleAccount: "Google Account",
     logout: "Log Out",
     selectTime: "Select Time",
@@ -362,26 +361,30 @@ const translations = {
     time: "Time",
     today: "Today",
     taskReminder: "Task Reminder",
+    // 不同时间点的通知文字
+    reminder30minTitle: "Task Starting Soon",
+    reminder30minBody: "Your task is starting in 30 minutes",
+    reminder10minTitle: "Task Starting Soon",
+    reminder10minBody: "Your task is starting in 10 minutes",
+    reminder5minTitle: "Task Starting Soon",
+    reminder5minBody: "Your task is starting in 5 minutes",
     notificationPermission: "Notification Permission",
     notificationPermissionMessage:
       "To Do needs notification permission to remind you about your tasks 30 minutes before they're due.",
     enableNotifications: "Enable Notifications",
     notLater: "Not Now",
     theme: "Theme",
-    themeDescription: "Choose between light and dark appearance",
     lightMode: "Light Mode",
     darkMode: "Dark Mode",
     appearance: "Appearance",
     byContinuing: "By continuing, you agree to our",
     and: "and",
     // Reminder settings
-    reminderSettings: "Reminder Settings",
-    reminderSettingsDescription:
-      "Choose when to receive notifications before your scheduled tasks",
+    reminderSettings: "Reminder",
     reminder30min: "30 minutes before",
     reminder10min: "10 minutes before",
     reminder5min: "5 minutes before",
-    reminderEnabled: "Enable reminders",
+    reminderEnabled: "Enable",
     reminderDisabled: "Reminders disabled",
     reminderNote:
       "Reminders will only be sent for tasks that have a scheduled time",
@@ -399,7 +402,8 @@ const translations = {
     updateLater: "Update Later",
     updateNow: "Update Now",
     error: "Error",
-    updateLinkError: "Unable to open update link. Please manually check for updates in App Store or TestFlight.",
+    updateLinkError:
+      "Unable to open update link. Please manually check for updates in App Store or TestFlight.",
   },
   zh: {
     settings: "設定",
@@ -439,7 +443,6 @@ const translations = {
     moveTask: "移動任務",
     moveTaskAlert: "請點選日曆上的日期以移動此任務。",
     language: "語言",
-    languageDescription: "選擇您偏好的應用程式介面語言",
     english: "English",
     chinese: "繁體中文(台灣)",
     months: [
@@ -466,78 +469,78 @@ const translations = {
     termsLastUpdated: "最後更新：",
     termsAcceptance: "1. 條款接受",
     termsAcceptanceText:
-      "通過訪問和使用 To Do（「應用程式」），您接受並同意受本協議條款的約束。如果您不同意遵守上述條款，請勿使用此服務。",
+      "歡迎使用 To Do（「我們」、「本公司」或「服務提供者」）。當您訪問、下載、安裝或使用本應用程式時，即表示您已閱讀、理解並同意受本使用條款的約束。如果您不同意本條款的任何部分，請立即停止使用本服務。",
     termsDescription: "2. 服務描述",
     termsDescriptionText:
-      "To Do 是一個任務管理應用程式，允許用戶創建、組織和管理日常任務和日程安排。該應用程式提供日曆整合、Google 單一登入認證和任務組織功能。",
-    termsAccounts: "3. 用戶帳號和認證",
+      "To Do 是一款個人任務管理應用程式，旨在幫助用戶有效組織和管理日常任務。本服務提供以下主要功能：\n• 任務創建、編輯和刪除\n• 日曆整合與任務排程\n• Google 單一登入（SSO）認證\n• 跨裝置資料同步\n• 任務提醒通知\n• 個人化設定與偏好管理",
+    termsAccounts: "3. 用戶帳號與認證",
     termsAccountsText:
-      "• 您可以使用 Google 單一登入（SSO）創建帳號\n• 您有責任維護帳號的機密性\n• 您同意提供準確和完整的信息\n• 您對帳號下發生的所有活動負責",
-    termsContent: "4. 用戶內容和數據",
+      "帳號創建：\n• 您必須透過 Google 單一登入（SSO）創建帳號\n• 您必須年滿 13 歲才能使用本服務\n• 您同意提供真實、準確且完整的個人資訊\n\n帳號責任：\n• 您有責任維護帳號密碼的機密性\n• 您對帳號下發生的所有活動負完全責任\n• 如發現未經授權使用您的帳號，請立即通知我們\n• 您不得將帳號轉讓給第三方",
+    termsContent: "4. 用戶內容與資料所有權",
     termsContentText:
-      "• 您保留在應用程式中創建的所有內容的所有權\n• 您對自己的內容和數據負全責\n• 我們不聲稱擁有您的個人任務或信息的所有權\n• 您授予我們提供服務所需的必要權限",
-    termsAcceptableUse: "5. 可接受的使用",
+      "內容所有權：\n• 您保留對在應用程式中創建的所有內容的完整所有權\n• 包括但不限於任務標題、描述、備註、連結等\n\n資料使用：\n• 您對自己的內容和資料負完全責任\n• 我們不會聲稱擁有您的個人任務或資訊的所有權\n• 您授予我們提供服務所需的必要技術權限\n• 我們不會將您的個人內容用於商業目的",
+    termsAcceptableUse: "5. 可接受的使用政策",
     termsAcceptableUseText:
-      "您同意不：\n• 將應用程式用於任何非法目的或違反任何法律\n• 嘗試未經授權訪問應用程式或其系統\n• 干擾或破壞應用程式的功能\n• 創建有害、冒犯性或侵犯他人權利的內容",
-    termsPrivacy: "6. 隱私和數據保護",
+      "您同意不會：\n• 將本服務用於任何非法目的或違反任何適用法律\n• 嘗試未經授權存取本應用程式或其相關系統\n• 干擾、破壞或損害本服務的正常運作\n• 創建、上傳或分享有害、冒犯性、歧視性或侵犯他人權利的內容\n• 進行任何可能損害服務安全性的活動\n• 使用自動化工具或機器人存取本服務",
+    termsPrivacy: "6. 隱私與資料保護",
     termsPrivacyText:
-      "您的隱私對我們很重要。請查看我們的隱私政策，了解我們如何收集、使用和保護您的信息。通過使用應用程式，您同意按照我們隱私政策中描述的方式收集和使用信息。",
-    termsAvailability: "7. 服務可用性",
+      "我們高度重視您的隱私權。本服務的資料處理遵循我們的隱私政策，該政策詳細說明我們如何收集、使用、儲存和保護您的個人資訊。\n\n重要提醒：\n• 請仔細閱讀我們的隱私政策\n• 使用本服務即表示您同意我們的資料處理方式\n• 我們採用業界標準的安全措施保護您的資料\n• 您有權控制自己的個人資料",
+    termsAvailability: "7. 服務可用性與維護",
     termsAvailabilityText:
-      "• 我們努力維持高服務可用性，但無法保證不間斷的訪問\n• 我們可能會進行暫時影響服務的維護\n• 我們保留隨時修改或終止服務的權利",
-    termsLiability: "8. 責任限制",
+      "服務承諾：\n• 我們致力於提供穩定可靠的服務體驗\n• 但無法保證服務的絕對不間斷性\n\n維護與更新：\n• 我們可能會進行定期維護，期間可能暫時影響服務\n• 我們保留隨時修改、暫停或終止服務的權利\n• 重大變更將提前通知用戶\n• 我們會盡力將維護時間安排在非高峰時段",
+    termsLiability: "8. 責任限制與免責聲明",
     termsLiabilityText:
-      "應用程式按「現狀」提供，不提供任何形式的保證。對於因使用或無法使用應用程式而導致的任何直接、間接、偶然、特殊或後果性損害，我們不承擔責任。",
-    termsChanges: "9. 條款變更",
+      "免責聲明：\n• 本服務按「現狀」提供，不提供任何明示或暗示的保證\n• 我們不保證服務的無錯誤性、不間斷性或完全安全性\n\n責任限制：\n• 在法律允許的最大範圍內，我們不對以下損害承擔責任：\n  - 直接、間接、偶然或後果性損害\n  - 因使用或無法使用本服務而造成的任何損失\n  - 資料遺失、業務中斷或其他商業損失",
+    termsChanges: "9. 條款修改",
     termsChangesText:
-      "我們保留隨時修改這些條款的權利。變更將在發布後立即生效。您繼續使用應用程式即表示接受修改後的條款。",
-    termsContact: "10. 聯繫信息",
+      "修改權利：\n• 我們保留隨時修改本使用條款的權利\n• 重大修改將透過應用程式內通知或電子郵件告知\n• 修改後的條款將在發布後立即生效\n\n接受修改：\n• 您繼續使用本服務即表示接受修改後的條款\n• 如不同意修改內容，請停止使用本服務並刪除帳號\n• 建議您定期查看本條款以了解最新變更",
+    termsContact: "10. 聯絡資訊與爭議解決",
     termsContactText:
-      "如果您對這些使用條款有任何疑問，請通過應用程式的支持渠道聯繫我們。",
+      "技術支援：\n• 如遇技術問題，請透過應用程式內支援功能聯繫我們\n• 我們將在合理時間內回應您的詢問\n\n爭議解決：\n• 如發生爭議，我們鼓勵透過友好協商解決\n• 本條款受中華民國法律管轄\n• 任何法律訴訟應向有管轄權的法院提起",
     termsAcknowledgment:
-      "通過使用 To Do，您確認已閱讀、理解並同意受這些使用條款的約束。",
+      "感謝您選擇 To Do。透過使用本服務，您確認已充分閱讀、理解並同意受本使用條款的約束。我們承諾為您提供優質的任務管理服務體驗。",
     // Privacy Policy translations
     privacyTitle: "隱私政策",
     privacyLastUpdated: "最後更新：",
-    privacyIntroduction: "1. 介紹",
+    privacyIntroduction: "1. 政策概述",
     privacyIntroductionText:
-      "To Do（「我們」、「我們的」或「我們」）致力於保護您的隱私。本隱私政策解釋了我們在您使用我們的任務管理應用程式時如何收集、使用、披露和保護您的信息。",
-    privacyInformation: "2. 我們收集的信息",
-    privacyAccountInfo: "帳號信息：",
+      "To Do（「我們」、「本公司」或「服務提供者」）深知個人隱私的重要性，並致力於保護您的個人資料安全。本隱私政策詳細說明我們如何收集、使用、儲存、保護和分享您在使用 To Do 任務管理應用程式時提供的個人資訊。\n\n我們承諾遵循相關法律法規，包括《個人資料保護法》等，確保您的隱私權得到充分保護。",
+    privacyInformation: "2. 我們收集的個人資料類型",
+    privacyAccountInfo: "帳號相關資料：",
     privacyAccountInfoText:
-      "• 電子郵件地址（通過 Google SSO）\n• 顯示名稱\n• 個人資料圖片（如果由 Google 提供）\n\n任務數據：\n• 任務標題、描述和內容\n• 截止日期和時間\n• 任務類別和優先級\n• 連結和附件\n\n使用數據：\n• 應用程式使用模式和偏好\n• 設備信息和設置",
-    privacyUse: "3. 我們如何使用您的信息",
+      "基本帳號資訊：\n• 電子郵件地址（透過 Google SSO 取得）\n• 顯示名稱（可自訂）\n• 個人資料圖片（如 Google 帳號提供）\n• 帳號創建時間和最後登入時間\n\n任務管理資料：\n• 任務標題、描述和詳細內容\n• 任務截止日期和提醒時間\n• 任務分類、優先級和標籤\n• 任務連結和附件資訊\n• 任務完成狀態和歷史記錄\n\n使用行為資料：\n• 應用程式使用頻率和模式\n• 功能使用偏好和設定\n• 裝置資訊和作業系統版本\n• 錯誤報告和效能資料（匿名化）",
+    privacyUse: "3. 個人資料使用目的與法律依據",
     privacyUseText:
-      "我們使用您的信息來：\n• 提供和維護應用程式的功能\n• 跨設備同步您的任務\n• 改善我們的服務和用戶體驗\n• 提供客戶支持\n• 確保安全並防止欺詐",
-    privacyStorage: "4. 數據存儲和安全",
+      "我們使用您的個人資料用於以下目的：\n\n服務提供：\n• 提供任務管理核心功能\n• 跨裝置同步您的任務資料\n• 發送任務提醒通知\n• 維護和改善服務品質\n\n技術支援：\n• 診斷和解決技術問題\n• 提供客戶服務和技術支援\n• 進行系統維護和更新\n\n安全防護：\n• 防止未經授權的存取\n• 偵測和防範詐欺行為\n• 保護系統和資料安全\n\n法律依據：\n• 基於您的明確同意\n• 為履行與您的服務合約\n• 為遵守法律義務\n• 為保護我們的合法權益",
+    privacyStorage: "4. 資料儲存與安全保護措施",
     privacyStorageText:
-      "• 您的數據使用 Supabase 雲基礎設施安全存儲\n• 我們實施行業標準的安全措施\n• 數據在傳輸和靜止時都經過加密\n• 只有授權人員才能訪問您的數據\n• 我們定期審查和更新我們的安全實踐",
-    privacySharing: "5. 數據共享和披露",
+      "資料儲存：\n• 使用 Supabase 雲端基礎設施進行安全儲存\n• 資料分散儲存在多個地理位置\n• 定期進行資料備份和災難恢復測試\n\n安全措施：\n• 採用業界標準的加密技術（AES-256）\n• 資料傳輸使用 TLS 1.3 加密\n• 實施多層次存取控制和身份驗證\n• 定期進行安全漏洞掃描和滲透測試\n• 建立完整的資料存取日誌和監控系統\n\n人員管理：\n• 僅授權必要人員可存取個人資料\n• 所有員工簽署保密協議\n• 定期進行隱私保護培訓\n• 建立資料處理標準作業程序",
+    privacySharing: "5. 資料分享與第三方揭露",
     privacySharingText:
-      "我們不出售、交易或出租您的個人信息給第三方。我們只在以下情況下共享您的信息：\n• 在您明確同意的情況下\n• 為了遵守法律義務\n• 為了保護我們的權利並防止欺詐\n• 與協助應用程式運營的服務提供商（在嚴格的保密協議下）",
-    privacyThirdParty: "6. 第三方服務",
+      "我們承諾不會出售、出租或交易您的個人資料。我們僅在以下情況下分享您的資料：\n\n經您同意：\n• 在您明確同意的情況下\n• 您可隨時撤回同意\n\n法律要求：\n• 為遵守法院命令或法律規定\n• 為配合政府機關調查\n• 為保護我們的合法權益\n\n服務提供者：\n• 與可信賴的第三方服務商合作（如 Google、Supabase）\n• 簽署嚴格的資料保護協議\n• 確保第三方遵循相同的隱私保護標準\n• 定期審查第三方合規狀況\n\n緊急情況：\n• 為保護您或他人的生命安全\n• 為防止重大損害發生",
+    privacyThirdParty: "6. 第三方服務整合",
     privacyThirdPartyText:
-      "我們的應用程式整合了：\n• Google：用於通過 Google SSO 進行認證\n• Supabase：用於安全的數據存儲和後端服務\n\n這些服務有自己的隱私政策，我們鼓勵您查看。",
-    privacyRights: "7. 您的權利和選擇",
+      "本應用程式整合以下第三方服務：\n\nGoogle 服務：\n• Google 單一登入（SSO）認證\n• 用於身份驗證和帳號管理\n• 遵循 Google 隱私政策\n\nSupabase 平台：\n• 雲端資料庫和後端服務\n• 提供安全的資料儲存和 API 服務\n• 遵循 Supabase 資料保護政策\n\n重要提醒：\n• 這些第三方服務有其獨立的隱私政策\n• 建議您詳細閱讀相關政策\n• 我們會定期審查第三方服務的合規性\n• 如發現安全問題，我們會立即採取適當措施",
+    privacyRights: "7. 您的隱私權利",
     privacyRightsText:
-      "您有權：\n• 訪問您的個人數據\n• 更正不準確的信息\n• 刪除您的帳號和相關數據\n• 導出您的任務數據\n• 選擇退出某些數據處理活動\n• 隨時撤回同意",
-    privacyRetention: "8. 數據保留",
+      "根據相關法律法規，您享有以下權利：\n\n資料存取權：\n• 查詢我們持有的您的個人資料\n• 了解資料處理的目的和方式\n• 取得資料處理的相關資訊\n\n資料更正權：\n• 要求更正不正確的個人資料\n• 要求補充不完整的個人資料\n• 透過應用程式設定自行修改部分資料\n\n資料刪除權：\n• 要求刪除您的個人資料\n• 刪除您的帳號和相關資料\n• 在特定情況下要求限制資料處理\n\n資料可攜權：\n• 要求以結構化格式取得您的資料\n• 將資料轉移至其他服務提供者\n• 下載您的任務資料備份\n\n同意撤回權：\n• 隨時撤回對資料處理的同意\n• 停止接收特定類型的通知\n• 調整隱私設定偏好",
+    privacyRetention: "8. 資料保留期限",
     privacyRetentionText:
-      "• 我們在您的帳號活躍期間保留您的數據\n• 您可以隨時通過應用程式設置刪除您的帳號\n• 某些數據可能因法律或安全目的而保留\n• 已刪除的數據將從我們的系統中永久移除",
-    privacyChildren: "9. 兒童隱私",
+      "我們根據以下原則保留您的個人資料：\n\n帳號存續期間：\n• 在您的帳號有效期間持續保留\n• 用於提供服務和技術支援\n• 維護服務品質和安全性\n\n帳號刪除後：\n• 立即刪除個人識別資料\n• 匿名化統計資料可保留用於分析\n• 法律要求保留的資料除外\n\n特殊情況：\n• 法律訴訟期間可能延長保留\n• 安全事件調查期間可能延長保留\n• 最多不超過 7 年（法律要求上限）\n\n資料銷毀：\n• 使用安全刪除技術\n• 確保資料無法復原\n• 定期檢查刪除效果",
+    privacyChildren: "9. 未成年人隱私保護",
     privacyChildrenText:
-      "我們的應用程式不適用於 13 歲以下的兒童。我們不會故意收集 13 歲以下兒童的個人信息。如果您發現兒童向我們提供了個人信息，請立即聯繫我們。",
-    privacyInternational: "10. 國際數據傳輸",
+      "年齡限制：\n• 本服務不適用於 13 歲以下的兒童\n• 我們不會故意收集 13 歲以下兒童的個人資料\n• 如發現此類情況，我們會立即刪除相關資料\n\n家長監護：\n• 建議家長監督未成年子女使用本服務\n• 如發現不當使用，請立即聯繫我們\n• 我們會配合家長進行適當處理\n\n特殊保護：\n• 對未成年人的資料處理更加謹慎\n• 提供額外的隱私保護措施\n• 定期審查相關政策",
+    privacyInternational: "10. 國際資料傳輸",
     privacyInternationalText:
-      "您的信息可能會被傳輸到您所在國家以外的國家並在那裡處理。我們確保有適當的保障措施來根據本隱私政策保護您的數據。",
-    privacyChanges: "11. 本政策的變更",
+      "傳輸範圍：\n• 您的資料可能傳輸至台灣以外的地區\n• 主要用於雲端服務和技術支援\n• 遵循國際資料保護標準\n\n保護措施：\n• 與接收方簽署資料保護協議\n• 確保適當的技術和組織措施\n• 定期評估傳輸安全性\n• 遵守相關國際法規\n\n您的權利：\n• 可要求了解資料傳輸詳情\n• 可要求限制國際傳輸\n• 可隨時撤回傳輸同意",
+    privacyChanges: "11. 政策更新與通知",
     privacyChangesText:
-      "我們可能會不時更新本隱私政策。我們將通過在應用程式中發布新的隱私政策並更新「最後更新」日期來通知您任何變更。您在變更後繼續使用應用程式即表示接受更新後的政策。",
-    privacyContact: "12. 聯繫我們",
+      "更新程序：\n• 我們會定期審查和更新本隱私政策\n• 重大變更會提前 30 天通知\n• 透過應用程式內通知或電子郵件告知\n• 更新日期會顯示在政策頂部\n\n變更類型：\n• 新增資料收集類型\n• 修改資料使用目的\n• 更新安全保護措施\n• 調整您的權利內容\n\n接受變更：\n• 繼續使用服務即表示接受新政策\n• 如不同意變更，可停止使用並刪除帳號\n• 建議定期查看最新政策內容",
+    privacyContact: "12. 聯絡我們與申訴管道",
     privacyContactText:
-      "如果您對本隱私政策或我們的數據實踐有任何疑問，請通過應用程式的支持渠道聯繫我們，或發送電子郵件至 privacy@todo-app.com。",
+      "隱私問題諮詢：\n• 應用程式內支援功能\n• 電子郵件：privacy@todo-app.com\n• 我們會在 7 個工作天內回覆\n\n資料保護申訴：\n• 如對資料處理有疑慮，可提出申訴\n• 我們會認真處理每件申訴\n• 提供明確的處理結果和說明\n\n監管機關：\n• 如對處理結果不滿，可向主管機關申訴\n• 台灣個人資料保護委員會\n• 相關法律救濟管道",
     privacyAcknowledgment:
-      "通過使用 To Do，您確認已閱讀並理解本隱私政策，並同意按照此處描述的方式收集、使用和披露您的信息。",
+      "感謝您信任 To Do。我們承諾持續改進隱私保護措施，為您提供安全可靠的任務管理服務。如有任何隱私相關問題，請隨時與我們聯繫。",
     googleAccount: "Google 帳號",
     logout: "登出",
     selectTime: "選擇時間",
@@ -547,25 +550,30 @@ const translations = {
     time: "時間",
     today: "今天",
     taskReminder: "任務提醒",
+    // 不同時間點的通知文字
+    reminder30minTitle: "任務即將開始",
+    reminder30minBody: "您的任務將在 30 分鐘後開始",
+    reminder10minTitle: "任務即將開始",
+    reminder10minBody: "您的任務將在 10 分鐘後開始",
+    reminder5minTitle: "任務即將開始",
+    reminder5minBody: "您的任務將在 5 分鐘後開始",
     notificationPermission: "通知權限",
     notificationPermissionMessage:
       "To Do 需要通知權限才能在任務開始前 30 分鐘提醒您。",
     enableNotifications: "啟用通知",
     notLater: "暫不啟用",
     theme: "主題",
-    themeDescription: "選擇淺色或深色外觀",
     lightMode: "淺色模式",
     darkMode: "深色模式",
     appearance: "外觀",
     byContinuing: "繼續使用即表示您同意我們的",
     and: "和",
     // 提醒設定
-    reminderSettings: "提醒設定",
-    reminderSettingsDescription: "選擇在排程任務前多久收到通知提醒",
+    reminderSettings: "提醒",
     reminder30min: "30分鐘前",
     reminder10min: "10分鐘前",
     reminder5min: "5分鐘前",
-    reminderEnabled: "啟用提醒",
+    reminderEnabled: "啟用",
     reminderDisabled: "提醒已停用",
     reminderNote: "提醒僅會發送給已設定時間的任務",
     // 版本更新翻譯
@@ -582,7 +590,8 @@ const translations = {
     updateLater: "稍後更新",
     updateNow: "立即更新",
     error: "錯誤",
-    updateLinkError: "無法開啟更新連結，請手動前往 App Store 或 TestFlight 檢查更新。",
+    updateLinkError:
+      "無法開啟更新連結，請手動前往 App Store 或 TestFlight 檢查更新。",
   },
 };
 
@@ -663,7 +672,7 @@ const SplashScreen = ({ navigation }) => {
           if (window.location.hostname.includes("to-do-dev")) {
             appScheme = "too-doo-list-dev"; // Development
           }
-          // Note: to-do-staging.vercel.app and to-do-dev-alan.vercel.app both use production scheme
+          // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
 
           console.log("OAuth callback: Using app scheme:", appScheme);
 
@@ -1495,7 +1504,9 @@ const SplashScreen = ({ navigation }) => {
           );
           console.log(
             "🔍 DEBUG - All EXPO_PUBLIC env vars:",
-            Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC'))
+            Object.keys(process.env).filter((key) =>
+              key.startsWith("EXPO_PUBLIC")
+            )
           );
           console.log(
             "🔍 DEBUG - EXPO_PUBLIC_APP_ENV value:",
@@ -1503,10 +1514,12 @@ const SplashScreen = ({ navigation }) => {
           );
 
           if (currentEnv === "development") {
-            return "https://to-do-dev-alan.vercel.app/auth/callback";
-          } else {
-            // Production (includes legacy 'staging')
+            return "https://to-do-mvp.vercel.app/auth/callback";
+          } else if (currentEnv === "staging") {
             return "https://to-do-staging.vercel.app/auth/callback";
+          } else {
+            // Production
+            return "https://to-do-mvp.vercel.app/auth/callback";
           }
         }
 
@@ -2917,13 +2930,8 @@ function SettingScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text
-                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
-              >
+              <Text style={{ color: theme.text, fontSize: 16 }}>
                 {t.language}
-              </Text>
-              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
-                {t.languageDescription}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -3041,14 +3049,7 @@ function SettingScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text
-                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
-              >
-                {t.theme}
-              </Text>
-              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
-                {t.themeDescription}
-              </Text>
+              <Text style={{ color: theme.text, fontSize: 16 }}>{t.theme}</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
@@ -3173,13 +3174,8 @@ function SettingScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text
-                style={{ color: theme.text, fontSize: 16, marginBottom: 4 }}
-              >
+              <Text style={{ color: theme.text, fontSize: 16 }}>
                 {t.reminderSettings}
-              </Text>
-              <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
-                {t.reminderSettingsDescription}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -3768,7 +3764,7 @@ function CalendarScreen({ navigation, route }) {
   const openEditTask = (task) => {
     setEditingTask(task);
     setTaskText(task.title);
-    setTaskTime(task.time || "");
+    setTaskTime(formatTimeDisplay(task.time) || "");
     setTaskLink(task.link || "");
     setTaskDate(task.date);
     setTaskNote(task.note || "");
@@ -3820,7 +3816,9 @@ function CalendarScreen({ navigation, route }) {
               notificationIds: editingTask.notificationIds, // 傳遞舊的 IDs 以便取消
             },
             t.taskReminder,
-            getActiveReminderMinutes() // 從配置文件讀取提醒時間
+            getActiveReminderMinutes(), // 從配置文件讀取提醒時間
+            null, // userReminderSettings
+            t // 傳入翻譯物件
           );
 
           if (notificationIds.length > 0) {
@@ -3873,7 +3871,9 @@ function CalendarScreen({ navigation, route }) {
               time: taskTime,
             },
             t.taskReminder,
-            getActiveReminderMinutes() // 從配置文件讀取提醒時間
+            getActiveReminderMinutes(), // 從配置文件讀取提醒時間
+            null, // userReminderSettings
+            t // 傳入翻譯物件
           );
 
           if (notificationIds.length > 0) {
@@ -4667,6 +4667,7 @@ function CalendarScreen({ navigation, route }) {
                       <input
                         id="time-input-field"
                         type="time"
+                        step="60"
                         value={taskTime}
                         onChange={(e) => setTaskTime(e.target.value)}
                         style={{
@@ -5406,30 +5407,37 @@ export default function App() {
     }
   }, []);
 
-  // Check for version updates on app start
+  // Check for version updates on app start (僅在原生平台)
   useEffect(() => {
     const checkVersionUpdate = async () => {
+      // Web 版本會自動更新，不需要檢查版本
+      if (Platform.OS === "web") {
+        console.log("🌐 [App] Web 平台 - 跳過版本檢查（自動更新）");
+        return;
+      }
+
       try {
-        console.log('🔍 [App] 開始檢查版本更新...');
-        console.log('🔍 [App] 當前環境:', process.env.EXPO_PUBLIC_APP_ENV);
+        console.log("🔍 [App] 開始檢查版本更新...");
+        console.log("🔍 [App] 當前環境:", process.env.EXPO_PUBLIC_APP_ENV);
+        console.log("🔍 [App] 當前平台:", Platform.OS);
         const updateInfo = await versionService.checkForUpdates();
-        console.log('🔍 [App] 版本檢查結果:', updateInfo);
-        
+        console.log("🔍 [App] 版本檢查結果:", updateInfo);
+
         if (updateInfo.hasUpdate) {
-          console.log('🔄 [App] 發現新版本:', updateInfo.latestVersion);
+          console.log("🔄 [App] 發現新版本:", updateInfo.latestVersion);
           setVersionUpdateInfo(updateInfo);
           setVersionUpdateVisible(true);
         } else {
-          console.log('✅ [App] 當前版本已是最新版本');
+          console.log("✅ [App] 當前版本已是最新版本");
         }
       } catch (error) {
-        console.error('❌ [App] 版本檢查失敗:', error);
+        console.error("❌ [App] 版本檢查失敗:", error);
       }
     };
 
     // 延遲 1 秒後檢查版本，避免影響 app 啟動速度
     const timer = setTimeout(checkVersionUpdate, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -5742,7 +5750,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
-        
+
         {/* Version Update Modal */}
         <VersionUpdateModal
           visible={versionUpdateVisible}

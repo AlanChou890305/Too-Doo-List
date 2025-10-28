@@ -25,6 +25,22 @@ A cross-platform React Native to-do list app with calendar integration, Google S
 - **📊 Google Analytics:** Integrated with ReactGA4 for usage analytics (GA4 ID: G-NV40E1BDH3)
 - **🚀 Web Deployment:** Optimized for Netlify deployment
 
+## 📁 Project Structure
+
+### Core Files
+- `App.js` - Main application component
+- `src/` - Source code directory
+  - `components/` - React components
+  - `services/` - API and business logic
+  - `config/` - Configuration files
+- `supabase_migration_*.sql` - Database migration files
+- `supabaseClient.js` - Supabase client configuration
+
+### Documentation
+- `README.md` - This file
+- `SUPABASE_*.md` - Supabase setup and configuration guides
+- `docs/archive/` - Archived setup guides (moved after completion)
+
 ## Screenshots
 
 _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
@@ -38,7 +54,7 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 - Supabase account
 - Google Cloud Platform account (for OAuth)
 
-### Setup Instructions
+### Quick Setup
 
 1. **Clone the repo:**
 
@@ -54,7 +70,7 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
    ```
 
 3. **Configure Environment Variables:**
-   
+
    Create a `.env.local` file in the root directory:
 
    ```bash
@@ -63,7 +79,7 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
    EXPO_PUBLIC_SUPABASE_URL_DEV=your_staging_supabase_url
    EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV=your_staging_anon_key
    ```
-   
+
    詳細配置請參考 [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)
 
 4. **Set up Supabase:**
@@ -79,8 +95,7 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
    ```bash
    npm start
    ```
-   - Use the Expo CLI to run on Android, iOS, or Web:
-     - `npm run android` — Run on Android device/emulator
+   - Use the Expo CLI to run on iOS or Web:
      - `npm run ios` — Run on iOS simulator
      - `npm run web` — Run in browser
 
@@ -91,13 +106,15 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 #### Vercel Deployment（推薦）
 
 **Staging 環境:**
+
 - Git Branch: `develop`
 - Domain: `to-do-staging.vercel.app`
 - Supabase: `to-do-staging`
 
 **Production 環境:**
+
 - Git Branch: `main`
-- Domain: `to-do-dev-alan.vercel.app`
+- Domain: `to-do-mvp.vercel.app`
 - Supabase: `to-do-production`
 
 詳細設定請參考 [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
