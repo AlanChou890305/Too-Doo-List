@@ -80,14 +80,14 @@ module.exports = {
     // Platform specific settings
     ios: {
       bundleIdentifier: envConfig.bundleIdentifier,
-      supportsTablet: true,
+      supportsTablet: false,
       deploymentTarget: "13.0",
       associatedDomains: getAssociatedDomains(),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         CFBundleURLTypes: [
           {
-            CFBundleURLSchemes: [envConfig.scheme],
+            CFBundleURLSchemes: ["too-doo-list", "too-doo-list-staging"],
           },
         ],
       },

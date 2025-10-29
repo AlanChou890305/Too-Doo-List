@@ -3901,24 +3901,31 @@ function CalendarScreen({ navigation, route }) {
   };
 
   const showDeleteConfirm = () => {
-    console.log("showDeleteConfirm called, using Alert.alert");
-    Alert.alert(
-      t.deleteConfirm,
-      "",
-      [
-        {
-          text: t.cancel,
-          onPress: () => console.log("Delete cancelled"),
-          style: "cancel",
-        },
-        {
-          text: t.delete,
-          onPress: deleteTask,
-          style: "destructive",
-        },
-      ],
-      { cancelable: true }
-    );
+    // Web 平台使用原生 confirm，其他平台使用 Alert.alert
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm(t.deleteConfirm);
+      if (confirmed) {
+        deleteTask();
+      }
+    } else {
+      Alert.alert(
+        t.deleteConfirm,
+        "",
+        [
+          {
+            text: t.cancel,
+            onPress: () => {},
+            style: "cancel",
+          },
+          {
+            text: t.delete,
+            onPress: deleteTask,
+            style: "destructive",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const deleteTask = async () => {

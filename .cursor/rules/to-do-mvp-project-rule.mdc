@@ -16,14 +16,43 @@
 **正確的 prebuild 流程：**
 
 ```bash
-# 僅生成 iOS 專案
+# 僅生成 iOS 專案（僅在首次設定時使用）
 npx expo prebuild --platform ios --clean
 ```
 
-或在 `.easrc` 或環境變數中設定：
+**⚠️ 重要：一旦 iOS 專案建立完成，不要再執行 prebuild！**
+
+---
+
+## iOS 專案管理
+
+### 環境變數設定
+
+**在 Xcode 中設定環境變數，不要使用 prebuild：**
+
+1. **開啟 Xcode 專案**：`ios/ToDo.xcodeproj`
+2. **建立兩個 Schemes**：
+   - `To Do Staging` - 使用 staging 環境變數
+   - `To Do Production` - 使用 production 環境變數
+
+3. **在每個 Scheme 中設定環境變數**：
+   - 編輯 Scheme → Run → Arguments → Environment Variables
+   - 添加 `EXPO_PUBLIC_APP_ENV` = `staging` 或 `production`
+
+### 禁止的操作
+
+- ❌ **不要執行 `npx expo prebuild --clean`** - 會清掉現有設定
+- ❌ **不要重新生成 iOS 專案** - 除非絕對必要
+- ✅ **使用 Xcode 管理環境變數和 Schemes**
+- ✅ **直接使用 Xcode 建置和 Archive**
+
+### 環境切換
 
 ```bash
-EXPO_NO_ANDROID=1 npx expo prebuild
+# 切換環境變數（僅用於開發）
+export EXPO_PUBLIC_APP_ENV=production  # 或 staging
+
+# 在 Xcode 中選擇對應的 Scheme 建置
 ```
 
 ---

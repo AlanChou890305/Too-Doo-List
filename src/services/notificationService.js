@@ -12,22 +12,27 @@ function getNotificationText(minutesBefore, translations) {
     case 30:
       return {
         title: translations.reminder30minTitle || "Task Starting Soon",
-        body: translations.reminder30minBody || "Your task is starting in 30 minutes"
+        body:
+          translations.reminder30minBody ||
+          "Your task is starting in 30 minutes",
       };
     case 10:
       return {
-        title: translations.reminder10minTitle || "Task Starting Soon", 
-        body: translations.reminder10minBody || "Your task is starting in 10 minutes"
+        title: translations.reminder10minTitle || "Task Starting Soon",
+        body:
+          translations.reminder10minBody ||
+          "Your task is starting in 10 minutes",
       };
     case 5:
       return {
         title: translations.reminder5minTitle || "Task Starting Soon",
-        body: translations.reminder5minBody || "Your task is starting in 5 minutes"
+        body:
+          translations.reminder5minBody || "Your task is starting in 5 minutes",
       };
     default:
       return {
         title: translations.taskReminder || "Task Reminder",
-        body: `Your task is starting in ${minutesBefore} minutes`
+        body: `Your task is starting in ${minutesBefore} minutes`,
       };
   }
 }
@@ -76,7 +81,7 @@ export async function registerForPushNotificationsAsync() {
  * 安排任務提醒通知（支援多個提醒時間點）
  * @param {Object} task - 任務物件
  * @param {string} task.id - 任務 ID
- * @param {string} task.text - 任務文字
+ * @param {string} task.title - 任務標題
  * @param {string} task.date - 任務日期 (YYYY-MM-DD)
  * @param {string} task.time - 任務時間 (HH:MM)
  * @param {string} reminderText - 提醒文字（多語系）
@@ -152,13 +157,16 @@ export async function scheduleTaskNotification(
       }
 
       // 生成個性化的通知文字
-      const notificationText = getNotificationText(minutesBefore, translations || {});
-      
+      const notificationText = getNotificationText(
+        minutesBefore,
+        translations || {}
+      );
+
       // 安排通知
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: notificationText.title,
-          body: `${notificationText.body}: ${task.text}`,
+          body: `${notificationText.body}: ${task.title}`,
           data: {
             taskId: task.id,
             minutesBefore: minutesBefore,
@@ -172,7 +180,7 @@ export async function scheduleTaskNotification(
       scheduledNotificationIds.push(notificationId);
 
       console.log(`✅ Notification scheduled (${minutesBefore}min before)`);
-      console.log(`   Task: ${task.text}`);
+      console.log(`   Task: ${task.title}`);
       console.log(`   Task time: ${taskTime.toLocaleString()}`);
       console.log(`   Reminder time: ${reminderTime.toLocaleString()}`);
       console.log(`   Notification ID: ${notificationId}`);
