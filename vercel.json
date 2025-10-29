@@ -3,7 +3,7 @@
   "name": "too-doo-list",
   "git": {
     "deploymentEnabled": {
-      "main": false,
+      "main": true,
       "develop": true
     }
   },
