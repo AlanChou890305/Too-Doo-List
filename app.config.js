@@ -87,28 +87,12 @@ module.exports = {
         ITSAppUsesNonExemptEncryption: false,
         CFBundleURLTypes: [
           {
-            CFBundleURLSchemes: ["too-doo-list", "too-doo-list-staging"],
+            CFBundleURLSchemes: [envConfig.scheme],
           },
         ],
       },
     },
-    android: {
-      package: envConfig.package,
-      intentFilters: [
-        {
-          action: "VIEW",
-          autoVerify: true,
-          data: [
-            {
-              scheme: envConfig.scheme,
-              host: "auth",
-              pathPrefix: "/",
-            },
-          ],
-          category: ["BROWSABLE", "DEFAULT"],
-        },
-      ],
-    },
+    // Android configuration removed as this project targets iOS only
     web: {
       port: 8081,
       bundler: "metro",

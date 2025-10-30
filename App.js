@@ -103,12 +103,13 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     );
     console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
 
-    // Determine the correct URL scheme based on hostname
-    let appScheme = "too-doo-list"; // Default: production
-    if (window.location.hostname.includes("to-do-dev")) {
-      appScheme = "too-doo-list-dev"; // Development
-    }
-    // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
+    // Determine the correct URL scheme based on environment/domain
+    const envScheme = process.env.NEXT_PUBLIC_APP_SCHEME;
+    let appScheme =
+      envScheme ||
+      (window.location.hostname.includes("to-do-staging.vercel.app")
+        ? "too-doo-list-staging"
+        : "too-doo-list");
 
     console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
 
@@ -667,12 +668,13 @@ const SplashScreen = ({ navigation }) => {
             "OAuth callback: Detected native app OAuth flow, preparing redirect..."
           );
 
-          // Determine the correct URL scheme based on hostname
-          let appScheme = "too-doo-list"; // Default: production
-          if (window.location.hostname.includes("to-do-dev")) {
-            appScheme = "too-doo-list-dev"; // Development
-          }
-          // Note: to-do-staging.vercel.app and to-do-mvp.vercel.app both use production scheme
+          // Determine the correct URL scheme based on environment/domain
+          const envScheme = process.env.NEXT_PUBLIC_APP_SCHEME;
+          let appScheme =
+            envScheme ||
+            (window.location.hostname.includes("to-do-staging.vercel.app")
+              ? "too-doo-list-staging"
+              : "too-doo-list");
 
           console.log("OAuth callback: Using app scheme:", appScheme);
 
