@@ -26,17 +26,17 @@ const getRedirectUrl = () => {
 
 // 環境配置
 const getEnvironmentConfig = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "staging"; // 默認使用 staging
 
   const configs = {
     development: {
-      name: "To Do Dev",
-      slug: "too-doo-list-dev",
+      name: "To Do Staging",
+      slug: "too-doo-list-staging",
       version: "1.9.1-dev",
       description: "To Do - Development Environment (Local + Web Testing)",
-      scheme: "too-doo-list-dev",
-      bundleIdentifier: "com.cty0305.too.doo.list.dev",
-      package: "com.cty0305.too.doo.list.dev",
+      scheme: "too-doo-list-staging",
+      bundleIdentifier: "com.cty0305.too.doo.list.staging",
+      package: "com.cty0305.too.doo.list.staging",
     },
     production: {
       name: "To Do",
@@ -48,17 +48,17 @@ const getEnvironmentConfig = () => {
       package: "com.cty0305.too.doo.list",
     },
     staging: {
-      name: "To Do Testing",
+      name: "To Do Staging",
       slug: "too-doo-list-staging",
       version: "1.9.1",
-      description: "To Do - Testing Environment",
+      description: "To Do - Staging Environment (Testing)",
       scheme: "too-doo-list-staging",
       bundleIdentifier: "com.cty0305.too.doo.list.staging",
       package: "com.cty0305.too.doo.list.staging",
     },
   };
 
-  return configs[env] || configs.production;
+  return configs[env] || configs.staging; // 默認 fallback 到 staging
 };
 
 const envConfig = getEnvironmentConfig();
@@ -153,10 +153,23 @@ module.exports = {
     // EAS project configuration
     extra: {
       eas: {
-        projectId: "a86169e7-6d37-4bee-be43-d1e709615ef9",
+        // 根據環境使用不同的 project ID
+        // Staging: 8b8685c4-b853-4a83-b937-f97eb8c5cb7e
+        // Production: a86169e7-6d37-4bee-be43-d1e709615ef9
+        projectId:
+          envConfig.slug === "too-doo-list-staging"
+            ? "8b8685c4-b853-4a83-b937-f97eb8c5cb7e" // staging project
+            : "a86169e7-6d37-4bee-be43-d1e709615ef9", // production project
       },
       // Environment variables - 根據環境自動切換
       EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || "development",
+      // Supabase 配置 - 從環境變數或直接設置
+      // Development 和 Staging 共用 staging Supabase
+      EXPO_PUBLIC_SUPABASE_URL_STAGING:
+        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
+        "https://qerosiozltqrbehctxdn.supabase.co",
+      EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING:
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING,
       // 環境特定配置
       environment: envConfig,
     },
@@ -190,6 +203,7 @@ module.exports = {
           sounds: [],
         },
       ],
+      "expo-apple-authentication",
     ],
   },
 };

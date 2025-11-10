@@ -5,7 +5,26 @@
 
 // 獲取當前環境
 export const getCurrentEnvironment = () => {
-  return process.env.EXPO_PUBLIC_APP_ENV || "development";
+  // 在 web 平台上，自動檢測 localhost 並強制使用 staging（測試環境）
+  if (typeof window !== "undefined" && window.location) {
+    const hostname = window.location.hostname;
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0"
+    ) {
+      // Auto-detected localhost, using staging environment
+      return "staging";
+    }
+  }
+
+  // 如果明確設置了環境變數，使用它
+  if (process.env.EXPO_PUBLIC_APP_ENV) {
+    return process.env.EXPO_PUBLIC_APP_ENV;
+  }
+
+  // 默認使用 staging（測試環境）
+  return "staging";
 };
 
 // 環境配置
@@ -14,9 +33,14 @@ export const environmentConfig = {
     name: "Development",
     appName: "Too-Doo-List Staging",
     supabase: {
-      // Staging 使用 qero... project (to-do-staging, 用於開發和測試)
-      url: process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
-      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
+      // Development 和 Staging 共用 staging 的 Supabase
+      // 使用 staging URL，如果沒有則 fallback 到 EXPO_PUBLIC_SUPABASE_URL_DEV
+      url:
+        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
+        process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
+      anonKey:
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
     },
     api: {
       baseUrl:
@@ -46,8 +70,7 @@ export const environmentConfig = {
     },
     api: {
       baseUrl:
-        process.env.EXPO_PUBLIC_API_BASE_URL ||
-        "https://api.yourdomain.com",
+        process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.yourdomain.com",
       version: "v1",
     },
     features: {
@@ -68,13 +91,16 @@ export const environmentConfig = {
     appName: "Too-Doo-List Staging",
     supabase: {
       // Staging 使用 qero... project (to-do-staging)
-      url: process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING || process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
-      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
+      url:
+        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
+        process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
+      anonKey:
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
     },
     api: {
       baseUrl:
-        process.env.EXPO_PUBLIC_API_BASE_URL ||
-        "https://api.yourdomain.com",
+        process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.yourdomain.com",
       version: "v1",
     },
     features: {

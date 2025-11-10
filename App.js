@@ -1208,14 +1208,27 @@ const SplashScreen = ({ navigation }) => {
                 data?.session?.user?.email
               );
 
-              // Navigate to main app
+              // Wait for session to be fully established and onAuthStateChange to trigger
+              // Don't navigate here - let auth state listener handle it
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] Navigating to main app..."
+                "🔗🔗🔗 [App.js Deep Link] ⏳ Waiting for auth state listener to navigate..."
               );
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "MainTabs" }],
-              });
+              console.log(
+                "🔗🔗🔗 [App.js Deep Link] (SIGNED_IN event should trigger navigation)"
+              );
+
+              // Wait a moment for onAuthStateChange to fire
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
+              // Fallback: If navigation hasn't happened after 2 seconds, navigate manually
+              setTimeout(() => {
+                if (!hasNavigated) {
+                  console.log(
+                    "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app..."
+                  );
+                  navigateToMainApp();
+                }
+              }, 2000);
             } else if (accessToken && refreshToken) {
               // Direct token flow
               console.log(
@@ -1244,14 +1257,27 @@ const SplashScreen = ({ navigation }) => {
                 "🔗🔗🔗 [App.js Deep Link] ✅ Session set successfully!"
               );
 
-              // Navigate to main app
+              // Wait for session to be fully established and onAuthStateChange to trigger
+              // Don't navigate here - let auth state listener handle it
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] Navigating to main app..."
+                "🔗🔗🔗 [App.js Deep Link] ⏳ Waiting for auth state listener to navigate..."
               );
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "MainTabs" }],
-              });
+              console.log(
+                "🔗🔗🔗 [App.js Deep Link] (SIGNED_IN event should trigger navigation)"
+              );
+
+              // Wait a moment for onAuthStateChange to fire
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
+              // Fallback: If navigation hasn't happened after 2 seconds, navigate manually
+              setTimeout(() => {
+                if (!hasNavigated) {
+                  console.log(
+                    "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app..."
+                  );
+                  navigateToMainApp();
+                }
+              }, 2000);
             } else {
               console.error(
                 "🔗🔗🔗 [App.js Deep Link] No code or tokens found in callback"
@@ -1497,9 +1523,9 @@ const SplashScreen = ({ navigation }) => {
       // Use the correct redirect URL for Expo
       const getRedirectUrl = () => {
         if (Platform.OS !== "web") {
-          // For standalone apps (TestFlight), use Vercel callback page based on environment
-          // The page will redirect back to app using custom URI scheme
-          const currentEnv = process.env.EXPO_PUBLIC_APP_ENV || "development";
+          // For standalone apps (iOS), use app scheme directly
+          // This allows OAuth to redirect directly back to the app
+          const currentEnv = process.env.EXPO_PUBLIC_APP_ENV || "staging";
           console.log(
             "🔍 DEBUG - Current environment for redirect:",
             currentEnv
@@ -1515,14 +1541,17 @@ const SplashScreen = ({ navigation }) => {
             process.env.EXPO_PUBLIC_APP_ENV
           );
 
-          if (currentEnv === "development") {
-            return "https://to-do-mvp.vercel.app/auth/callback";
-          } else if (currentEnv === "staging") {
-            return "https://to-do-staging.vercel.app/auth/callback";
-          } else {
-            // Production
-            return "https://to-do-mvp.vercel.app/auth/callback";
-          }
+          // Get app scheme based on environment
+          // Use the same scheme as defined in app.config.js
+          const appScheme =
+            currentEnv === "production"
+              ? "too-doo-list"
+              : "too-doo-list-staging";
+
+          console.log("🔍 DEBUG - Using app scheme:", appScheme);
+
+          // Use app scheme for direct deep link
+          return `${appScheme}://auth/callback`;
         }
 
         // For web, always return the current origin
@@ -1598,23 +1627,36 @@ const SplashScreen = ({ navigation }) => {
 
             // Parse and handle the OAuth callback URL directly
             try {
-              let params;
-              if (result.url.includes("#")) {
-                const hashPart = result.url.split("#")[1];
-                params = new URLSearchParams(hashPart);
-                console.log("🎯 [CRITICAL] Parsing from hash");
-              } else if (result.url.includes("?")) {
-                const queryPart = result.url.split("?")[1];
-                params = new URLSearchParams(queryPart);
-                console.log("🎯 [CRITICAL] Parsing from query");
+              let params = null;
+              let code, accessToken, refreshToken, error;
+
+              // Try query parameters first (PKCE flow)
+              if (result.url.includes("?")) {
+                const queryPart = result.url.split("?")[1].split("#")[0]; // Remove hash if present
+                if (queryPart) {
+                  params = new URLSearchParams(queryPart);
+                  console.log("🎯 [CRITICAL] Parsing from query");
+                  code = params.get("code");
+                  accessToken = params.get("access_token");
+                  refreshToken = params.get("refresh_token");
+                  error = params.get("error");
+                }
               }
 
-              if (params) {
-                const code = params.get("code");
-                const accessToken = params.get("access_token");
-                const refreshToken = params.get("refresh_token");
-                const error = params.get("error");
+              // If no params found in query, try hash (direct token flow)
+              if (!code && !accessToken && result.url.includes("#")) {
+                const hashPart = result.url.split("#")[1];
+                if (hashPart && hashPart.trim()) {
+                  params = new URLSearchParams(hashPart);
+                  console.log("🎯 [CRITICAL] Parsing from hash");
+                  code = params.get("code");
+                  accessToken = params.get("access_token");
+                  refreshToken = params.get("refresh_token");
+                  error = params.get("error");
+                }
+              }
 
+              if (params && (code || accessToken || error)) {
                 console.log("🎯 [CRITICAL] OAuth params:", {
                   hasCode: !!code,
                   hasAccessToken: !!accessToken,
@@ -2720,28 +2762,22 @@ function SettingScreen() {
     try {
       setLogoutModalVisible(false);
 
-      // Check if we have a valid session
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Splash" }],
-        });
-        return;
-      }
-
       // Try to log out (using Supabase's signOut API)
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.error("Log out error:", error);
-        throw error;
+      // Even if this fails (e.g., network error), we should still navigate to splash
+      // because the local session will be cleared
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.warn("Log out error (continuing anyway):", error);
+          // Continue with navigation even if signOut fails
+        }
+      } catch (signOutError) {
+        console.warn("Log out exception (continuing anyway):", signOutError);
+        // Continue with navigation even if signOut throws
       }
 
       // Navigate back to splash screen immediately after logout
+      // This should happen regardless of whether signOut succeeded or failed
       navigation.reset({
         index: 0,
         routes: [{ name: "Splash" }],
@@ -2754,6 +2790,16 @@ function SettingScreen() {
         code: error?.code,
         stack: error?.stack,
       });
+      
+      // Even if there's an error, try to navigate to splash screen
+      try {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Splash" }],
+        });
+      } catch (navError) {
+        console.error("Error navigating to splash:", navError);
+      }
 
       // Show detailed error message
       const errorMessage =

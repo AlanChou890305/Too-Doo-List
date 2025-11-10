@@ -2,6 +2,52 @@ import { supabase } from "../../supabaseClient";
 import { Platform } from "react-native";
 
 export class UserService {
+  static cachedAuthUser = null;
+  static cachedAuthUserUpdatedAt = null;
+
+  static normalizeAuthUser(user) {
+    if (!user || !user.id || !user.email) {
+      return null;
+    }
+    return {
+      id: user.id,
+      email: user.email,
+      user_metadata: user.user_metadata || {},
+      created_at: user.created_at,
+      last_sign_in_at: user.last_sign_in_at,
+    };
+  }
+
+  static setCachedAuthUser(user) {
+    const normalized = UserService.normalizeAuthUser(user);
+    if (normalized) {
+      UserService.cachedAuthUser = normalized;
+      UserService.cachedAuthUserUpdatedAt = Date.now();
+    }
+  }
+
+  static clearCachedAuthUser() {
+    UserService.cachedAuthUser = null;
+    UserService.cachedAuthUserUpdatedAt = null;
+  }
+
+  static getCachedAuthUser(maxAgeMs = 5 * 60 * 1000) {
+    if (
+      UserService.cachedAuthUser &&
+      UserService.cachedAuthUser.id &&
+      UserService.cachedAuthUser.email
+    ) {
+      if (!UserService.cachedAuthUserUpdatedAt) {
+        return UserService.cachedAuthUser;
+      }
+      const age = Date.now() - UserService.cachedAuthUserUpdatedAt;
+      if (age <= maxAgeMs) {
+        return UserService.cachedAuthUser;
+      }
+    }
+    return null;
+  }
+
   // Get user settings
   static async getUserSettings() {
     try {
@@ -145,6 +191,88 @@ export class UserService {
       console.error("Error in updateUserSettings:", error);
       throw error;
     }
+  }
+
+  // Fetch authenticated user with retries, ensuring email and id are available
+  static async fetchAuthUserWithRetry(
+    maxRetries = 3,
+    delayMs = 500,
+    timeoutMs = 2500
+  ) {
+    const cachedUser = UserService.getCachedAuthUser();
+    if (cachedUser) {
+      console.log(
+        "[fetchAuthUserWithRetry] Returning cached auth user:",
+        cachedUser.email
+      );
+      return cachedUser;
+    }
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(
+          `[fetchAuthUserWithRetry] Calling getUser() (attempt ${attempt}/${maxRetries})`
+        );
+
+        const getUserPromise = supabase.auth.getUser();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `[fetchAuthUserWithRetry] getUser() timeout after ${timeoutMs}ms`
+                )
+              ),
+            timeoutMs
+          )
+        );
+
+        const { data, error } = await Promise.race([
+          getUserPromise,
+          timeoutPromise,
+        ]);
+
+        const user = data?.user;
+
+        if (error) {
+          console.warn(
+            `[fetchAuthUserWithRetry] getUser() error (attempt ${attempt}/${maxRetries}):`,
+            error
+          );
+        } else if (!user) {
+          console.warn(
+            `[fetchAuthUserWithRetry] getUser() returned no user (attempt ${attempt}/${maxRetries})`
+          );
+        } else if (user?.email && user?.id) {
+          UserService.setCachedAuthUser(user);
+          console.log(
+            `[fetchAuthUserWithRetry] ✅ Success with user ${user.email} (attempt ${attempt}/${maxRetries})`
+          );
+          return UserService.getCachedAuthUser();
+        } else {
+          console.warn(
+            `[fetchAuthUserWithRetry] getUser() returned incomplete user (attempt ${attempt}/${maxRetries}):`,
+            {
+              hasUser: !!user,
+              hasEmail: !!user?.email,
+              hasId: !!user?.id,
+            }
+          );
+        }
+      } catch (error) {
+        console.warn(
+          `[fetchAuthUserWithRetry] Exception in getUser() (attempt ${attempt}/${maxRetries}):`,
+          error
+        );
+      }
+
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+
+    console.warn("[fetchAuthUserWithRetry] Failed to get authenticated user");
+    return null;
   }
 
   // Get user profile information
