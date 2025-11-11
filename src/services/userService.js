@@ -1,5 +1,6 @@
 import { supabase } from "../../supabaseClient";
 import { Platform } from "react-native";
+import { getSupabaseConfig } from "../config/environment";
 
 export class UserService {
   static cachedAuthUser = null;
@@ -375,6 +376,57 @@ export class UserService {
       console.log(`📱 Platform updated: ${Platform.OS}`);
     } catch (error) {
       console.error("Error updating platform info:", error);
+    }
+  }
+
+  // Delete user account
+  static async deleteUser() {
+    try {
+      // Get current session
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error("No active session found");
+      }
+
+      // Get Supabase URL from environment config
+      const supabaseConfig = getSupabaseConfig();
+      const supabaseUrl = supabaseConfig?.url;
+      if (!supabaseUrl) {
+        throw new Error("Supabase URL not configured");
+      }
+
+      // Call the delete-user edge function
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete user account");
+      }
+
+      // Clear cached user
+      UserService.clearCachedAuthUser();
+
+      // Sign out after successful deletion
+      await supabase.auth.signOut();
+
+      return { success: true, message: data.message || "Account deleted successfully" };
+    } catch (error) {
+      console.error("Error deleting user account:", error);
+      throw error;
     }
   }
 }

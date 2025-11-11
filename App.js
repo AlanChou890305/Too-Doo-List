@@ -276,6 +276,10 @@ const translations = {
     alreadyLoggedOut: "You are already logged out.",
     logoutError: "Failed to log out. Please try again.",
     accountType: "Account Type",
+    deleteAccount: "Delete Account",
+    deleteAccountConfirm: "Are you sure you want to delete your account? This action cannot be undone. All your tasks and data will be permanently deleted.",
+    deleteAccountError: "Failed to delete account. Please try again.",
+    deleteAccountSuccess: "Account deleted successfully",
     // Terms of Use translations
     termsTitle: "Terms of Use",
     termsLastUpdated: "Last updated:",
@@ -465,6 +469,10 @@ const translations = {
     alreadyLoggedOut: "您已經登出。",
     logoutError: "登出失敗。請再試一次。",
     accountType: "帳號類型",
+    deleteAccount: "刪除帳號",
+    deleteAccountConfirm: "您確定要刪除帳號嗎？此操作無法復原。您的所有任務和資料將被永久刪除。",
+    deleteAccountError: "刪除帳號失敗。請再試一次。",
+    deleteAccountSuccess: "帳號已成功刪除",
     // Terms of Use translations
     termsTitle: "使用條款",
     termsLastUpdated: "最後更新：",
@@ -2688,6 +2696,7 @@ function SettingScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState("");
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
   const [userName, setUserName] = useState("User");
   const [userProfile, setUserProfile] = useState(null);
   const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
@@ -2805,6 +2814,27 @@ function SettingScreen() {
       const errorMessage =
         error?.message || "Failed to log out. Please try again.";
       setModalText(t.logoutError || errorMessage);
+      setModalVisible(true);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setDeleteAccountModalVisible(false);
+
+      // Call deleteUser service
+      await UserService.deleteUser();
+
+      // Navigate back to splash screen after successful deletion
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Splash" }],
+      });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      const errorMessage =
+        error?.message || t.deleteAccountError || "Failed to delete account. Please try again.";
+      setModalText(errorMessage);
       setModalVisible(true);
     }
   };
@@ -3459,7 +3489,7 @@ function SettingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Log Out and Version Section */}
+        {/* Log Out, Delete Account and Version Section */}
         <View
           style={{
             marginHorizontal: 20,
@@ -3480,7 +3510,7 @@ function SettingScreen() {
               borderWidth: 1,
               borderColor: theme.cardBorder,
               alignItems: "center",
-              marginBottom: 16,
+              marginBottom: 12,
               shadowColor: theme.shadow,
               shadowOpacity: theme.shadowOpacity,
               shadowRadius: 4,
@@ -3492,6 +3522,22 @@ function SettingScreen() {
               style={{ color: theme.error, fontSize: 16, fontWeight: "600" }}
             >
               {t.logout || "Log out"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setDeleteAccountModalVisible(true);
+            }}
+            style={{
+              alignItems: "center",
+              marginBottom: 16,
+              paddingVertical: 8,
+            }}
+          >
+            <Text
+              style={{ color: theme.error, fontSize: 14, fontWeight: "400" }}
+            >
+              {t.deleteAccount || "Delete Account"}
             </Text>
           </TouchableOpacity>
           <Text
@@ -3648,6 +3694,118 @@ function SettingScreen() {
                   }}
                 >
                   {t.logout}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        visible={deleteAccountModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setDeleteAccountModalVisible(false)}
+        accessibilityViewIsModal={true}
+        accessibilityLabel="Delete Account Confirmation Modal"
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: theme.modalOverlay,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          activeOpacity={1}
+          onPress={() => setDeleteAccountModalVisible(false)}
+        >
+          <View
+            style={{
+              backgroundColor: theme.modalBackground,
+              borderRadius: 12,
+              minWidth: 280,
+              maxWidth: 320,
+              alignItems: "center",
+              overflow: "hidden",
+            }}
+          >
+            <View style={{ padding: 24, paddingBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  color: theme.text,
+                  textAlign: "center",
+                  fontWeight: "600",
+                  lineHeight: 24,
+                  marginBottom: 12,
+                }}
+              >
+                {t.deleteAccount || "Delete Account"}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: theme.textSecondary,
+                  textAlign: "center",
+                  lineHeight: 20,
+                }}
+              >
+                {t.deleteAccountConfirm}
+              </Text>
+            </View>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.divider,
+                width: "100%",
+              }}
+            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                width: "100%",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setDeleteAccountModalVisible(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  alignItems: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: theme.divider,
+                }}
+              >
+                <Text
+                  style={{
+                    color: theme.primary,
+                    fontSize: 17,
+                    fontWeight: "400",
+                  }}
+                >
+                  {t.cancel}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteAccount}
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: theme.error,
+                    fontSize: 17,
+                    fontWeight: "600",
+                  }}
+                >
+                  {t.delete}
                 </Text>
               </TouchableOpacity>
             </View>
