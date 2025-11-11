@@ -2,7 +2,6 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
 require 'json'
-require 'pathname'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
 def ccache_enabled?(podfile_properties)
@@ -21,7 +20,7 @@ platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
 
 prepare_react_native_project!
 
-target 'ToDo' do
+target 'ToDoStaging' do
   use_expo_modules!
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
@@ -42,66 +41,20 @@ target 'ToDo' do
   use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
   use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 
-  # Convert absolute path to relative path for use_react_native!
-  react_native_path = config[:reactNativePath]
-  if react_native_path && File.absolute_path?(react_native_path)
-    ios_dir = Pathname.new(__dir__).realpath
-    react_native_full_path = Pathname.new(react_native_path).realpath
-    react_native_path = react_native_full_path.relative_path_from(ios_dir).to_s
-  end
-
   use_react_native!(
-    :path => react_native_path,
+    :path => config[:reactNativePath],
     :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
-end
 
-target 'ToDo Staging' do
-  use_expo_modules!
-
-  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
-    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
-  else
-    config_command = [
-      'npx',
-      'expo-modules-autolinking',
-      'react-native-config',
-      '--json',
-      '--platform',
-      'ios'
-    ]
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      :ccache_enabled => ccache_enabled?(podfile_properties),
+    )
   end
-
-  config = use_native_modules!(config_command)
-
-  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
-  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
-
-  # Convert absolute path to relative path for use_react_native!
-  react_native_path = config[:reactNativePath]
-  if react_native_path && File.absolute_path?(react_native_path)
-    ios_dir = Pathname.new(__dir__).realpath
-    react_native_full_path = Pathname.new(react_native_path).realpath
-    react_native_path = react_native_full_path.relative_path_from(ios_dir).to_s
-  end
-
-  use_react_native!(
-    :path => react_native_path,
-    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
-    # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/..",
-    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
-  )
-end
-
-post_install do |installer|
-  react_native_post_install(
-    installer,
-    '../node_modules/react-native',
-    :mac_catalyst_enabled => false,
-    :ccache_enabled => ccache_enabled?(podfile_properties),
-  )
 end

@@ -66,6 +66,7 @@ import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
 import ReactGA from "react-ga4";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
+import * as AppleAuthentication from "expo-apple-authentication";
 import {
   View,
   Text,
@@ -277,7 +278,8 @@ const translations = {
     logoutError: "Failed to log out. Please try again.",
     accountType: "Account Type",
     deleteAccount: "Delete Account",
-    deleteAccountConfirm: "Are you sure you want to delete your account? This action cannot be undone. All your tasks and data will be permanently deleted.",
+    deleteAccountConfirm:
+      "Are you sure you want to delete your account? This action cannot be undone. All your tasks and data will be permanently deleted.",
     deleteAccountError: "Failed to delete account. Please try again.",
     deleteAccountSuccess: "Account deleted successfully",
     // Terms of Use translations
@@ -358,6 +360,9 @@ const translations = {
     privacyAcknowledgment:
       "Thank you for trusting To Do. We are committed to continuously improving our privacy protection measures to provide you with secure and reliable task management services. If you have any privacy-related questions, please don't hesitate to contact us.",
     googleAccount: "Google Account",
+    signInWithGoogle: "Sign in with Google",
+    signInWithApple: "Sign in with Apple",
+    appleAccount: "Apple Account",
     logout: "Log Out",
     selectTime: "Select Time",
     hour: "Hour",
@@ -470,7 +475,8 @@ const translations = {
     logoutError: "登出失敗。請再試一次。",
     accountType: "帳號類型",
     deleteAccount: "刪除帳號",
-    deleteAccountConfirm: "您確定要刪除帳號嗎？此操作無法復原。您的所有任務和資料將被永久刪除。",
+    deleteAccountConfirm:
+      "您確定要刪除帳號嗎？此操作無法復原。您的所有任務和資料將被永久刪除。",
     deleteAccountError: "刪除帳號失敗。請再試一次。",
     deleteAccountSuccess: "帳號已成功刪除",
     // Terms of Use translations
@@ -551,6 +557,9 @@ const translations = {
     privacyAcknowledgment:
       "感謝您信任 To Do。我們承諾持續改進隱私保護措施，為您提供安全可靠的任務管理服務。如有任何隱私相關問題，請隨時與我們聯繫。",
     googleAccount: "Google 帳號",
+    signInWithGoogle: "使用 Google 登入",
+    signInWithApple: "使用 Apple 登入",
+    appleAccount: "Apple 帳號",
     logout: "登出",
     selectTime: "選擇時間",
     hour: "時",
@@ -648,6 +657,30 @@ const SplashScreen = ({ navigation }) => {
   const { t } = useContext(LanguageContext);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isAppleSigningIn, setIsAppleSigningIn] = useState(false);
+  const [isAppleAvailable, setIsAppleAvailable] = useState(false);
+
+  // Check if Apple Authentication is available
+  useEffect(() => {
+    const checkAppleAvailability = async () => {
+      if (Platform.OS === "ios") {
+        try {
+          const isAvailable = await AppleAuthentication.isAvailableAsync();
+          setIsAppleAvailable(isAvailable);
+          console.log("🍎 Apple Authentication available:", isAvailable);
+        } catch (error) {
+          console.error(
+            "Error checking Apple Authentication availability:",
+            error
+          );
+          setIsAppleAvailable(false);
+        }
+      } else {
+        setIsAppleAvailable(false);
+      }
+    };
+    checkAppleAvailability();
+  }, []);
 
   useEffect(() => {
     // Handle OAuth callback if this is a redirect from OAuth
@@ -996,6 +1029,7 @@ const SplashScreen = ({ navigation }) => {
 
             // 重置登入狀態
             setIsSigningIn(false);
+            setIsAppleSigningIn(false);
 
             // 更新用戶平台資訊（不阻止登入流程）
             UserService.updatePlatformInfo()
@@ -1909,6 +1943,393 @@ const SplashScreen = ({ navigation }) => {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    // Prevent multiple simultaneous sign-in attempts
+    if (isAppleSigningIn || isSigningIn) {
+      console.log("⚠️ Sign-in already in progress, ignoring duplicate request");
+      return;
+    }
+
+    // Check if Apple Authentication is available
+    if (!isAppleAvailable) {
+      Alert.alert(
+        "Not Available",
+        "Sign in with Apple is not available on this device."
+      );
+      return;
+    }
+
+    setIsAppleSigningIn(true);
+    console.log("🍎 Apple Authentication - Starting...");
+
+    try {
+      if (!supabase) {
+        console.error("CRITICAL: Supabase client is NOT initialized");
+        throw new Error("Supabase client is not initialized");
+      }
+
+      // First, check for an existing session
+      const {
+        data: { session: existingSession },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("CRITICAL: Error checking session:", sessionError);
+        throw sessionError;
+      }
+
+      if (existingSession) {
+        console.log("VERBOSE: User is already signed in");
+        setIsAppleSigningIn(false);
+        return;
+      }
+
+      // Request Apple ID credential
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      console.log("🍎 Apple credential received:", {
+        user: credential.user,
+        email: credential.email,
+        fullName: credential.fullName,
+        givenName: credential.fullName?.givenName,
+        familyName: credential.fullName?.familyName,
+      });
+
+      // Log detailed fullName structure
+      if (credential.fullName) {
+        console.log(
+          "🍎 fullName object:",
+          JSON.stringify(credential.fullName, null, 2)
+        );
+      } else {
+        console.log(
+          "🍎 No fullName in credential (this happens on subsequent logins)"
+        );
+      }
+
+      // Decode identity token to check audience (bundle ID)
+      if (credential.identityToken) {
+        try {
+          const tokenParts = credential.identityToken.split(".");
+          if (tokenParts.length >= 2) {
+            // Decode base64 URL-safe string
+            const base64Url = tokenParts[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const jsonPayload = decodeURIComponent(
+              atob(base64)
+                .split("")
+                .map(
+                  (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+                )
+                .join("")
+            );
+            const payload = JSON.parse(jsonPayload);
+            console.log("🍎 ID Token payload:", {
+              aud: payload.aud,
+              iss: payload.iss,
+              sub: payload.sub,
+            });
+            console.log("⚠️ Bundle ID in token (aud):", payload.aud);
+            console.log(
+              "⚠️ Expected for staging:",
+              "com.cty0305.too.doo.list.staging"
+            );
+            console.log(
+              "⚠️ Current EXPO_PUBLIC_APP_ENV:",
+              process.env.EXPO_PUBLIC_APP_ENV || "not set"
+            );
+          }
+        } catch (e) {
+          console.warn("Could not decode identity token:", e);
+        }
+      }
+
+      // Get the identity token from Apple
+      if (!credential.identityToken) {
+        throw new Error("No identity token received from Apple");
+      }
+
+      // Sign in with Supabase using Apple identity token
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: credential.identityToken,
+        nonce: credential.nonce || undefined,
+      });
+
+      if (error) {
+        console.error("CRITICAL: Supabase sign-in failed:", error);
+        throw error;
+      }
+
+      if (data?.user) {
+        console.log("🍎 ✅ Apple sign-in successful!");
+        console.log("User:", data.user.email || data.user.id);
+        console.log("Current user_metadata:", data.user.user_metadata);
+
+        // Update user metadata if we got name from Apple
+        // Note: Apple only returns fullName on the FIRST sign-in
+        if (credential.fullName) {
+          const fullName = credential.fullName
+            ? `${credential.fullName.givenName || ""} ${
+                credential.fullName.familyName || ""
+              }`.trim()
+            : null;
+
+          if (fullName) {
+            console.log("🍎 Got fullName from Apple:", fullName);
+
+            // Check if user_metadata already has a name or display_name
+            const existingName =
+              data.user.user_metadata?.name ||
+              data.user.user_metadata?.display_name;
+
+            // Only update if we don't have a name yet, or if the new name is different
+            if (!existingName || existingName !== fullName) {
+              try {
+                console.log(
+                  "🍎 Updating user_metadata (name and display_name) to:",
+                  fullName
+                );
+                const { data: updateData, error: updateError } =
+                  await supabase.auth.updateUser({
+                    data: {
+                      name: fullName,
+                      display_name: fullName, // Also set display_name for Supabase Auth users table
+                    },
+                  });
+
+                if (updateError) {
+                  console.error("❌ Failed to update user name:", updateError);
+                  console.error(
+                    "Update error details:",
+                    JSON.stringify(updateError, null, 2)
+                  );
+                } else {
+                  console.log("✅ User name updated successfully:", fullName);
+                  console.log(
+                    "Updated user_metadata:",
+                    JSON.stringify(updateData?.user?.user_metadata, null, 2)
+                  );
+
+                  // Verify the update by fetching the user again
+                  try {
+                    const { data: verifyData, error: verifyError } =
+                      await supabase.auth.getUser();
+                    if (verifyError) {
+                      console.error(
+                        "❌ Error verifying user update:",
+                        verifyError
+                      );
+                    } else {
+                      console.log(
+                        "🔍 Verification - user_metadata after update:",
+                        JSON.stringify(verifyData?.user?.user_metadata, null, 2)
+                      );
+                      console.log(
+                        "🔍 Verification - name:",
+                        verifyData?.user?.user_metadata?.name
+                      );
+                      console.log(
+                        "🔍 Verification - display_name:",
+                        verifyData?.user?.user_metadata?.display_name
+                      );
+                    }
+                  } catch (verifyErr) {
+                    console.warn("⚠️ Could not verify user update:", verifyErr);
+                  }
+
+                  // Also update display_name in user_settings table
+                  try {
+                    await UserService.updateUserSettings({
+                      display_name: fullName,
+                    });
+                    console.log(
+                      "✅ display_name synced to user_settings table"
+                    );
+                  } catch (settingsError) {
+                    console.warn(
+                      "⚠️ Failed to sync display_name to user_settings:",
+                      settingsError
+                    );
+                  }
+                }
+              } catch (updateError) {
+                console.error("❌ Error updating user name:", updateError);
+              }
+            } else {
+              console.log(
+                "ℹ️ User name already exists and matches:",
+                existingName
+              );
+            }
+          } else {
+            console.warn("⚠️ fullName is empty after processing");
+            // If fullName is empty, use email prefix as fallback
+            const emailPrefix = data.user.email?.split("@")[0] || "User";
+            console.log("🍎 Using email prefix as display_name:", emailPrefix);
+
+            const existingName =
+              data.user.user_metadata?.name ||
+              data.user.user_metadata?.display_name;
+
+            if (!existingName || existingName === emailPrefix) {
+              try {
+                console.log(
+                  "🍎 Setting display_name from email prefix:",
+                  emailPrefix
+                );
+                const { data: updateData, error: updateError } =
+                  await supabase.auth.updateUser({
+                    data: {
+                      name: emailPrefix,
+                      display_name: emailPrefix,
+                    },
+                  });
+
+                if (updateError) {
+                  console.error(
+                    "❌ Failed to set email prefix as name:",
+                    updateError
+                  );
+                } else {
+                  console.log(
+                    "✅ Email prefix set as display_name:",
+                    emailPrefix
+                  );
+
+                  // Also update display_name in user_settings table
+                  try {
+                    await UserService.updateUserSettings({
+                      display_name: emailPrefix,
+                    });
+                    console.log(
+                      "✅ display_name synced to user_settings table"
+                    );
+                  } catch (settingsError) {
+                    console.warn(
+                      "⚠️ Failed to sync display_name to user_settings:",
+                      settingsError
+                    );
+                  }
+                }
+              } catch (updateError) {
+                console.error(
+                  "❌ Error setting email prefix as name:",
+                  updateError
+                );
+              }
+            }
+          }
+        } else {
+          console.log(
+            "ℹ️ No fullName from Apple (this is normal for returning users)"
+          );
+          console.log(
+            "Current user_metadata.name:",
+            data.user.user_metadata?.name
+          );
+          console.log(
+            "Current user_metadata.display_name:",
+            data.user.user_metadata?.display_name
+          );
+
+          // If user doesn't have a name yet, set a default from email
+          const existingName =
+            data.user.user_metadata?.name ||
+            data.user.user_metadata?.display_name;
+
+          if (!existingName && data.user.email) {
+            const emailPrefix = data.user.email.split("@")[0];
+            console.log(
+              "🍎 Setting default display_name from email:",
+              emailPrefix
+            );
+
+            try {
+              const { data: updateData, error: updateError } =
+                await supabase.auth.updateUser({
+                  data: {
+                    name: emailPrefix,
+                    display_name: emailPrefix,
+                  },
+                });
+
+              if (updateError) {
+                console.error("❌ Failed to set default name:", updateError);
+              } else {
+                console.log("✅ Default name set successfully:", emailPrefix);
+
+                // Also update display_name in user_settings table
+                try {
+                  await UserService.updateUserSettings({
+                    display_name: emailPrefix,
+                  });
+                  console.log("✅ display_name synced to user_settings table");
+                } catch (settingsError) {
+                  console.warn(
+                    "⚠️ Failed to sync display_name to user_settings:",
+                    settingsError
+                  );
+                }
+              }
+            } catch (updateError) {
+              console.error("❌ Error setting default name:", updateError);
+            }
+          }
+        }
+
+        // The auth state change listener will handle navigation
+        console.log("⏳ Waiting for auth state listener to navigate...");
+      } else {
+        throw new Error("No user data returned from Supabase");
+      }
+    } catch (error) {
+      console.error("CRITICAL: Apple Authentication Error:", {
+        name: error?.name || "Unknown Error",
+        message: error?.message || "No error message available",
+        code: error?.code || "N/A",
+        fullError: error,
+      });
+
+      // Log full error details for debugging
+      console.error("Full error object:", JSON.stringify(error, null, 2));
+      console.error("Error stack:", error?.stack);
+
+      let errorMessage =
+        "An unexpected error occurred during sign in. Please try again.";
+
+      if (error?.code === "ERR_REQUEST_CANCELED") {
+        errorMessage = "Sign in was cancelled. Please try again.";
+      } else if (error?.message?.includes("network error")) {
+        errorMessage =
+          "Network error. Please check your internet connection and try again.";
+      } else if (error?.message?.includes("Apple provider not found")) {
+        errorMessage =
+          "Apple sign-in is not properly configured. Please contact support.";
+      } else if (error?.message) {
+        // Show the actual error message if available
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Sign In Error", errorMessage, [
+        {
+          text: "OK",
+          style: "default",
+          onPress: () => setIsAppleSigningIn(false),
+        },
+      ]);
+    } finally {
+      console.log("🍎 Apple Authentication - Completed");
+      setIsAppleSigningIn(false);
+    }
+  };
+
   return (
     <SafeAreaView
       style={{
@@ -1960,11 +2381,12 @@ const SplashScreen = ({ navigation }) => {
               shadowOpacity: theme.shadowOpacity,
               shadowRadius: 2,
               elevation: 1,
+              opacity: isAppleSigningIn ? 0.5 : 1,
             }}
             onPress={handleGoogleSignIn}
-            disabled={isSigningIn}
+            disabled={isSigningIn || isAppleSigningIn}
           >
-            {isSigningIn ? (
+            {isSigningIn && !isAppleSigningIn ? (
               <Text
                 style={{
                   color: theme.mode === "dark" ? theme.text : "#4285F4",
@@ -1978,7 +2400,7 @@ const SplashScreen = ({ navigation }) => {
               <>
                 <Image
                   source={require("./assets/google-logo.png")}
-                  style={{ width: 24, height: 24, marginRight: 8 }}
+                  style={{ width: 28, height: 28, marginRight: 4 }}
                   resizeMode="contain"
                 />
                 <Text
@@ -1988,11 +2410,68 @@ const SplashScreen = ({ navigation }) => {
                     fontSize: 16,
                   }}
                 >
-                  Sign in with Google
+                  {t.signInWithGoogle || "Sign in with Google"}
                 </Text>
               </>
             )}
           </TouchableOpacity>
+          {isAppleAvailable && (
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: theme.card,
+                borderColor: theme.cardBorder,
+                borderWidth: 1,
+                borderRadius: 4,
+                paddingVertical: 12,
+                justifyContent: "center",
+                marginBottom: 10,
+                width: "100%",
+                shadowColor: theme.shadow,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: theme.shadowOpacity,
+                shadowRadius: 2,
+                elevation: 1,
+                opacity: isSigningIn ? 0.5 : 1,
+              }}
+              onPress={handleAppleSignIn}
+              disabled={isAppleSigningIn || isSigningIn}
+            >
+              {isAppleSigningIn && !isSigningIn ? (
+                <Text
+                  style={{
+                    color: theme.mode === "dark" ? theme.text : "#000000",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                  }}
+                >
+                  Signing in...
+                </Text>
+              ) : (
+                <>
+                  <Image
+                    source={
+                      theme.mode === "dark"
+                        ? require("./assets/apple-100(dark).png")
+                        : require("./assets/apple-90(light).png")
+                    }
+                    style={{ width: 24, height: 24, marginRight: 8 }}
+                    resizeMode="contain"
+                  />
+                  <Text
+                    style={{
+                      color: theme.mode === "dark" ? theme.text : "#000000",
+                      fontWeight: "bold",
+                      fontSize: 16,
+                    }}
+                  >
+                    {t.signInWithApple || "Sign in with Apple"}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       <View
@@ -2696,7 +3175,8 @@ function SettingScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState("");
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
+    useState(false);
   const [userName, setUserName] = useState("User");
   const [userProfile, setUserProfile] = useState(null);
   const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
@@ -2799,7 +3279,7 @@ function SettingScreen() {
         code: error?.code,
         stack: error?.stack,
       });
-      
+
       // Even if there's an error, try to navigate to splash screen
       try {
         navigation.reset({
@@ -2833,7 +3313,9 @@ function SettingScreen() {
     } catch (error) {
       console.error("Error deleting account:", error);
       const errorMessage =
-        error?.message || t.deleteAccountError || "Failed to delete account. Please try again.";
+        error?.message ||
+        t.deleteAccountError ||
+        "Failed to delete account. Please try again.";
       setModalText(errorMessage);
       setModalVisible(true);
     }
@@ -2959,7 +3441,11 @@ function SettingScreen() {
             <Text
               style={{ color: theme.primary, fontSize: 14, fontWeight: "500" }}
             >
-              {t.googleAccount}
+              {userProfile?.provider === "apple"
+                ? t.appleAccount
+                : userProfile?.provider === "google"
+                ? t.googleAccount
+                : t.googleAccount}
             </Text>
           </View>
         </View>

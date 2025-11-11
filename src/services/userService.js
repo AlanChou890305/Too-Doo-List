@@ -286,12 +286,18 @@ export class UserService {
         return null;
       }
 
+      // Get provider from app_metadata or identities
+      const provider = user.app_metadata?.provider || 
+                      user.identities?.[0]?.provider || 
+                      "unknown";
+
       return {
         id: user.id,
         email: user.email,
         name: user.user_metadata?.name || user.email?.split("@")[0] || "User",
         avatar_url: user.user_metadata?.avatar_url,
         created_at: user.created_at,
+        provider: provider,
       };
     } catch (error) {
       console.error("Error in getUserProfile:", error);
