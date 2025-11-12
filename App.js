@@ -222,7 +222,7 @@ const translations = {
     settings: "Settings",
     userName: "User Name",
     account: "Account",
-    logout: "Log Out",
+    logout: "Log out",
     comingSoon: "Coming soon...",
     terms: "Terms of Use",
     privacy: "Privacy Policy",
@@ -249,7 +249,7 @@ const translations = {
     confirm: "Confirm",
     delete: "Delete",
     logoutConfirm: "Are you sure you want to log out of the app?",
-    logout: "Log Out",
+    logout: "Log out",
     deleteConfirm: "Are you sure you want to delete this task?",
     done: "Done",
     moveHint: "Tap a date to move",
@@ -363,7 +363,7 @@ const translations = {
     signInWithGoogle: "Sign in with Google",
     signInWithApple: "Sign in with Apple",
     appleAccount: "Apple Account",
-    logout: "Log Out",
+    logout: "Log out",
     selectTime: "Select Time",
     hour: "Hour",
     minute: "Min",
@@ -2056,14 +2056,58 @@ const SplashScreen = ({ navigation }) => {
       }
 
       // Sign in with Supabase using Apple identity token
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: "apple",
-        token: credential.identityToken,
-        nonce: credential.nonce || undefined,
-      });
+      // Add retry mechanism for 502 errors (Bad Gateway)
+      let data, error;
+      let retryCount = 0;
+      const maxRetries = 3;
+      const retryDelay = 1000; // 1 second
+
+      while (retryCount <= maxRetries) {
+        const result = await supabase.auth.signInWithIdToken({
+          provider: "apple",
+          token: credential.identityToken,
+          nonce: credential.nonce || undefined,
+        });
+
+        data = result.data;
+        error = result.error;
+
+        // If no error, break the retry loop
+        if (!error) {
+          break;
+        }
+
+        // Check if it's a retryable error (502, 503, 504, or network errors)
+        const isRetryableError =
+          error?.status === 502 ||
+          error?.status === 503 ||
+          error?.status === 504 ||
+          error?.name === "AuthRetryableFetchError" ||
+          (error?.message && error.message.includes("fetch"));
+
+        if (isRetryableError && retryCount < maxRetries) {
+          retryCount++;
+          console.log(
+            `⚠️ Retryable error (${
+              error?.status || "unknown"
+            }), retrying... (${retryCount}/${maxRetries})`
+          );
+          // Wait before retrying
+          await new Promise((resolve) =>
+            setTimeout(resolve, retryDelay * retryCount)
+          );
+          continue;
+        } else {
+          // Not retryable or max retries reached
+          break;
+        }
+      }
 
       if (error) {
         console.error("CRITICAL: Supabase sign-in failed:", error);
+        console.error("Error status:", error?.status);
+        console.error("Error name:", error?.name);
+        console.error("Error message:", error?.message);
         throw error;
       }
 
@@ -2290,6 +2334,14 @@ const SplashScreen = ({ navigation }) => {
         throw new Error("No user data returned from Supabase");
       }
     } catch (error) {
+      // Handle user cancellation silently - this is not an error
+      if (error?.code === "ERR_REQUEST_CANCELED") {
+        console.log("🍎 Apple sign-in cancelled by user");
+        setIsAppleSigningIn(false);
+        return;
+      }
+
+      // Log other errors
       console.error("CRITICAL: Apple Authentication Error:", {
         name: error?.name || "Unknown Error",
         message: error?.message || "No error message available",
@@ -2304,14 +2356,30 @@ const SplashScreen = ({ navigation }) => {
       let errorMessage =
         "An unexpected error occurred during sign in. Please try again.";
 
-      if (error?.code === "ERR_REQUEST_CANCELED") {
-        errorMessage = "Sign in was cancelled. Please try again.";
+      if (
+        error?.status === 502 ||
+        error?.status === 503 ||
+        error?.status === 504
+      ) {
+        errorMessage =
+          "Server is temporarily unavailable. Please try again in a few moments.";
+      } else if (error?.name === "AuthRetryableFetchError") {
+        if (error?.status === 502) {
+          errorMessage =
+            "Server error (502). The authentication service is temporarily unavailable. Please try again later.";
+        } else {
+          errorMessage =
+            "Network error. Please check your internet connection and try again.";
+        }
       } else if (error?.message?.includes("network error")) {
         errorMessage =
           "Network error. Please check your internet connection and try again.";
       } else if (error?.message?.includes("Apple provider not found")) {
         errorMessage =
           "Apple sign-in is not properly configured. Please contact support.";
+      } else if (error?.message?.includes("unacceptable audience")) {
+        errorMessage =
+          "Apple sign-in configuration error. The app bundle ID does not match. Please contact support.";
       } else if (error?.message) {
         // Show the actual error message if available
         errorMessage = error.message;
@@ -2381,21 +2449,27 @@ const SplashScreen = ({ navigation }) => {
               shadowOpacity: theme.shadowOpacity,
               shadowRadius: 2,
               elevation: 1,
-              opacity: isAppleSigningIn ? 0.5 : 1,
             }}
             onPress={handleGoogleSignIn}
             disabled={isSigningIn || isAppleSigningIn}
           >
             {isSigningIn && !isAppleSigningIn ? (
-              <Text
-                style={{
-                  color: theme.mode === "dark" ? theme.text : "#4285F4",
-                  fontWeight: "bold",
-                  fontSize: 16,
-                }}
-              >
-                Signing in...
-              </Text>
+              <>
+                <Image
+                  source={require("./assets/google-logo.png")}
+                  style={{ width: 28, height: 28, marginRight: 4 }}
+                  resizeMode="contain"
+                />
+                <Text
+                  style={{
+                    color: theme.mode === "dark" ? theme.text : "#4285F4",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                  }}
+                >
+                  Signing in...
+                </Text>
+              </>
             ) : (
               <>
                 <Image
@@ -2439,15 +2513,26 @@ const SplashScreen = ({ navigation }) => {
               disabled={isAppleSigningIn || isSigningIn}
             >
               {isAppleSigningIn && !isSigningIn ? (
-                <Text
-                  style={{
-                    color: theme.mode === "dark" ? theme.text : "#000000",
-                    fontWeight: "bold",
-                    fontSize: 16,
-                  }}
-                >
-                  Signing in...
-                </Text>
+                <>
+                  <Image
+                    source={
+                      theme.mode === "dark"
+                        ? require("./assets/apple-100(dark).png")
+                        : require("./assets/apple-90(light).png")
+                    }
+                    style={{ width: 24, height: 24, marginRight: 8 }}
+                    resizeMode="contain"
+                  />
+                  <Text
+                    style={{
+                      color: theme.mode === "dark" ? theme.text : "#000000",
+                      fontWeight: "bold",
+                      fontSize: 16,
+                    }}
+                  >
+                    Signing in...
+                  </Text>
+                </>
               ) : (
                 <>
                   <Image
@@ -3389,7 +3474,7 @@ function SettingScreen() {
               marginBottom: 15,
             }}
           >
-            {userProfile?.avatar_url && (
+            {userProfile?.avatar_url ? (
               <Image
                 source={{ uri: userProfile.avatar_url }}
                 style={{
@@ -3399,6 +3484,30 @@ function SettingScreen() {
                   marginRight: 15,
                 }}
               />
+            ) : (
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  marginRight: 15,
+                  backgroundColor: theme.primary,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 20,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {(userProfile?.name || userName || "U")
+                    .charAt(0)
+                    .toUpperCase()}
+                </Text>
+              </View>
             )}
             <View style={{ flex: 1 }}>
               <Text
