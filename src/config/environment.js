@@ -23,8 +23,8 @@ export const getCurrentEnvironment = () => {
     return process.env.EXPO_PUBLIC_APP_ENV;
   }
 
-  // 默認使用 staging（測試環境）
-  return "staging";
+  // 默認使用 production（正式環境）
+  return "production";
 };
 
 // 環境配置
@@ -119,7 +119,7 @@ export const environmentConfig = {
 // 獲取當前環境配置
 export const getConfig = () => {
   const env = getCurrentEnvironment();
-  return environmentConfig[env] || environmentConfig.development;
+  return environmentConfig[env] || environmentConfig.production;
 };
 
 // 檢查是否為開發環境

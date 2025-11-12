@@ -8,10 +8,11 @@ import React, {
 } from "react";
 import VersionUpdateModal from "./src/components/VersionUpdateModal";
 import { versionService } from "./src/services/versionService";
+import { getCurrentEnvironment } from "./src/config/environment";
 
 // 獲取重定向 URL
 const getRedirectUrl = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
 
   const urls = {
     development: "https://to-do-mvp.vercel.app",
@@ -44,11 +45,10 @@ console.log("🔍 APP DEBUG - 強制重新部署觸發器 - DEV 環境調試");
 console.log("🚨🚨🚨 環境變數調試結束 🚨🚨🚨");
 
 // 添加更明顯的調試資訊
+// Use environment helper to get actual environment (with defaults)
+const actualEnv = getCurrentEnvironment();
 console.log("🔥🔥🔥 TESTFLIGHT DEBUG START 🔥🔥🔥");
-console.log(
-  "🔥 CURRENT ENVIRONMENT:",
-  process.env.EXPO_PUBLIC_APP_ENV || "NOT SET"
-);
+console.log("🔥 CURRENT ENVIRONMENT:", actualEnv || "NOT SET");
 console.log(
   "🔥 SUPABASE URL DEV:",
   process.env.EXPO_PUBLIC_SUPABASE_URL_DEV || "NOT SET"
@@ -94,9 +94,12 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
   const url = new URL(currentUrl);
 
   // Check if this is an OAuth callback
+  // Supabase may redirect to root path or /auth/callback, so check for OAuth params anywhere
   const isOAuthCallback =
-    url.pathname.includes("/auth/callback") &&
-    (url.hash.includes("access_token") || url.search.includes("code="));
+    (url.pathname.includes("/auth/callback") || url.pathname === "/") &&
+    (url.hash.includes("access_token") ||
+      url.search.includes("code=") ||
+      url.hash.includes("code="));
 
   if (isOAuthCallback) {
     console.log(
@@ -699,10 +702,13 @@ const SplashScreen = ({ navigation }) => {
 
         // Check if we should redirect to native app
         // This happens when OAuth was initiated from a native app (TestFlight/Production)
+        // Supabase may redirect to root path or /auth/callback, so check for OAuth params anywhere
         const url = new URL(window.location.href);
         const shouldRedirectToNative =
-          url.pathname.includes("auth/callback") &&
-          (url.hash.includes("access_token") || url.search.includes("code="));
+          (url.pathname.includes("auth/callback") || url.pathname === "/") &&
+          (url.hash.includes("access_token") ||
+            url.search.includes("code=") ||
+            url.hash.includes("code="));
 
         if (shouldRedirectToNative) {
           console.log(
@@ -1567,7 +1573,7 @@ const SplashScreen = ({ navigation }) => {
         if (Platform.OS !== "web") {
           // For standalone apps (iOS), use app scheme directly
           // This allows OAuth to redirect directly back to the app
-          const currentEnv = process.env.EXPO_PUBLIC_APP_ENV || "staging";
+          const currentEnv = process.env.EXPO_PUBLIC_APP_ENV || "production";
           console.log(
             "🔍 DEBUG - Current environment for redirect:",
             currentEnv
@@ -1651,13 +1657,42 @@ const SplashScreen = ({ navigation }) => {
             window.location.replace(data.url);
           }
         } else {
-          // For mobile, open the auth URL in a web browser
-          console.log("VERBOSE: Opening OAuth browser session...");
-          const result = await WebBrowser.openAuthSessionAsync(
-            data.url,
-            redirectUrl
+          // For mobile, use AuthSession which handles deep links better
+          console.log(
+            "VERBOSE: Opening OAuth browser session with AuthSession..."
           );
-          console.log("VERBOSE: Auth session result:", result);
+          console.log("VERBOSE: Redirect URL:", redirectUrl);
+
+          // Use AuthSession.startAsync for better deep link handling
+          let result;
+          try {
+            result = await AuthSession.startAsync({
+              authUrl: data.url,
+              returnUrl: redirectUrl,
+            });
+
+            console.log(
+              "VERBOSE: Auth session result:",
+              JSON.stringify(result, null, 2)
+            );
+            console.log("VERBOSE: Result type:", result.type);
+            console.log("VERBOSE: Result URL:", result.url);
+          } catch (authSessionError) {
+            console.log(
+              "VERBOSE: AuthSession failed, trying WebBrowser fallback..."
+            );
+            console.log("VERBOSE: AuthSession error:", authSessionError);
+
+            // Fallback to WebBrowser if AuthSession fails
+            result = await WebBrowser.openAuthSessionAsync(
+              data.url,
+              redirectUrl
+            );
+            console.log(
+              "VERBOSE: WebBrowser result:",
+              JSON.stringify(result, null, 2)
+            );
+          }
 
           // ✅ KEY FIX: The result.url contains the OAuth callback URL
           // We need to manually process it since iOS doesn't automatically trigger the deep link
@@ -1799,11 +1834,14 @@ const SplashScreen = ({ navigation }) => {
             return;
           } else if (result.type === "cancel") {
             console.log("VERBOSE: User cancelled the auth flow");
-            setIsSigningIn(false);
-            Alert.alert(
-              "Sign In Cancelled",
-              "You cancelled the sign in process."
+            console.log(
+              "VERBOSE: This might be due to deep link not working properly"
             );
+            console.log(
+              "VERBOSE: Check if Supabase redirect URL includes: too-doo-list://auth/callback"
+            );
+            setIsSigningIn(false);
+            // Don't show alert for cancel - user might have closed browser due to redirect issue
             return;
           } else if (result.type === "dismiss") {
             console.log("VERBOSE: Auth flow was dismissed");
@@ -2507,7 +2545,7 @@ const SplashScreen = ({ navigation }) => {
                 shadowOpacity: theme.shadowOpacity,
                 shadowRadius: 2,
                 elevation: 1,
-                opacity: isSigningIn ? 0.5 : 1,
+                opacity: isAppleSigningIn ? 0.5 : 1,
               }}
               onPress={handleAppleSignIn}
               disabled={isAppleSigningIn || isSigningIn}
@@ -6226,7 +6264,7 @@ export default function App() {
 
       try {
         console.log("🔍 [App] 開始檢查版本更新...");
-        console.log("🔍 [App] 當前環境:", process.env.EXPO_PUBLIC_APP_ENV);
+        console.log("🔍 [App] 當前環境:", getCurrentEnvironment());
         console.log("🔍 [App] 當前平台:", Platform.OS);
         const updateInfo = await versionService.checkForUpdates();
         console.log("🔍 [App] 版本檢查結果:", updateInfo);

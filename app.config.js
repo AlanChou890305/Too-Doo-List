@@ -1,6 +1,6 @@
 // 獲取關聯域名
 const getAssociatedDomains = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
 
   const domains = {
     development: ["applinks:to-do-dev-alan.vercel.app"],
@@ -13,7 +13,7 @@ const getAssociatedDomains = () => {
 
 // 獲取重定向 URL
 const getRedirectUrl = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "development";
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
 
   const urls = {
     development: "https://to-do-dev-alan.vercel.app",
@@ -26,7 +26,7 @@ const getRedirectUrl = () => {
 
 // 環境配置
 const getEnvironmentConfig = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "staging"; // 默認使用 staging
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "production"; // 默認使用 production
 
   const configs = {
     development: {
@@ -58,7 +58,7 @@ const getEnvironmentConfig = () => {
     },
   };
 
-  return configs[env] || configs.staging; // 默認 fallback 到 staging
+  return configs[env] || configs.production; // 默認 fallback 到 production
 };
 
 const envConfig = getEnvironmentConfig();
@@ -162,7 +162,7 @@ module.exports = {
             : "a86169e7-6d37-4bee-be43-d1e709615ef9", // production project
       },
       // Environment variables - 根據環境自動切換
-      EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || "development",
+      EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || "production",
       // Supabase 配置 - 從環境變數或直接設置
       // Development 和 Staging 共用 staging Supabase
       EXPO_PUBLIC_SUPABASE_URL_STAGING:

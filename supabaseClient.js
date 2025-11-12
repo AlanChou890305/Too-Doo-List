@@ -16,21 +16,21 @@ const currentEnv = getCurrentEnvironment();
 // 環境資訊
 console.log(`🌍 Environment: ${currentEnv === "production" ? "Production" : "Staging"}`);
 
-// Supabase configuration - 優先使用 staging 環境進行測試
-// 默認使用 staging Supabase，除非明確指定 production
+// Supabase configuration - 優先使用 production 環境
+// 默認使用 production Supabase，除非明確指定其他環境
 let supabaseUrl =
-  process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
-  supabaseConfig.url ||
   process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL ||
+  supabaseConfig.url ||
+  process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL_STAGING;
 
 let supabaseAnonKey =
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
-  supabaseConfig.anonKey ||
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+  supabaseConfig.anonKey ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING;
 
 // 如果環境是 development 但使用的是 production 的 URL，給出警告
 if (currentEnv === "development" && !supabaseConfig.url) {
