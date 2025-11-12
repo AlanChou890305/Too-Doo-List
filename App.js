@@ -89,6 +89,8 @@ import {
 
 // 🚨 CRITICAL: Handle OAuth callback IMMEDIATELY before React initializes
 // This ensures the redirect happens as fast as possible
+// NOTE: Only redirect to native app if OAuth was initiated from native app
+// For pure web OAuth, let the normal flow handle it
 if (Platform.OS === "web" && typeof window !== "undefined") {
   const currentUrl = window.location.href;
   const url = new URL(currentUrl);
@@ -101,11 +103,15 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
       url.search.includes("code=") ||
       url.hash.includes("code="));
 
+  // For web OAuth callbacks, check if this should redirect to native app
+  // This happens when OAuth was initiated from native app but Supabase redirected to web URL first
+  // We detect this by checking if the redirect URL in Supabase config points to app scheme
+  // For pure web OAuth (initiated from web), we should process it directly
   if (isOAuthCallback) {
-    console.log(
-      "🚨 [IMMEDIATE] OAuth callback detected, redirecting to native app..."
-    );
-    console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
+    // Check if this might be from native app by checking if Supabase redirect URL includes app scheme
+    // If OAuth was initiated from native app, Supabase might redirect to web URL first,
+    // then we need to redirect back to native app
+    // For pure web OAuth, Supabase redirects directly to web URL and we process it here
 
     // Determine the correct URL scheme based on environment/domain
     const envScheme = process.env.NEXT_PUBLIC_APP_SCHEME;
@@ -115,33 +121,69 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
         ? "too-doo-list-staging"
         : "too-doo-list");
 
-    console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
+    // Check if this is likely from native app by checking referrer or user agent
+    // For localhost, always treat as web OAuth (not from native app)
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "0.0.0.0";
 
-    // Build redirect URL
-    let redirectUrl;
-    if (url.hash.includes("access_token")) {
-      const hashParams = new URLSearchParams(url.hash.substring(1));
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-      const expiresIn = hashParams.get("expires_in");
-      const tokenType = hashParams.get("token_type");
+    const mightBeFromNativeApp =
+      !isLocalhost &&
+      (sessionStorage.getItem("oauth_from_native") === "true" ||
+        // Only check referrer/user agent if not localhost
+        (document.referrer === "" && navigator.userAgent.includes("Mobile")));
 
-      redirectUrl = `${appScheme}://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&expires_in=${expiresIn}&token_type=${tokenType}`;
-    } else if (url.search.includes("code=")) {
-      const code = url.searchParams.get("code");
-      const state = url.searchParams.get("state") || "";
-      redirectUrl = `${appScheme}://auth/callback?code=${code}&state=${state}`;
-    }
+    // For web OAuth, if there's no clear indicator it's from native app, process it directly
+    // Only redirect to native app if we're confident it came from native app
+    if (mightBeFromNativeApp) {
+      console.log(
+        "🚨 [IMMEDIATE] OAuth callback might be from native app, preparing redirect..."
+      );
+      console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
+      console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
 
-    if (redirectUrl) {
-      console.log("🚨 [IMMEDIATE] Redirecting to:", redirectUrl);
-      window.location.href = redirectUrl;
+      // Build redirect URL
+      let redirectUrl;
+      if (url.hash.includes("access_token")) {
+        const hashParams = new URLSearchParams(url.hash.substring(1));
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        const expiresIn = hashParams.get("expires_in");
+        const tokenType = hashParams.get("token_type");
 
-      // Show a message to the user
-      setTimeout(() => {
-        document.body.innerHTML =
-          '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the To Do app.</div></div>';
-      }, 100);
+        redirectUrl = `${appScheme}://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&expires_in=${expiresIn}&token_type=${tokenType}`;
+      } else if (url.search.includes("code=")) {
+        const code = url.searchParams.get("code");
+        const state = url.searchParams.get("state") || "";
+        redirectUrl = `${appScheme}://auth/callback?code=${code}&state=${state}`;
+      }
+
+      if (redirectUrl) {
+        console.log("🚨 [IMMEDIATE] Redirecting to:", redirectUrl);
+        // Try redirect, but if it fails (pure web OAuth), let normal flow handle it
+        try {
+          window.location.href = redirectUrl;
+          // Show a message to the user
+          setTimeout(() => {
+            document.body.innerHTML =
+              '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the To Do app.</div></div>';
+          }, 100);
+        } catch (e) {
+          console.log(
+            "🚨 [IMMEDIATE] Redirect failed, treating as web OAuth:",
+            e
+          );
+          // If redirect fails, it's probably pure web OAuth, let normal flow handle it
+        }
+      }
+    } else {
+      console.log(
+        "🚨 [IMMEDIATE] OAuth callback detected on web (pure web OAuth), letting normal flow handle it..."
+      );
+      console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
+      // Pure web OAuth - let the normal OAuth callback handler process it
+      // This ensures web OAuth works correctly without trying to redirect to native app
     }
   }
 }
@@ -701,16 +743,23 @@ const SplashScreen = ({ navigation }) => {
         console.log("OAuth callback: Current URL:", window.location.href);
 
         // Check if we should redirect to native app
-        // This happens when OAuth was initiated from a native app (TestFlight/Production)
-        // Supabase may redirect to root path or /auth/callback, so check for OAuth params anywhere
+        // This should ONLY happen if OAuth was initiated from a native app
+        // For pure web OAuth, we should process it directly here
         const url = new URL(window.location.href);
-        const shouldRedirectToNative =
+        const hasOAuthParams =
           (url.pathname.includes("auth/callback") || url.pathname === "/") &&
           (url.hash.includes("access_token") ||
             url.search.includes("code=") ||
             url.hash.includes("code="));
 
-        if (shouldRedirectToNative) {
+        // Check if this is from a native app by checking referrer or sessionStorage
+        // If OAuth was initiated from web, there should be no need to redirect to native app
+        const isFromNativeApp =
+          sessionStorage.getItem("oauth_from_native") === "true" ||
+          document.referrer.includes("mobile") ||
+          navigator.userAgent.includes("Mobile");
+
+        if (hasOAuthParams && isFromNativeApp) {
           console.log(
             "OAuth callback: Detected native app OAuth flow, preparing redirect..."
           );
@@ -763,6 +812,67 @@ const SplashScreen = ({ navigation }) => {
                 redirectError
               );
             }
+          }
+        } else if (hasOAuthParams) {
+          // This is a pure web OAuth callback - process it directly
+          console.log(
+            "OAuth callback: Pure web OAuth detected, processing directly..."
+          );
+
+          // Process the OAuth callback for web
+          try {
+            // If we have a code, exchange it for session
+            if (url.search.includes("code=")) {
+              const code = url.searchParams.get("code");
+              console.log("OAuth callback: Exchanging code for session...");
+
+              const { data: sessionData, error: exchangeError } =
+                await supabase.auth.exchangeCodeForSession(code);
+
+              if (exchangeError) {
+                console.error(
+                  "OAuth callback: Code exchange failed:",
+                  exchangeError
+                );
+              } else if (sessionData?.session) {
+                console.log(
+                  "OAuth callback: ✅ Session established successfully!"
+                );
+                // Clear URL params and navigate
+                window.history.replaceState(
+                  {},
+                  document.title,
+                  window.location.pathname
+                );
+                // Navigation will be handled by auth state listener
+              }
+            } else if (url.hash.includes("access_token")) {
+              // Direct token flow
+              const hashParams = new URLSearchParams(url.hash.substring(1));
+              const accessToken = hashParams.get("access_token");
+              const refreshToken = hashParams.get("refresh_token");
+
+              if (accessToken && refreshToken) {
+                console.log("OAuth callback: Setting session with tokens...");
+                const { error: sessionError } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                });
+
+                if (!sessionError) {
+                  console.log("OAuth callback: ✅ Session set successfully!");
+                  // Clear URL hash and navigate
+                  window.history.replaceState(
+                    {},
+                    document.title,
+                    window.location.pathname
+                  );
+                  // Navigation will be handled by auth state listener
+                }
+              }
+            }
+          } catch (error) {
+            console.error("OAuth callback: Error processing web OAuth:", error);
           }
         }
 
