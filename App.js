@@ -4607,7 +4607,11 @@ function CalendarScreen({ navigation, route }) {
 
   // Web 平台：ESC 鍵關閉 modal，阻止 Enter 鍵觸發 back button
   useEffect(() => {
-    if (Platform.OS !== "web" || !modalVisible || typeof window === "undefined") {
+    if (
+      Platform.OS !== "web" ||
+      !modalVisible ||
+      typeof window === "undefined"
+    ) {
       return;
     }
 
@@ -4618,13 +4622,15 @@ function CalendarScreen({ navigation, route }) {
         setModalVisible(false);
         return;
       }
-      
+
       // 阻止 Enter 鍵觸發 back button（當焦點不在輸入框或按鈕時）
       if (event.key === "Enter" || event.keyCode === 13) {
         const target = event.target;
-        const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
-        const isButton = target.tagName === "BUTTON" || target.closest("button");
-        
+        const isInput =
+          target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+        const isButton =
+          target.tagName === "BUTTON" || target.closest("button");
+
         // 如果焦點不在輸入框或按鈕上，阻止預設行為並將焦點移到輸入框
         if (!isInput && !isButton) {
           event.preventDefault();
@@ -6322,7 +6328,6 @@ export default function App() {
     NotoSansTC_700Bold,
   });
 
-
   useEffect(() => {
     // Add Google Fonts for web only - keep it simple for native
     if (Platform.OS === "web" && typeof document !== "undefined") {
@@ -6436,13 +6441,12 @@ export default function App() {
     }
   }, []);
 
-
   useEffect(() => {
     // Set browser tab title
     if (typeof document !== "undefined") {
       document.title = getAppDisplayName();
     }
-    ReactGA.initialize("G-NV40E1BDH3");
+    ReactGA.initialize(process.env.EXPO_PUBLIC_GA_WEB_ID || "G-EW2TBM5EML");
 
     if (
       Platform.OS === "web" &&
@@ -6746,7 +6750,6 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
-
       </LanguageContext.Provider>
     </ThemeContext.Provider>
   );
