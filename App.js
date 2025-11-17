@@ -6,8 +6,8 @@ import React, {
   createContext,
   useContext,
 } from "react";
-import VersionUpdateModal from "./src/components/VersionUpdateModal";
-import { versionService } from "./src/services/versionService";
+import { Platform } from "react-native";
+import * as Application from "expo-application";
 import { getCurrentEnvironment } from "./src/config/environment";
 
 // 獲取重定向 URL
@@ -15,12 +15,16 @@ const getRedirectUrl = () => {
   const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
 
   const urls = {
-    development: "https://to-do-mvp.vercel.app",
     production: "https://to-do-mvp.vercel.app", // Production 使用正式網域
     staging: "https://to-do-staging.vercel.app", // Staging 使用測試網域
   };
 
   return urls[env] || urls.production;
+};
+
+const getAppDisplayName = () => {
+  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
+  return env === "staging" ? "ToDo - 測試" : "ToDo - 待辦清單";
 };
 
 // 調試資訊 - 強制重新部署
@@ -81,7 +85,6 @@ import {
   PanResponder,
   Animated,
   Linking,
-  Platform,
   Dimensions,
   KeyboardAvoidingView,
   Keyboard,
@@ -443,22 +446,6 @@ const translations = {
     reminderDisabled: "Reminders disabled",
     reminderNote:
       "Reminders will only be sent for tasks that have a scheduled time",
-    // Version update translations
-    versionUpdateAvailable: "Version Update Available",
-    forceUpdateRequired: "This update is required",
-    currentVersion: "Current Version",
-    latestVersion: "Latest Version",
-    whatsNew: "What's New",
-    updateBenefits: "Update Benefits",
-    bugFixes: "Bug fixes and stability improvements",
-    newFeatures: "New features and improvements",
-    securityUpdates: "Security updates",
-    performanceImprovements: "Performance optimizations",
-    updateLater: "Update Later",
-    updateNow: "Update Now",
-    error: "Error",
-    updateLinkError:
-      "Unable to open update link. Please manually check for updates in App Store or TestFlight.",
   },
   zh: {
     settings: "設定",
@@ -639,22 +626,6 @@ const translations = {
     reminderEnabled: "啟用",
     reminderDisabled: "提醒已停用",
     reminderNote: "提醒僅會發送給已設定時間的任務",
-    // 版本更新翻譯
-    versionUpdateAvailable: "版本更新可用",
-    forceUpdateRequired: "此更新為必要更新",
-    currentVersion: "當前版本",
-    latestVersion: "最新版本",
-    whatsNew: "更新內容",
-    updateBenefits: "更新好處",
-    bugFixes: "錯誤修正和穩定性改善",
-    newFeatures: "新功能和改進",
-    securityUpdates: "安全性更新",
-    performanceImprovements: "性能優化",
-    updateLater: "稍後更新",
-    updateNow: "立即更新",
-    error: "錯誤",
-    updateLinkError:
-      "無法開啟更新連結，請手動前往 App Store 或 TestFlight 檢查更新。",
   },
 };
 
@@ -2577,7 +2548,9 @@ const SplashScreen = ({ navigation }) => {
             letterSpacing: 1,
           }}
         >
-          To Do
+          {Platform.OS === "web"
+            ? getAppDisplayName()
+            : Application.applicationName || getAppDisplayName()}
         </Text>
         <View style={{ width: 260 }}>
           <TouchableOpacity
@@ -4591,6 +4564,7 @@ function CalendarScreen({ navigation, route }) {
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [tempDate, setTempDate] = useState(null);
   const [tempTime, setTempTime] = useState(null);
+  const taskTitleInputRef = useRef(null);
   const scrollViewRef = useRef(null); // 日曆 ScrollView
   const modalScrollViewRef = useRef(null); // Modal ScrollView
 
@@ -4630,6 +4604,60 @@ function CalendarScreen({ navigation, route }) {
       return `${limitedNumbers.slice(0, 2)}:${limitedNumbers.slice(2)}`;
     }
   };
+
+  // Web 平台：ESC 鍵關閉 modal，阻止 Enter 鍵觸發 back button
+  useEffect(() => {
+    if (Platform.OS !== "web" || !modalVisible || typeof window === "undefined") {
+      return;
+    }
+
+    const handleKeyDown = (event) => {
+      // ESC 鍵關閉 modal
+      if (event.key === "Escape" || event.keyCode === 27) {
+        event.preventDefault();
+        setModalVisible(false);
+        return;
+      }
+      
+      // 阻止 Enter 鍵觸發 back button（當焦點不在輸入框或按鈕時）
+      if (event.key === "Enter" || event.keyCode === 13) {
+        const target = event.target;
+        const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+        const isButton = target.tagName === "BUTTON" || target.closest("button");
+        
+        // 如果焦點不在輸入框或按鈕上，阻止預設行為並將焦點移到輸入框
+        if (!isInput && !isButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          // 將焦點移到任務輸入框
+          setTimeout(() => {
+            if (taskTitleInputRef.current) {
+              taskTitleInputRef.current.focus();
+            }
+          }, 0);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true); // 使用 capture phase
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [modalVisible]);
+
+  // Web 平台：modal 開啟時自動將焦點放在任務輸入框
+  useEffect(() => {
+    if (
+      Platform.OS === "web" &&
+      modalVisible &&
+      typeof requestAnimationFrame !== "undefined"
+    ) {
+      const frame = requestAnimationFrame(() => {
+        taskTitleInputRef.current?.focus?.();
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [modalVisible]);
 
   // 同步 taskDate 和 selectedDate
   useEffect(() => {
@@ -5347,7 +5375,17 @@ function CalendarScreen({ navigation, route }) {
       accessibilityLabel="Task Creation/Edit Modal"
     >
       <View
-        style={[styles.modalOverlay, { backgroundColor: theme.modalOverlay }]}
+        style={[
+          styles.modalOverlay,
+          { backgroundColor: theme.modalOverlay },
+          Platform.OS === "web"
+            ? {
+                alignItems: "center",
+                justifyContent: "flex-start",
+                backgroundColor: "#f2f2f2",
+              }
+            : null,
+        ]}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -5358,6 +5396,14 @@ function CalendarScreen({ navigation, route }) {
             style={[
               styles.modalContent,
               { backgroundColor: theme.modalBackground },
+              Platform.OS === "web"
+                ? {
+                    width: 375,
+                    maxWidth: 375,
+                    alignSelf: "center",
+                    minHeight: "100vh",
+                  }
+                : null,
             ]}
           >
             <View
@@ -5377,6 +5423,8 @@ function CalendarScreen({ navigation, route }) {
                 onPress={() => setModalVisible(false)}
                 accessibilityLabel="Go back"
                 accessibilityHint="Close the task creation/editing modal"
+                focusable={Platform.OS === "web" ? false : undefined}
+                tabIndex={Platform.OS === "web" ? -1 : undefined}
               >
                 <MaterialIcons name="arrow-back" size={24} color={theme.text} />
               </TouchableOpacity>
@@ -5400,6 +5448,7 @@ function CalendarScreen({ navigation, route }) {
                     {t.taskLabel} <Text style={{ color: theme.error }}>*</Text>
                   </Text>
                   <TextInput
+                    ref={taskTitleInputRef}
                     style={[
                       styles.input,
                       {
@@ -6273,19 +6322,19 @@ export default function App() {
     NotoSansTC_700Bold,
   });
 
-  // Version update state
-  const [versionUpdateVisible, setVersionUpdateVisible] = useState(false);
-  const [versionUpdateInfo, setVersionUpdateInfo] = useState(null);
 
   useEffect(() => {
     // Add Google Fonts for web only - keep it simple for native
     if (Platform.OS === "web" && typeof document !== "undefined") {
+      const cleanupElements = [];
+
       // Add Google Fonts links
       const fontsLink = document.createElement("link");
       fontsLink.href =
         "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap";
       fontsLink.rel = "stylesheet";
       document.head.appendChild(fontsLink);
+      cleanupElements.push(fontsLink);
 
       // Apply fonts using more specific selectors to avoid icon interference
       const style = document.createElement("style");
@@ -6309,20 +6358,44 @@ export default function App() {
           font-family: 'Roboto', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 
             Helvetica, Arial, sans-serif !important;
         }
+
+        body {
+          display: flex;
+          justify-content: center;
+          background-color: #f2f2f2;
+        }
+
+        #root {
+          width: 375px;
+          max-width: 375px;
+          min-height: 100vh;
+          background-color: #fff;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+        }
       `;
       document.head.appendChild(style);
+      cleanupElements.push(style);
+
+      return () => {
+        cleanupElements.forEach((el) => {
+          if (el && el.parentNode) {
+            el.parentNode.removeChild(el);
+          }
+        });
+      };
     }
   }, []);
 
   useEffect(() => {
     if (Platform.OS === "web") {
+      const title = getAppDisplayName();
       const setTitle = () => {
-        document.title = "To Do";
+        document.title = title;
       };
       setTitle();
       const observer = new MutationObserver(() => {
-        if (document.title !== "To Do") {
-          document.title = "To Do";
+        if (document.title !== title) {
+          document.title = title;
         }
       });
       const titleTag = document.querySelector("title");
@@ -6336,7 +6409,7 @@ export default function App() {
   // Always set browser tab title on web
   React.useEffect(() => {
     if (typeof document !== "undefined") {
-      document.title = "Too Doo List";
+      document.title = getAppDisplayName();
     }
   }, []);
   const [language, setLanguageState] = useState("en");
@@ -6363,44 +6436,11 @@ export default function App() {
     }
   }, []);
 
-  // Check for version updates on app start (僅在原生平台)
-  useEffect(() => {
-    const checkVersionUpdate = async () => {
-      // Web 版本會自動更新，不需要檢查版本
-      if (Platform.OS === "web") {
-        console.log("🌐 [App] Web 平台 - 跳過版本檢查（自動更新）");
-        return;
-      }
-
-      try {
-        console.log("🔍 [App] 開始檢查版本更新...");
-        console.log("🔍 [App] 當前環境:", getCurrentEnvironment());
-        console.log("🔍 [App] 當前平台:", Platform.OS);
-        const updateInfo = await versionService.checkForUpdates();
-        console.log("🔍 [App] 版本檢查結果:", updateInfo);
-
-        if (updateInfo.hasUpdate) {
-          console.log("🔄 [App] 發現新版本:", updateInfo.latestVersion);
-          setVersionUpdateInfo(updateInfo);
-          setVersionUpdateVisible(true);
-        } else {
-          console.log("✅ [App] 當前版本已是最新版本");
-        }
-      } catch (error) {
-        console.error("❌ [App] 版本檢查失敗:", error);
-      }
-    };
-
-    // 延遲 1 秒後檢查版本，避免影響 app 啟動速度
-    const timer = setTimeout(checkVersionUpdate, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     // Set browser tab title
     if (typeof document !== "undefined") {
-      document.title = "Too Doo List";
+      document.title = getAppDisplayName();
     }
     ReactGA.initialize("G-NV40E1BDH3");
 
@@ -6581,7 +6621,7 @@ export default function App() {
     React.useEffect(() => {
       if (typeof document !== "undefined") {
         setTimeout(() => {
-          document.title = "To Do";
+          document.title = getAppDisplayName();
         }, 0);
       }
     });
@@ -6658,7 +6698,7 @@ export default function App() {
           }}
           onStateChange={() => {
             if (typeof document !== "undefined") {
-              document.title = "To Do";
+              document.title = getAppDisplayName();
             }
           }}
         >
@@ -6707,13 +6747,6 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
 
-        {/* Version Update Modal */}
-        <VersionUpdateModal
-          visible={versionUpdateVisible}
-          onClose={() => setVersionUpdateVisible(false)}
-          updateInfo={versionUpdateInfo}
-          forceUpdate={versionUpdateInfo?.forceUpdate || false}
-        />
       </LanguageContext.Provider>
     </ThemeContext.Provider>
   );

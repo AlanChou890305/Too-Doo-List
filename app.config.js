@@ -3,7 +3,6 @@ const getAssociatedDomains = () => {
   const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
 
   const domains = {
-    development: ["applinks:to-do-dev-alan.vercel.app"],
     production: ["applinks:to-do-mvp.vercel.app"], // Production 使用正式網域
     staging: ["applinks:to-do-staging.vercel.app"], // Staging 使用測試網域
   };
@@ -16,7 +15,6 @@ const getRedirectUrl = () => {
   const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
 
   const urls = {
-    development: "https://to-do-dev-alan.vercel.app",
     production: "https://to-do-mvp.vercel.app", // Production 使用正式網域
     staging: "https://to-do-staging.vercel.app", // Staging 使用測試網域
   };
@@ -29,17 +27,8 @@ const getEnvironmentConfig = () => {
   const env = process.env.EXPO_PUBLIC_APP_ENV || "production"; // 默認使用 production
 
   const configs = {
-    development: {
-      name: "To Do Staging",
-      slug: "too-doo-list-staging",
-      version: "1.9.1-dev",
-      description: "To Do - Development Environment (Local + Web Testing)",
-      scheme: "too-doo-list-staging",
-      bundleIdentifier: "com.cty0305.too.doo.list.staging",
-      package: "com.cty0305.too.doo.list.staging",
-    },
     production: {
-      name: "To Do",
+      name: "ToDo - 待辦清單",
       slug: "too-doo-list",
       version: "1.0",
       description: "Simple and intuitive task management app with Google SSO",
@@ -48,7 +37,7 @@ const getEnvironmentConfig = () => {
       package: "com.cty0305.too.doo.list",
     },
     staging: {
-      name: "To Do Staging",
+      name: "ToDo - 測試",
       slug: "too-doo-list-staging",
       version: "1.9.1",
       description: "To Do - Staging Environment (Testing)",
@@ -102,44 +91,44 @@ module.exports = {
         {
           name: "description",
           content:
-            "To Do - Simple and intuitive task management app with Google SSO. Organize your daily tasks, boost productivity, and achieve your goals with our clean and easy-to-use to-do list app.",
+            "ToDo - 待辦清單 - Simple and intuitive task management app with Google SSO. Organize your daily tasks, boost productivity, and achieve your goals with our clean and easy-to-use to-do list app.",
         },
         {
           name: "keywords",
           content:
             "task management, to-do list, productivity app, calendar, Google SSO, task organizer, daily planner, goal tracking",
         },
-        { name: "author", content: "To Do Team" },
+        { name: "author", content: "ToDo - 待辦清單 Team" },
         { name: "viewport", content: "width=device-width, initial-scale=1.0" },
         {
           property: "og:title",
-          content: "To Do - Simple Task Management App",
+          content: "ToDo - 待辦清單 - Simple Task Management App",
         },
         {
           property: "og:description",
           content:
-            "Transform your productivity with To Do! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
+            "Transform your productivity with ToDo - 待辦清單! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
         },
         { property: "og:image", content: "./assets/logo.png" },
         { property: "og:type", content: "website" },
         { property: "og:url", content: getRedirectUrl() },
-        { property: "og:site_name", content: "To Do" },
+        { property: "og:site_name", content: "ToDo - 待辦清單" },
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: "To Do - Simple Task Management App",
+          content: "ToDo - 待辦清單 - Simple Task Management App",
         },
         {
           name: "twitter:description",
           content:
-            "Transform your productivity with To Do! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
+            "Transform your productivity with ToDo - 待辦清單! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
         },
         { name: "twitter:image", content: "./assets/logo.png" },
         { name: "twitter:creator", content: "@TooDooList" },
         { name: "theme-color", content: "#6c63ff" },
         { name: "apple-mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-        { name: "apple-mobile-web-app-title", content: "To Do" },
+        { name: "apple-mobile-web-app-title", content: "ToDo - 待辦清單" },
       ],
     },
 
@@ -164,7 +153,7 @@ module.exports = {
       // Environment variables - 根據環境自動切換
       EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || "production",
       // Supabase 配置 - 從環境變數或直接設置
-      // Development 和 Staging 共用 staging Supabase
+      // Staging 使用 staging Supabase
       EXPO_PUBLIC_SUPABASE_URL_STAGING:
         process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
         "https://qerosiozltqrbehctxdn.supabase.co",

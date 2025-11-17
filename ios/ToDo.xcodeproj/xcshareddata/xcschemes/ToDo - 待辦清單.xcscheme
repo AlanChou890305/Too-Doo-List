@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
                BuildableName = "ToDo.app"
-               BlueprintName = "ToDo"
+               BlueprintName = "ToDo - &#x5f85;&#x8fa6;&#x6e05;&#x55ae;"
                ReferencedContainer = "container:ToDo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,16 +28,6 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "ToDoTests.xctest"
-               BlueprintName = "ToDoTests"
-               ReferencedContainer = "container:ToDo.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
@@ -56,24 +46,24 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
             BuildableName = "ToDo.app"
-            BlueprintName = "ToDo"
+            BlueprintName = "ToDo - &#x5f85;&#x8fa6;&#x6e05;&#x55ae;"
             ReferencedContainer = "container:ToDo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>
          <EnvironmentVariable
-            key = "EXPO_PUBLIC_SUPABASE_URL"
-            value = "https://ajbusqpjsjcuzzxuueij.supabase.co"
+            key = "EXPO_PUBLIC_SUPABASE_URL_DEV"
+            value = "https://qerosiozltqrbehctxdn.supabase.co"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
-            key = "EXPO_PUBLIC_SUPABASE_ANON_KEY"
-            value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqYnVzcXBqc2pjdXp6eHV1ZWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyNDIwNDgsImV4cCI6MjA3NjgxODA0OH0.yiz9ZWafK1kM0HeK80xw7jISqi57WrAkZzybgiH4Byo"
+            key = "EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV"
+            value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlcm9zaW96bHRxcmJlaGN0eGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NTQyNzAsImV4cCI6MjA3NTIzMDI3MH0.gEzTwpl79HbrQ0KeYRvEji45vdI7SbOhZVc_wpih91E"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "EXPO_PUBLIC_APP_ENV"
-            value = "production"
+            value = "staging"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
@@ -90,7 +80,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
             BuildableName = "ToDo.app"
-            BlueprintName = "ToDo"
+            BlueprintName = "ToDo - &#x5f85;&#x8fa6;&#x6e05;&#x55ae;"
             ReferencedContainer = "container:ToDo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

@@ -29,37 +29,6 @@ export const getCurrentEnvironment = () => {
 
 // 環境配置
 export const environmentConfig = {
-  development: {
-    name: "Development",
-    appName: "Too-Doo-List Staging",
-    supabase: {
-      // Development 和 Staging 共用 staging 的 Supabase
-      // 使用 staging URL，如果沒有則 fallback 到 EXPO_PUBLIC_SUPABASE_URL_DEV
-      url:
-        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
-        process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
-      anonKey:
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
-    },
-    api: {
-      baseUrl:
-        process.env.EXPO_PUBLIC_API_BASE_URL_DEV ||
-        "https://dev-api.yourdomain.com",
-      version: "v1",
-    },
-    features: {
-      debug: true,
-      analytics: false,
-      crashReporting: false,
-      notificationDebug: true,
-    },
-    logging: {
-      level: "debug",
-      enableConsole: true,
-    },
-  },
-
   production: {
     name: "Production",
     appName: "Too-Doo-List",
@@ -85,18 +54,14 @@ export const environmentConfig = {
     },
   },
 
-  // Staging 環境（開發 + 測試）
+  // Staging 環境（測試）
   staging: {
     name: "Staging",
     appName: "Too-Doo-List Staging",
     supabase: {
       // Staging 使用 qero... project (to-do-staging)
-      url:
-        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
-        process.env.EXPO_PUBLIC_SUPABASE_URL_DEV,
-      anonKey:
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_DEV,
+      url: process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING,
+      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING,
     },
     api: {
       baseUrl:
@@ -121,9 +86,6 @@ export const getConfig = () => {
   const env = getCurrentEnvironment();
   return environmentConfig[env] || environmentConfig.production;
 };
-
-// 檢查是否為開發環境
-export const isDevelopment = () => getCurrentEnvironment() === "development";
 
 // 檢查是否為測試環境
 export const isStaging = () => getCurrentEnvironment() === "staging";

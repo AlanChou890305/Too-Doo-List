@@ -50,7 +50,7 @@ class VersionService {
         if (appEnv === 'staging') {
           console.log('🧪 [VersionCheck] Staging 環境 - 導向 TestFlight');
         } else {
-          console.log('🧪 [VersionCheck] Development 環境 - 導向 App Store');
+          console.log('🚀 [VersionCheck] Production 環境 - 導向 App Store');
         }
         
         return {

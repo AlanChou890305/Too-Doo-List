@@ -32,16 +32,10 @@ let supabaseAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING ||
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING;
 
-// 如果環境是 development 但使用的是 production 的 URL，給出警告
-if (currentEnv === "development" && !supabaseConfig.url) {
+// 環境驗證：確保環境變數已正確設置
+if (!supabaseConfig.url) {
   console.warn(
-    "⚠️ Development environment detected but EXPO_PUBLIC_SUPABASE_URL_DEV is not set."
-  );
-  console.warn(
-    "⚠️ Falling back to production Supabase URL. This is OK for testing,"
-  );
-  console.warn(
-    "⚠️ but make sure 'http://localhost:8081' is in production Supabase Redirect URLs."
+    `⚠️ Missing Supabase URL for ${currentEnv} environment. Please check your environment configuration.`
   );
 }
 
