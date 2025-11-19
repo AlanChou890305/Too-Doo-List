@@ -22,7 +22,7 @@ A cross-platform React Native to-do list app with calendar integration, Google S
 - **☁️ Cloud Storage:** Tasks and user settings stored in Supabase
 - **👤 User Profiles:** Personalized experience with user-specific data
 - **⚙️ Settings:** Change language, view app version, terms and privacy policy
-- **📊 Google Analytics:** Integrated with ReactGA4 for usage analytics (GA4 ID: G-NV40E1BDH3)
+- **📊 Analytics:** Google Analytics 4 (web) + Mixpanel (iOS) for usage insights
 - **🚀 Web Deployment:** Optimized for Netlify deployment
 
 ## 📁 Project Structure
@@ -139,7 +139,7 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 ### Settings
 
 - **Change Language:** Switch between English and Traditional Chinese
-- **View Version:** Check current app version (v1.0.1)
+- **View Version:** Check current app version (v1.1.0)
 - **Legal Info:** Access Terms of Use and Privacy Policy
 - **Logout:** Secure logout with immediate navigation to login screen
 
@@ -157,8 +157,9 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 
 - **Supabase** - Authentication & PostgreSQL database
 - **Google OAuth 2.0** - SSO authentication
-- **Google Analytics 4 (react-ga4)** - Usage analytics
-- **Netlify** - Web deployment platform
+- **Google Analytics 4 (react-ga4)** - Web usage analytics
+- **Mixpanel (mixpanel-react-native)** - iOS analytics
+- **Netlify / Vercel** - Web deployment platform
 
 ### Version Management
 
@@ -166,6 +167,14 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Changelog
+
+### v1.1.0 (2025-11-19)
+
+- 📱 Integrate Mixpanel for iOS analytics，GA 僅追蹤 Web
+- 🧭 完整對應 `ToDo - 待辦清單 / ToDo - 測試` targets、schemes 與 bundle IDs
+- ⚡ 改善登入後體驗：Web 375px 固定寬度、ESC/Enter 行為優化、web/iOS 命名對齊
+- 🆙 iOS 版本號：`CFBundleShortVersionString=1.1.0` / `CFBundleVersion=2`
+- 🧰 重新安裝 Pods 並加入 `mixpanel-react-native`
 
 ### v1.0.1 (2025-10-07)
 
