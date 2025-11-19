@@ -9,6 +9,7 @@ import React, {
 import { Platform } from "react-native";
 import * as Application from "expo-application";
 import { getCurrentEnvironment } from "./src/config/environment";
+import { mixpanelService } from "./src/services/mixpanelService";
 
 // 獲取重定向 URL
 const getRedirectUrl = () => {
@@ -1113,6 +1114,18 @@ const SplashScreen = ({ navigation }) => {
             console.log("✅ User verified from session!");
             console.log("User email:", user.email);
             console.log("User ID:", user.id);
+
+            // Mixpanel: 識別使用者並追蹤登入事件
+            mixpanelService.identify(user.id, {
+              email: user.email,
+              name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+              platform: Platform.OS,
+            });
+            mixpanelService.track("User Signed In", {
+              method: event === "SIGNED_IN" ? "new_signin" : "existing_session",
+              email: user.email,
+              platform: Platform.OS,
+            });
 
             // 重置登入狀態
             setIsSigningIn(false);
@@ -3457,6 +3470,12 @@ function SettingScreen() {
     try {
       setLogoutModalVisible(false);
 
+      // Mixpanel: 追蹤登出事件
+      mixpanelService.track("User Signed Out", {
+        platform: Platform.OS,
+      });
+      mixpanelService.reset();
+
       // Try to log out (using Supabase's signOut API)
       // Even if this fails (e.g., network error), we should still navigate to splash
       // because the local session will be cleared
@@ -4810,6 +4829,16 @@ function CalendarScreen({ navigation, route }) {
           }
         }
 
+        // Mixpanel: 追蹤任務更新事件
+        mixpanelService.track("Task Updated", {
+          task_id: editingTask.id,
+          has_time: !!taskTime,
+          has_link: !!taskLink,
+          has_note: !!taskNote,
+          date_changed: editingTask.date !== targetDate,
+          platform: Platform.OS,
+        });
+
         if (editingTask.date !== targetDate) {
           // Date changed - remove from old date and add to new date
           const oldDayTasks = tasks[editingTask.date] || [];
@@ -4864,6 +4893,15 @@ function CalendarScreen({ navigation, route }) {
             newTask.notificationIds = notificationIds;
           }
         }
+
+        // Mixpanel: 追蹤任務建立事件
+        mixpanelService.track("Task Created", {
+          task_id: newTask.id,
+          has_time: !!taskTime,
+          has_link: !!taskLink,
+          has_note: !!taskNote,
+          platform: Platform.OS,
+        });
 
         const dayTasks = tasks[targetDate] || [];
         setTasks({ ...tasks, [targetDate]: [...dayTasks, newTask] });
@@ -5109,6 +5147,12 @@ function CalendarScreen({ navigation, route }) {
       }
 
       await TaskService.toggleTaskChecked(task.id, newCompletedState);
+
+      // Mixpanel: 追蹤任務完成/取消完成事件
+      mixpanelService.track(newCompletedState ? "Task Completed" : "Task Uncompleted", {
+        task_id: task.id,
+        platform: Platform.OS,
+      });
 
       // Update local state
       const dayTasks = tasks[task.date] ? [...tasks[task.date]] : [];
@@ -6446,7 +6490,20 @@ export default function App() {
     if (typeof document !== "undefined") {
       document.title = getAppDisplayName();
     }
-    ReactGA.initialize(process.env.EXPO_PUBLIC_GA_WEB_ID || "G-EW2TBM5EML");
+    
+    // 初始化 Google Analytics (僅 Web 平台且 Production 環境)
+    if (Platform.OS === "web") {
+      const env = getCurrentEnvironment();
+      if (env === "production") {
+        ReactGA.initialize(process.env.EXPO_PUBLIC_GA_WEB_ID || "G-EW2TBM5EML");
+        console.log("✅ [GA] Web Production 環境 - 已初始化");
+      } else {
+        console.log(`🔧 [GA] Web ${env} 環境 - 跳過初始化（僅 Production 追蹤）`);
+      }
+    }
+    
+    // 初始化 Mixpanel (僅 iOS/Android 平台且 Production 環境)
+    mixpanelService.initialize();
 
     if (
       Platform.OS === "web" &&

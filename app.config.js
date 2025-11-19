@@ -30,11 +30,12 @@ const getEnvironmentConfig = () => {
     production: {
       name: "ToDo - 待辦清單",
       slug: "too-doo-list",
-      version: "1.0",
+      version: "1.1.0",
       description: "Simple and intuitive task management app with Google SSO",
       scheme: "too-doo-list",
       bundleIdentifier: "com.cty0305.too.doo.list",
       package: "com.cty0305.too.doo.list",
+      iosBuildNumber: "2",
     },
     staging: {
       name: "ToDo - 測試",
@@ -69,6 +70,7 @@ module.exports = {
     // Platform specific settings
     ios: {
       bundleIdentifier: envConfig.bundleIdentifier,
+      buildNumber: envConfig.iosBuildNumber || "1",
       supportsTablet: false,
       deploymentTarget: "13.0",
       associatedDomains: getAssociatedDomains(),

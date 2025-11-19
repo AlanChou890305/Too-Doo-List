@@ -66,6 +66,11 @@
             value = "staging"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "EXPO_PUBLIC_MIXPANEL_TOKEN"
+            value = "15c42bccd8cec7c78d1816a2d5b6ec51&#10;EXPO_PUBLIC_GA_WEB_ID=G-EW2TBM5EML"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
