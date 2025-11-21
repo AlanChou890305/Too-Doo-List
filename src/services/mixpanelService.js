@@ -21,31 +21,40 @@ class MixpanelService {
   initialize() {
     // Web 平台不使用 Mixpanel
     if (Platform.OS === "web") {
-      console.log("🌐 [Mixpanel] Web 平台 - 跳過初始化（使用 GA）");
       return;
     }
 
     // 僅在 Production 環境使用 Mixpanel
     const env = getCurrentEnvironment();
     if (env !== "production") {
-      console.log(`🔧 [Mixpanel] ${env} 環境 - 跳過初始化（僅 Production 追蹤）`);
       return;
     }
 
     // 如果沒有 token，跳過初始化
     if (!this.token) {
-      console.warn("⚠️ [Mixpanel] 未設定 EXPO_PUBLIC_MIXPANEL_TOKEN，跳過初始化");
       return;
     }
 
     try {
+      // Check if Mixpanel constructor is available
+      if (typeof Mixpanel !== 'function') {
+        return;
+      }
+
       this.mixpanel = new Mixpanel(this.token);
+      
+      // Check if init method exists
+      if (typeof this.mixpanel.init !== 'function') {
+        return;
+      }
+
       this.mixpanel.init();
       this.isInitialized = true;
       console.log("✅ [Mixpanel] 初始化成功");
     } catch (error) {
-      console.error("❌ [Mixpanel] 初始化失敗:", error);
+      // Silently fail - don't log errors in development
       this.isInitialized = false;
+      this.mixpanel = null;
     }
   }
 

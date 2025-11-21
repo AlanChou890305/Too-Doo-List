@@ -10,6 +10,8 @@ import { Platform } from "react-native";
 import * as Application from "expo-application";
 import { getCurrentEnvironment } from "./src/config/environment";
 import { mixpanelService } from "./src/services/mixpanelService";
+import { widgetService } from "./src/services/widgetService";
+import { format } from "date-fns";
 
 // 獲取重定向 URL
 const getRedirectUrl = () => {
@@ -2583,6 +2585,7 @@ const SplashScreen = ({ navigation }) => {
               shadowOpacity: theme.shadowOpacity,
               shadowRadius: 2,
               elevation: 1,
+              opacity: isSigningIn ? 0.5 : 1,
             }}
             onPress={handleGoogleSignIn}
             disabled={isSigningIn || isAppleSigningIn}
@@ -4691,9 +4694,9 @@ function CalendarScreen({ navigation, route }) {
     }
   }, [selectedDate, modalVisible]);
 
-  // Load tasks from Supabase
+  // Load tasks from Supabase based on visible range
   useEffect(() => {
-    const loadTasks = async () => {
+    const fetchTasksForVisibleRange = async () => {
       try {
         // 首先檢查用戶認證狀態
         const {
@@ -4707,17 +4710,40 @@ function CalendarScreen({ navigation, route }) {
           return;
         }
 
-        const tasksData = await TaskService.getTasks();
-        setTasks(tasksData);
+        // Calculate start and end date of the visible month
+        // We fetch previous, current, and next month to ensure smooth scrolling
+        const startDate = new Date(visibleYear, visibleMonth - 1, 1);
+        const endDate = new Date(visibleYear, visibleMonth + 2, 0);
+
+        const startDateStr = format(startDate, "yyyy-MM-dd");
+        const endDateStr = format(endDate, "yyyy-MM-dd");
+
+        console.log(`Fetching tasks from ${startDateStr} to ${endDateStr}`);
+
+        const newTasks = await TaskService.getTasksByDateRange(
+          startDateStr,
+          endDateStr
+        );
+
+
+        setTasks((prevTasks) => {
+          const updatedTasks = {
+            ...prevTasks,
+            ...newTasks,
+          };
+          
+          // Sync to widget
+          widgetService.syncTodayTasks(updatedTasks);
+          
+          return updatedTasks;
+        });
       } catch (error) {
         console.error("Error loading tasks:", error);
-        // Fallback to empty tasks if there's an error
-        setTasks({});
       }
     };
 
-    loadTasks();
-  }, []);
+    fetchTasksForVisibleRange();
+  }, [visibleYear, visibleMonth]);
 
   // Note: We no longer need to save tasks to AsyncStorage
   // Tasks are automatically saved to Supabase when modified
@@ -4778,146 +4804,252 @@ function CalendarScreen({ navigation, route }) {
     if (taskText.trim() === "") return;
     if (taskDate.trim() === "") return;
 
+    const targetDate = taskDate || selectedDate;
+    const previousTasks = { ...tasks }; // Backup for rollback
+    let tempId = null;
+
+    // Prepare task data
+    const taskData = {
+      title: taskText,
+      time: taskTime,
+      link: taskLink,
+      date: targetDate,
+      note: taskNote,
+    };
+
+    // 1. Optimistic Update
+    if (editingTask) {
+      const updatedTask = { ...editingTask, ...taskData };
+      
+      if (editingTask.date !== targetDate) {
+        // Date changed
+        const oldDayTasks = tasks[editingTask.date] || [];
+        const newOldDayTasks = oldDayTasks.filter(t => t.id !== editingTask.id);
+        const newDayTasks = tasks[targetDate] || [];
+        const updatedNewDayTasks = [...newDayTasks, updatedTask];
+        
+        const newTasksState = {
+          ...tasks,
+          [editingTask.date]: newOldDayTasks,
+          [targetDate]: updatedNewDayTasks,
+        };
+        setTasks(newTasksState);
+        widgetService.syncTodayTasks(newTasksState);
+      } else {
+        // Same date
+        const dayTasks = tasks[targetDate] || [];
+        const updatedDayTasks = dayTasks.map(t => t.id === editingTask.id ? updatedTask : t);
+        const newTasksState = { ...tasks, [targetDate]: updatedDayTasks };
+        setTasks(newTasksState);
+        widgetService.syncTodayTasks(newTasksState);
+      }
+    } else {
+      // Create new task
+      tempId = `temp-${Date.now()}`;
+      const newTask = { 
+        id: tempId, 
+        ...taskData, 
+        is_completed: false,
+        checked: false 
+      };
+      
+      const dayTasks = tasks[targetDate] || [];
+      const newTasksState = { ...tasks, [targetDate]: [...dayTasks, newTask] };
+      setTasks(newTasksState);
+      widgetService.syncTodayTasks(newTasksState);
+    }
+
+    // Close modal immediately
+    setModalVisible(false);
+    const currentEditingTask = editingTask; // Capture for async use
+    setEditingTask(null);
+    setTaskText("");
+    setTaskTime("");
+    setTaskLink("");
+    setTaskDate(selectedDate);
+    setTaskNote("");
+    setLinkInputFocused(false);
+
     try {
-      const targetDate = taskDate || selectedDate;
-
-      if (editingTask) {
-        console.log("Updating existing task:", editingTask.id);
-        console.log("Update data:", {
-          title: taskText,
-          time: taskTime,
-          link: taskLink,
-          date: targetDate,
-          note: taskNote,
-        });
-
-        // Cancel old notification if exists (支援新舊格式)
-        if (editingTask.notificationIds) {
-          await cancelTaskNotification(editingTask.notificationIds);
-        } else if (editingTask.notificationId) {
-          await cancelTaskNotification(editingTask.notificationId);
+      // 2. Perform Background Operations
+      if (currentEditingTask) {
+        // --- UPDATE TASK ---
+        console.log("Updating existing task:", currentEditingTask.id);
+        
+        // Check if it's a temporary task
+        if (String(currentEditingTask.id).startsWith("temp-")) {
+          console.log("Updating temporary task locally:", currentEditingTask.id);
+          return; // Skip API call, the create flow will handle the sync
         }
 
-        // Update existing task
-        const updatedTask = await TaskService.updateTask(editingTask.id, {
-          title: taskText,
-          time: taskTime,
-          link: taskLink,
-          date: targetDate,
-          note: taskNote,
-        });
+        // Cancel old notifications
+        if (currentEditingTask.notificationIds) {
+          await cancelTaskNotification(currentEditingTask.notificationIds);
+        } else if (currentEditingTask.notificationId) {
+          await cancelTaskNotification(currentEditingTask.notificationId);
+        }
 
-        // Schedule notification for updated task (native only)
+        // API Call
+        const updatedTaskFromServer = await TaskService.updateTask(currentEditingTask.id, taskData);
+
+        // Schedule new notification
         if (Platform.OS !== "web") {
           const notificationIds = await scheduleTaskNotification(
             {
-              id: updatedTask.id,
+              id: updatedTaskFromServer.id,
               text: taskText,
               date: targetDate,
               time: taskTime,
-              notificationIds: editingTask.notificationIds, // 傳遞舊的 IDs 以便取消
+              notificationIds: currentEditingTask.notificationIds,
             },
             t.taskReminder,
-            getActiveReminderMinutes(), // 從配置文件讀取提醒時間
-            null, // userReminderSettings
-            t // 傳入翻譯物件
+            getActiveReminderMinutes(),
+            null,
+            t
           );
-
+          
+          // Update local state with new notification IDs (silent update)
           if (notificationIds.length > 0) {
-            // Store notification IDs in local state only (不存到資料庫)
-            updatedTask.notificationIds = notificationIds;
+             setTasks(currentTasks => {
+                const dayTasks = currentTasks[targetDate] || [];
+                const updatedDayTasks = dayTasks.map(t => 
+                    t.id === updatedTaskFromServer.id ? { ...t, notificationIds } : t
+                );
+                return { ...currentTasks, [targetDate]: updatedDayTasks };
+             });
           }
         }
 
-        // Mixpanel: 追蹤任務更新事件
+        // Mixpanel
         mixpanelService.track("Task Updated", {
-          task_id: editingTask.id,
+          task_id: currentEditingTask.id,
           has_time: !!taskTime,
           has_link: !!taskLink,
           has_note: !!taskNote,
-          date_changed: editingTask.date !== targetDate,
+          date_changed: currentEditingTask.date !== targetDate,
           platform: Platform.OS,
         });
 
-        if (editingTask.date !== targetDate) {
-          // Date changed - remove from old date and add to new date
-          const oldDayTasks = tasks[editingTask.date] || [];
-          const newOldDayTasks = oldDayTasks.filter(
-            (t) => t.id !== editingTask.id
-          );
-
-          const newDayTasks = tasks[targetDate] || [];
-          const updatedNewDayTasks = [...newDayTasks, updatedTask];
-
-          setTasks({
-            ...tasks,
-            [editingTask.date]: newOldDayTasks,
-            [targetDate]: updatedNewDayTasks,
-          });
-        } else {
-          // Same date - update in place
-          const dayTasks = tasks[targetDate] || [];
-          const updatedDayTasks = dayTasks.map((t) =>
-            t.id === editingTask.id ? updatedTask : t
-          );
-          setTasks({ ...tasks, [targetDate]: updatedDayTasks });
-        }
       } else {
-        // Create new task
-        const newTask = await TaskService.addTask({
-          title: taskText,
-          time: taskTime,
-          link: taskLink,
-          date: targetDate,
-          note: taskNote,
+        // --- CREATE TASK ---
+        // API Call
+        const createdTask = await TaskService.addTask({
+          ...taskData,
           is_completed: false,
+        });
+
+        // Replace temp ID with real ID and handle any pending actions/changes
+        setTasks(currentTasks => {
+            // Check if task was deleted while creating
+            if (pendingTempActions.current[tempId] === 'delete') {
+                console.log("Task deleted while creating, deleting from server:", createdTask.id);
+                TaskService.deleteTask(createdTask.id).catch(e => console.error("Failed to delete ghost task", e));
+                
+                // Remove from state if it exists
+                const dayTasks = currentTasks[targetDate] || [];
+                const filteredTasks = dayTasks.filter(t => t.id !== tempId);
+                const updatedTasksState = { ...currentTasks, [targetDate]: filteredTasks };
+                widgetService.syncTodayTasks(updatedTasksState);
+                return updatedTasksState;
+            }
+
+            const dayTasks = currentTasks[targetDate] || [];
+            // Find the current state of this task (it might have been edited or toggled)
+            const currentTempTask = dayTasks.find(t => t.id === tempId);
+            
+            if (!currentTempTask) {
+                // Task not found in state? Maybe moved date? 
+                // For now, just return currentTasks, but this is an edge case.
+                return currentTasks;
+            }
+
+            // Merge server data with local changes
+            // We keep the real ID from server
+            // We take other fields from local state to preserve edits/toggles
+            const finalTask = {
+                ...createdTask,
+                ...currentTempTask,
+                id: createdTask.id
+            };
+
+            // Sync changes to server if local state diverged from initial creation
+            const needsUpdate = 
+                finalTask.title !== createdTask.title ||
+                finalTask.date !== createdTask.date ||
+                finalTask.time !== createdTask.time ||
+                finalTask.link !== createdTask.link ||
+                finalTask.note !== createdTask.note;
+            
+            const needsToggle = finalTask.is_completed !== createdTask.is_completed;
+
+            if (needsUpdate) {
+                console.log("Syncing pending updates for new task");
+                TaskService.updateTask(createdTask.id, {
+                    title: finalTask.title,
+                    date: finalTask.date,
+                    time: finalTask.time,
+                    link: finalTask.link,
+                    note: finalTask.note
+                }).catch(e => console.error("Failed to sync update", e));
+            }
+
+            if (needsToggle) {
+                console.log("Syncing pending toggle for new task");
+                TaskService.toggleTaskChecked(createdTask.id, finalTask.is_completed)
+                    .catch(e => console.error("Failed to sync toggle", e));
+            }
+
+            const updatedDayTasks = dayTasks.map(t => t.id === tempId ? finalTask : t);
+            const updatedTasksState = { ...currentTasks, [targetDate]: updatedDayTasks };
+            
+            // Sync widget again with real ID
+            widgetService.syncTodayTasks(updatedTasksState);
+            
+            return updatedTasksState;
         });
 
         // Schedule notification for new task (native only)
         if (Platform.OS !== "web") {
           const notificationIds = await scheduleTaskNotification(
             {
-              id: newTask.id,
+              id: createdTask.id,
               text: taskText,
               date: targetDate,
               time: taskTime,
             },
             t.taskReminder,
-            getActiveReminderMinutes(), // 從配置文件讀取提醒時間
-            null, // userReminderSettings
-            t // 傳入翻譯物件
+            getActiveReminderMinutes(),
+            null,
+            t
           );
 
           if (notificationIds.length > 0) {
-            // Store notification IDs in local state only (不存到資料庫)
-            newTask.notificationIds = notificationIds;
+            // Update local state with notification IDs
+             setTasks(currentTasks => {
+                const dayTasks = currentTasks[targetDate] || [];
+                const updatedDayTasks = dayTasks.map(t => 
+                    t.id === createdTask.id ? { ...t, notificationIds } : t
+                );
+                return { ...currentTasks, [targetDate]: updatedDayTasks };
+             });
           }
         }
 
-        // Mixpanel: 追蹤任務建立事件
+        // Mixpanel
         mixpanelService.track("Task Created", {
-          task_id: newTask.id,
+          task_id: createdTask.id,
           has_time: !!taskTime,
           has_link: !!taskLink,
           has_note: !!taskNote,
           platform: Platform.OS,
         });
-
-        const dayTasks = tasks[targetDate] || [];
-        setTasks({ ...tasks, [targetDate]: [...dayTasks, newTask] });
       }
-
-      setModalVisible(false);
-      setEditingTask(null);
-      setTaskText("");
-      setTaskTime("");
-      setTaskLink("");
-      setTaskDate(selectedDate);
-      setTaskNote("");
-      setLinkInputFocused(false);
     } catch (error) {
       console.error("Error saving task:", error);
-      Alert.alert("Error", "Failed to save task. Please try again.");
+      // 3. Rollback
+      setTasks(previousTasks);
+      widgetService.syncTodayTasks(previousTasks);
+      Alert.alert("Error", "Failed to save task. Data has been restored.");
     }
   };
 
@@ -4949,11 +5081,42 @@ function CalendarScreen({ navigation, route }) {
     }
   };
 
+  // Ref to track pending actions for temporary tasks
+  const pendingTempActions = useRef({});
+
   const deleteTask = async () => {
     if (!editingTask) return;
 
+    // 1. Optimistic Update: Remove from UI immediately
+    const day = editingTask.date;
+    const previousTasks = { ...tasks }; // Backup for rollback
+    const dayTasks = tasks[day] ? [...tasks[day]] : [];
+    const filteredTasks = dayTasks.filter((t) => t.id !== editingTask.id);
+    const newTasks = { ...tasks, [day]: filteredTasks };
+    
+    setTasks(newTasks);
+    widgetService.syncTodayTasks(newTasks);
+    
+    // Close modal immediately
+    setModalVisible(false);
+    setEditingTask(null);
+    setTaskText("");
+    setTaskTime("");
+    setTaskLink("");
+    setTaskDate(selectedDate);
+    setTaskNote("");
+    setLinkInputFocused(false);
+
+    // Check if it's a temporary task
+    if (String(editingTask.id).startsWith("temp-")) {
+      console.log("Deleting temporary task locally:", editingTask.id);
+      pendingTempActions.current[editingTask.id] = "delete";
+      return; // Skip API call
+    }
+
     try {
-      // Cancel notification if exists (支援新舊格式)
+      // 2. Perform Background Operation
+      // Cancel notification if exists
       if (editingTask.notificationIds) {
         await cancelTaskNotification(editingTask.notificationIds);
       } else if (editingTask.notificationId) {
@@ -4961,25 +5124,12 @@ function CalendarScreen({ navigation, route }) {
       }
 
       await TaskService.deleteTask(editingTask.id);
-
-      // Update local state
-      const day = editingTask.date;
-      const dayTasks = tasks[day] ? [...tasks[day]] : [];
-      const filteredTasks = dayTasks.filter((t) => t.id !== editingTask.id);
-      const newTasks = { ...tasks, [day]: filteredTasks };
-      setTasks(newTasks);
-
-      setModalVisible(false);
-      setEditingTask(null);
-      setTaskText("");
-      setTaskTime("");
-      setTaskLink("");
-      setTaskDate(selectedDate);
-      setTaskNote("");
-      setLinkInputFocused(false);
     } catch (error) {
       console.error("Error deleting task:", error);
-      Alert.alert("Error", "Failed to delete task. Please try again.");
+      // 3. Rollback on Failure
+      setTasks(previousTasks);
+      widgetService.syncTodayTasks(previousTasks);
+      Alert.alert("Error", "Failed to delete task. Data has been restored.");
     }
   };
 
@@ -5003,7 +5153,9 @@ function CalendarScreen({ navigation, route }) {
       const filteredTasks = fromTasks.filter((t) => t.id !== task.id);
       const updatedTask = { ...task, date: toDate };
       toTasks.push(updatedTask);
-      setTasks({ ...tasks, [selectedDate]: filteredTasks, [toDate]: toTasks });
+      const updatedTasks = { ...tasks, [selectedDate]: filteredTasks, [toDate]: toTasks };
+      setTasks(updatedTasks);
+      widgetService.syncTodayTasks(updatedTasks);
 
       setMoveMode(false);
       setTaskToMove(null);
@@ -5134,10 +5286,34 @@ function CalendarScreen({ navigation, route }) {
   };
 
   const toggleTaskChecked = async (task) => {
-    try {
-      const newCompletedState = !(task.is_completed || task.checked);
+    const newCompletedState = !(task.is_completed || task.checked);
+    const previousTasks = { ...tasks }; // Backup for rollback
 
-      // If task is being marked as completed, cancel notification (支援新舊格式)
+    // 1. Optimistic Update: Update UI immediately
+    const dayTasks = tasks[task.date] ? [...tasks[task.date]] : [];
+    const updatedTasksList = dayTasks.map((t) =>
+      t.id === task.id
+        ? {
+            ...t,
+            checked: newCompletedState,
+            is_completed: newCompletedState,
+          }
+        : t
+    );
+    const newTasksState = { ...tasks, [task.date]: updatedTasksList };
+    
+    setTasks(newTasksState);
+    widgetService.syncTodayTasks(newTasksState);
+
+    // Check if it's a temporary task
+    if (String(task.id).startsWith("temp-")) {
+      console.log("Toggling temporary task locally:", task.id);
+      return; // Skip API call, the create flow will handle the sync
+    }
+
+    try {
+      // 2. Perform Background Operation
+      // If task is being marked as completed, cancel notification
       if (newCompletedState) {
         if (task.notificationIds) {
           await cancelTaskNotification(task.notificationIds);
@@ -5148,29 +5324,20 @@ function CalendarScreen({ navigation, route }) {
 
       await TaskService.toggleTaskChecked(task.id, newCompletedState);
 
-      // Mixpanel: 追蹤任務完成/取消完成事件
+      // Mixpanel: Track event
       mixpanelService.track(newCompletedState ? "Task Completed" : "Task Uncompleted", {
         task_id: task.id,
         platform: Platform.OS,
       });
-
-      // Update local state
-      const dayTasks = tasks[task.date] ? [...tasks[task.date]] : [];
-      const updatedTasks = dayTasks.map((t) =>
-        t.id === task.id
-          ? {
-              ...t,
-              checked: newCompletedState,
-              is_completed: newCompletedState,
-            }
-          : t
-      );
-      setTasks({ ...tasks, [task.date]: updatedTasks });
     } catch (error) {
       console.error("Error toggling task:", error);
+      // 3. Rollback on Failure
+      setTasks(previousTasks);
+      widgetService.syncTodayTasks(previousTasks);
       Alert.alert("Error", "Failed to update task. Please try again.");
     }
   };
+
 
   const renderTask = ({ item }) => (
     <View style={styles.taskItemRow}>
@@ -6372,6 +6539,15 @@ export default function App() {
     NotoSansTC_700Bold,
   });
 
+  // Initialize Mixpanel (only in production)
+  useEffect(() => {
+    const env = getCurrentEnvironment();
+    if (env === "production") {
+      mixpanelService.initialize();
+      mixpanelService.track("App Opened");
+    }
+  }, []);
+
   useEffect(() => {
     // Add Google Fonts for web only - keep it simple for native
     if (Platform.OS === "web" && typeof document !== "undefined") {
@@ -6503,7 +6679,10 @@ export default function App() {
     }
     
     // 初始化 Mixpanel (僅 iOS/Android 平台且 Production 環境)
-    mixpanelService.initialize();
+    const env = getCurrentEnvironment();
+    if (env === "production") {
+      mixpanelService.initialize();
+    }
 
     if (
       Platform.OS === "web" &&

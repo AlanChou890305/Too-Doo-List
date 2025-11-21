@@ -8,6 +8,8 @@ import {
 import { scheduleTaskNotification } from "./notificationService";
 import { UserService } from "./userService";
 
+import { format } from "date-fns";
+
 export class TaskService {
   // Get all tasks for a user
   static async getTasks() {
@@ -67,6 +69,69 @@ export class TaskService {
       return tasksByDate;
     } catch (error) {
       console.error("Error in getTasks:", error);
+      return {};
+    }
+  }
+
+  // Get tasks for a specific date range
+  static async getTasksByDateRange(startDate, endDate) {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        return {};
+      }
+
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("date", startDate)
+        .lte("date", endDate)
+        .order("date", { ascending: true })
+        .order("order_index", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching tasks for range:", error);
+        return {};
+      }
+
+      // Group tasks by date
+      const tasksByDate = {};
+      data.forEach((task) => {
+        if (!tasksByDate[task.date]) {
+          tasksByDate[task.date] = [];
+        }
+
+        // 提取用戶顯示名稱
+        const userDisplayName =
+          user.user_metadata?.name ||
+          user.user_metadata?.full_name ||
+          user.email?.split("@")[0] ||
+          "User";
+
+        tasksByDate[task.date].push({
+          id: task.id,
+          title: task.title,
+          time: task.time,
+          link: task.link,
+          note: task.note,
+          date: task.date,
+          checked: task.is_completed || task.checked || false, // 支援新舊欄位
+          is_completed: task.is_completed || task.checked || false,
+          user: {
+            id: user.id,
+            email: user.email,
+            displayName: userDisplayName,
+            avatar: user.user_metadata?.avatar_url,
+          },
+        });
+      });
+
+      return tasksByDate;
+    } catch (error) {
+      console.error("Error in getTasksByDateRange:", error);
       return {};
     }
   }
@@ -215,9 +280,8 @@ export class TaskService {
             reminderSettings
           );
 
-          // 更新任務的通知ID
+          // Store notification IDs locally (not in database)
           if (notificationIds.length > 0) {
-            await this.updateTask(data.id, { notificationIds });
             taskResult.notificationIds = notificationIds;
           }
         } catch (error) {
@@ -314,8 +378,8 @@ export class TaskService {
               reminderSettings
             );
 
+            // Store notification IDs locally (not in database)
             if (notificationIds.length > 0) {
-              await this.updateTask(data.id, { notificationIds });
               taskResult.notificationIds = notificationIds;
             }
           }
@@ -323,6 +387,8 @@ export class TaskService {
           console.error("Error updating notifications for task:", error);
         }
       }
+
+
 
       return taskResult;
     } catch (error) {
