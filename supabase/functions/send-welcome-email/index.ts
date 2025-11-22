@@ -1,0 +1,124 @@
+import { serve } from "http/server.ts";
+
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+
+serve(async (req: Request) => {
+  try {
+    // 1. Validate Environment Variables
+    if (!RESEND_API_KEY) {
+      throw new Error("Missing RESEND_API_KEY");
+    }
+
+    // 2. Parse Auth Hook Payload
+    const payload = await req.json();
+    const { user } = payload;
+
+    if (!user || !user.email) {
+      throw new Error("Missing user email in payload");
+    }
+
+    console.log(`📧 Sending welcome email to: ${user.email}`);
+
+    // 3. Generate Unsubscribe Link
+    const unsubscribeUrl = `${SUPABASE_URL}/functions/v1/unsubscribe?uid=${user.id}`;
+
+    // 4. Welcome Email HTML Template
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans TC', sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #9466EE; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header h1 { color: white; margin: 0; font-size: 28px; }
+        .content { background: #f9f9f9; padding: 30px 20px; border-radius: 0 0 8px 8px; border: 1px solid #eee; }
+        .feature { margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border-left: 4px solid #9466EE; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .feature h3 { margin-top: 0; color: #2c3e50; font-size: 18px; }
+        .feature p { margin-bottom: 0; }
+        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #888; }
+        .footer a { color: #888; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 歡迎使用 ToDo！</h1>
+        </div>
+        <div class="content">
+            <h2>嗨！很高興認識您 👋</h2>
+            <p>感謝您選擇 <strong>ToDo - 待辦清單</strong>！我們致力於幫助您更有效率地管理每一天。</p>
+            
+            <div class="feature">
+                <h3>✨ 開始使用</h3>
+                <p>建立您的第一個任務，體驗簡潔直覺的待辦清單管理。</p>
+            </div>
+
+            <div class="feature">
+                <h3>📱 桌面小工具</h3>
+                <p>將 Widget 加入主畫面，隨時查看今日任務，無需開啟 App。</p>
+            </div>
+
+            <div class="feature">
+                <h3>☁️ 雲端同步</h3>
+                <p>您的任務會自動同步到雲端，換裝置也不怕遺失資料。</p>
+            </div>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 25px;">
+                <tr>
+                    <td align="center">
+                        <a href="https://apps.apple.com/us/app/todo-%E5%BE%85%E8%BE%A6%E6%B8%85%E5%96%AE/id6753785239" style="display: inline-block; background-color: #9466EE; color: white !important; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 0; font-size: 16px;">開始使用 ToDo</a>
+                    </td>
+                </tr>
+            </table>
+
+            <p style="margin-top: 30px; text-align: center; color: #666;">如有任何問題或建議，歡迎隨時與我們聯繫！</p>
+        </div>
+        <div class="footer">
+            <p>ToDo - 待辦清單 團隊 敬上</p>
+            <p><a href="${unsubscribeUrl}">取消訂閱</a></p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    // 5. Send Email via Resend
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "ToDo-待辦清單 <onboarding@resend.dev>",
+        to: [user.email],
+        subject: "歡迎使用 ToDo！",
+        html: html,
+        headers: {
+          "List-Unsubscribe": `<${unsubscribeUrl}>`
+        }
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      console.log(`✅ Welcome email sent successfully to ${user.email}`);
+      return new Response(JSON.stringify({ success: true, data }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    } else {
+      console.error(`❌ Failed to send welcome email: ${JSON.stringify(data)}`);
+      throw new Error(`Resend API error: ${JSON.stringify(data)}`);
+    }
+  } catch (error: any) {
+    console.error("❌ Error in send-welcome-email:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
+});

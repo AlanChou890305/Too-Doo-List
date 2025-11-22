@@ -27,7 +27,8 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_APP_ENV": "production"
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "EXPO_PUBLIC_MIXPANEL_TOKEN": "15c42bccd8cec7c78d1816a2d5b6ec51"
       }
     }
   },

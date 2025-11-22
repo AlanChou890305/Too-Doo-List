@@ -32,12 +32,20 @@ class MixpanelService {
 
     // 如果沒有 token，跳過初始化
     if (!this.token) {
+      console.log("⚠️ [Mixpanel] No token found - skipping initialization");
+      console.log("EXPO_PUBLIC_MIXPANEL_TOKEN:", process.env.EXPO_PUBLIC_MIXPANEL_TOKEN ? "SET" : "NOT SET");
       return;
     }
 
     try {
+      console.log("🔧 [Mixpanel] Starting initialization...");
+      console.log("📱 Platform:", Platform.OS);
+      console.log("🌍 Environment:", env);
+      console.log("🔑 Token:", this.token ? "EXISTS" : "MISSING");
+      
       // Check if Mixpanel constructor is available
       if (typeof Mixpanel !== 'function') {
+        console.log("❌ [Mixpanel] Mixpanel constructor not available");
         return;
       }
 
@@ -45,6 +53,7 @@ class MixpanelService {
       
       // Check if init method exists
       if (typeof this.mixpanel.init !== 'function') {
+        console.log("❌ [Mixpanel] init method not available");
         return;
       }
 
@@ -52,7 +61,8 @@ class MixpanelService {
       this.isInitialized = true;
       console.log("✅ [Mixpanel] 初始化成功");
     } catch (error) {
-      // Silently fail - don't log errors in development
+      // Log errors in production to help debug
+      console.error("❌ [Mixpanel] 初始化失敗:", error);
       this.isInitialized = false;
       this.mixpanel = null;
     }

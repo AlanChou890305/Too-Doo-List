@@ -56,26 +56,27 @@ class WidgetService {
       const tasksJson = JSON.stringify(widgetTasks);
       console.log(`📱 [Widget Service] JSON data:`, tasksJson);
 
-      // Write to App Group
-      await SharedGroupPreferences.setItem(
-        this.widgetDataKey,
-        tasksJson,
-        this.appGroupIdentifier
-      );
-
-      // Reload widget timeline
+      // Reload widget timeline using native module (atomic write + reload)
       if (Platform.OS === "ios") {
         try {
           const { WidgetReloader } = NativeModules;
-          if (WidgetReloader) {
-            WidgetReloader.reloadAllWidgets();
-            console.log(`✅ [Widget] Synced ${widgetTasks.length} tasks and reloaded widget`);
+          if (WidgetReloader && WidgetReloader.reloadWidgetWithData) {
+            WidgetReloader.reloadWidgetWithData(tasksJson);
+            console.log(`✅ [Widget] Synced ${widgetTasks.length} tasks via native module`);
           } else {
-            console.log(`✅ [Widget] Synced ${widgetTasks.length} tasks (reload module not available)`);
+            // Fallback for older native module version (should not happen if rebuilt)
+            console.warn("⚠️ [Widget] Native reloadWidgetWithData not found, falling back to old method");
+            await SharedGroupPreferences.setItem(
+              this.widgetDataKey,
+              tasksJson,
+              this.appGroupIdentifier
+            );
+            if (WidgetReloader) {
+               WidgetReloader.reloadAllWidgets();
+            }
           }
         } catch (error) {
           console.error("❌ [Widget] Failed to reload widget:", error);
-          console.log(`✅ [Widget] Synced ${widgetTasks.length} tasks (reload failed)`);
         }
       }
     } catch (error) {

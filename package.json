@@ -6,6 +6,7 @@
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
+    "ios:prod": "EXPO_PUBLIC_APP_ENV=production expo run:ios",
     "web": "expo start --web",
     "build": "rm -rf dist && expo export --platform web --output-dir dist && node scripts/copy-public.js",
     "version:patch": "npm version patch",

@@ -4745,6 +4745,15 @@ function CalendarScreen({ navigation, route }) {
     fetchTasksForVisibleRange();
   }, [visibleYear, visibleMonth]);
 
+  // Reset to today when app loads/reloads
+  useEffect(() => {
+    const today = getCurrentDate();
+    const todayDate = new Date(today);
+    setSelectedDate(today);
+    setVisibleMonth(todayDate.getMonth());
+    setVisibleYear(todayDate.getFullYear());
+  }, []); // Empty dependency array = only run once on mount
+
   // Note: We no longer need to save tasks to AsyncStorage
   // Tasks are automatically saved to Supabase when modified
 

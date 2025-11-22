@@ -24,6 +24,9 @@ A cross-platform React Native to-do list app with calendar integration, Google S
 - **⚙️ Settings:** Change language, view app version, terms and privacy policy
 - **📊 Analytics:** Google Analytics 4 (web) + Mixpanel (iOS) for usage insights
 - **🚀 Web Deployment:** Optimized for Netlify deployment
+- **📱 iOS Home Screen Widget:** View today's tasks directly on your home screen
+- **📧 Email Notifications:** Automated welcome emails and update notifications via Resend
+- **⚡ Performance Optimizations:** Faster task operations and widget updates
 
 ## 📁 Project Structure
 
@@ -156,9 +159,11 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 ### Backend & Services
 
 - **Supabase** - Authentication & PostgreSQL database
+- **Supabase Edge Functions** - Serverless functions for email automation
 - **Google OAuth 2.0** - SSO authentication
 - **Google Analytics 4 (react-ga4)** - Web usage analytics
 - **Mixpanel (mixpanel-react-native)** - iOS analytics
+- **Resend** - Transactional email service
 - **Netlify / Vercel** - Web deployment platform
 
 ### Version Management
@@ -167,6 +172,23 @@ _Add screenshots or GIFs of the main UI, calendar, and settings screens here_
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Changelog
+
+### v1.1.1 (2025-11-22)
+
+- 📱 **iOS Home Screen Widget:** View today's tasks directly on your home screen
+- 📧 **Email Notification System:** 
+  - Automated welcome emails for new users via Supabase Auth Hooks
+  - Manual update notifications with Traditional Chinese templates
+  - Custom unsubscribe flow with user metadata tracking
+- ⚡ **Performance Improvements:**
+  - Optimized widget update mechanism (atomic data write + reload)
+  - Faster task creation, editing, and deletion
+  - Auto-reset to today's date on app reload
+- 🔧 **Developer Experience:**
+  - Supabase Edge Functions for email automation
+  - Resend integration for transactional emails
+  - Local email sending script for testing
+  - Mixpanel token included in production builds
 
 ### v1.1.0 (2025-11-19)
 

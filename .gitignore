@@ -32,9 +32,9 @@ manifest.json
 *.swp
 *.swo
 *~
-.vscode/settings.json
+!.vscode/settings.json
 .vscode/launch.json
-.vscode/extensions.json
+!.vscode/extensions.json
 *.code-workspace
 
 # Cursor IDE
