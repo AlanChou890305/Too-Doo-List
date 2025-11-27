@@ -38,30 +38,6 @@ class VersionService {
         };
       }
 
-      // 測試模式 - 在 staging 環境中顯示測試更新
-      const isTestMode = process.env.EXPO_PUBLIC_APP_ENV === 'staging';
-      if (isTestMode) {
-        console.log('🧪 [VersionCheck] 測試模式 - 模擬版本更新');
-        
-        // 根據環境決定更新連結
-        const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
-        const updateUrl = getUpdateUrl(appEnv);
-        
-        if (appEnv === 'staging') {
-          console.log('🧪 [VersionCheck] Staging 環境 - 導向 TestFlight');
-        } else {
-          console.log('🚀 [VersionCheck] Production 環境 - 導向 App Store');
-        }
-        
-        return {
-          hasUpdate: true,
-          latestVersion: '1.9.1',
-          updateUrl: updateUrl,
-          releaseNotes: '🧪 測試版本更新\n\n• 測試版本檢查功能\n• 模擬更新提示\n• 改善用戶體驗\n\n這是測試環境的更新！',
-          forceUpdate: false,
-          buildNumber: '2'
-        };
-      }
 
       // 從 Supabase 獲取最新版本資訊
       const { data, error } = await supabase
@@ -124,8 +100,7 @@ class VersionService {
    * @returns {string} 更新連結
    */
   getDefaultUpdateUrl() {
-    const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
-    return getUpdateUrl(appEnv);
+    return getUpdateUrl("production");
   }
 
   /**

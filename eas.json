@@ -8,16 +8,6 @@
       "developmentClient": false,
       "distribution": "internal"
     },
-    "staging": {
-      "distribution": "internal",
-      "ios": {
-        "simulator": false
-      },
-      "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_APP_ENV": "staging"
-      }
-    },
     "preview": {
       "distribution": "internal",
       "ios": {

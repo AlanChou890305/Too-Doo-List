@@ -1,54 +1,25 @@
 // 獲取關聯域名
 const getAssociatedDomains = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
-
-  const domains = {
-    production: ["applinks:to-do-mvp.vercel.app"], // Production 使用正式網域
-    staging: ["applinks:to-do-staging.vercel.app"], // Staging 使用測試網域
-  };
-
-  return domains[env] || domains.production;
+  return ["applinks:to-do-mvp.vercel.app"];
 };
 
 // 獲取重定向 URL
 const getRedirectUrl = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
-
-  const urls = {
-    production: "https://to-do-mvp.vercel.app", // Production 使用正式網域
-    staging: "https://to-do-staging.vercel.app", // Staging 使用測試網域
-  };
-
-  return urls[env] || urls.production;
+  return "https://to-do-mvp.vercel.app";
 };
 
 // 環境配置
 const getEnvironmentConfig = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "production"; // 默認使用 production
-
-  const configs = {
-    production: {
-      name: "ToDo - 待辦清單",
-      slug: "too-doo-list",
-      version: "1.1.0",
-      description: "Simple and intuitive task management app with Google SSO",
-      scheme: "too-doo-list",
-      bundleIdentifier: "com.cty0305.too.doo.list",
-      package: "com.cty0305.too.doo.list",
-      iosBuildNumber: "2",
-    },
-    staging: {
-      name: "ToDo - 測試",
-      slug: "too-doo-list-staging",
-      version: "1.9.1",
-      description: "To Do - Staging Environment (Testing)",
-      scheme: "too-doo-list-staging",
-      bundleIdentifier: "com.cty0305.too.doo.list.staging",
-      package: "com.cty0305.too.doo.list.staging",
-    },
+  return {
+    name: "ToDo - 待辦清單",
+    slug: "too-doo-list",
+    version: "1.1.0",
+    description: "Simple and intuitive task management app with Google SSO",
+    scheme: "too-doo-list",
+    bundleIdentifier: "com.cty0305.too.doo.list",
+    package: "com.cty0305.too.doo.list",
+    iosBuildNumber: "2",
   };
-
-  return configs[env] || configs.production; // 默認 fallback 到 production
 };
 
 const envConfig = getEnvironmentConfig();
@@ -144,24 +115,11 @@ module.exports = {
     // EAS project configuration
     extra: {
       eas: {
-        // 根據環境使用不同的 project ID
-        // Staging: 8b8685c4-b853-4a83-b937-f97eb8c5cb7e
-        // Production: a86169e7-6d37-4bee-be43-d1e709615ef9
-        projectId:
-          envConfig.slug === "too-doo-list-staging"
-            ? "8b8685c4-b853-4a83-b937-f97eb8c5cb7e" // staging project
-            : "a86169e7-6d37-4bee-be43-d1e709615ef9", // production project
+        projectId: "a86169e7-6d37-4bee-be43-d1e709615ef9",
       },
-      // Environment variables - 根據環境自動切換
-      EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV || "production",
-      // Supabase 配置 - 從環境變數或直接設置
-      // Staging 使用 staging Supabase
-      EXPO_PUBLIC_SUPABASE_URL_STAGING:
-        process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING ||
-        "https://qerosiozltqrbehctxdn.supabase.co",
-      EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING:
-        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY_STAGING,
-      // 環境特定配置
+      // Environment variables
+      EXPO_PUBLIC_APP_ENV: "production",
+      // Environment specific configuration
       environment: envConfig,
     },
 

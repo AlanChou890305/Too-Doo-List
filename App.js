@@ -14,61 +14,15 @@ import { widgetService } from "./src/services/widgetService";
 import { format } from "date-fns";
 
 // 獲取重定向 URL
+// 獲取重定向 URL
 const getRedirectUrl = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
-
-  const urls = {
-    production: "https://to-do-mvp.vercel.app", // Production 使用正式網域
-    staging: "https://to-do-staging.vercel.app", // Staging 使用測試網域
-  };
-
-  return urls[env] || urls.production;
+  return "https://to-do-mvp.vercel.app";
 };
 
 const getAppDisplayName = () => {
-  const env = process.env.EXPO_PUBLIC_APP_ENV || "production";
-  return env === "staging" ? "ToDo - 測試" : "ToDo - 待辦清單";
+  return "ToDo - 待辦清單";
 };
 
-// 調試資訊 - 強制重新部署
-console.log("🚨🚨🚨 環境變數調試開始 🚨🚨🚨");
-console.log(
-  "🔍 APP DEBUG - EXPO_PUBLIC_APP_ENV:",
-  process.env.EXPO_PUBLIC_APP_ENV
-);
-console.log(
-  "🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL_DEV:",
-  process.env.EXPO_PUBLIC_SUPABASE_URL_DEV
-);
-console.log(
-  "🔍 APP DEBUG - EXPO_PUBLIC_SUPABASE_URL:",
-  process.env.EXPO_PUBLIC_SUPABASE_URL
-);
-console.log(
-  "🔍 APP DEBUG - 所有環境變數:",
-  Object.keys(process.env).filter((key) => key.startsWith("EXPO_PUBLIC"))
-);
-console.log("🔍 APP DEBUG - 強制重新部署觸發器 - DEV 環境調試");
-console.log("🚨🚨🚨 環境變數調試結束 🚨🚨🚨");
-
-// 添加更明顯的調試資訊
-// Use environment helper to get actual environment (with defaults)
-const actualEnv = getCurrentEnvironment();
-console.log("🔥🔥🔥 TESTFLIGHT DEBUG START 🔥🔥🔥");
-console.log("🔥 CURRENT ENVIRONMENT:", actualEnv || "NOT SET");
-console.log(
-  "🔥 SUPABASE URL DEV:",
-  process.env.EXPO_PUBLIC_SUPABASE_URL_DEV || "NOT SET"
-);
-console.log(
-  "🔥 SUPABASE URL STAGING:",
-  process.env.EXPO_PUBLIC_SUPABASE_URL_STAGING || "NOT SET"
-);
-console.log(
-  "🔥 SUPABASE URL:",
-  process.env.EXPO_PUBLIC_SUPABASE_URL || "NOT SET"
-);
-console.log("🔥🔥🔥 TESTFLIGHT DEBUG END 🔥🔥🔥");
 import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
 import ReactGA from "react-ga4";
 import * as AuthSession from "expo-auth-session";
@@ -121,11 +75,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
 
     // Determine the correct URL scheme based on environment/domain
     const envScheme = process.env.NEXT_PUBLIC_APP_SCHEME;
-    let appScheme =
-      envScheme ||
-      (window.location.hostname.includes("to-do-staging.vercel.app")
-        ? "too-doo-list-staging"
-        : "too-doo-list");
+    let appScheme = envScheme || "too-doo-list";
 
     // Check if this is likely from native app by checking referrer or user agent
     // For localhost, always treat as web OAuth (not from native app)
