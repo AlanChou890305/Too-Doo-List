@@ -23,7 +23,7 @@ npx supabase link --project-ref ajbusqpjsjcuzzxuueij
 ## 步驟 3: 設定 Resend API Key (Secret)
 
 ```bash
-npx supabase secrets set RESEND_API_KEY=re_XfFVsnNG_FsrnFjy1pf2KzSNLRxQU6rZF
+npx supabase secrets set RESEND_API_KEY=<your_resend_api_key>
 ```
 
 ---

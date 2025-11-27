@@ -14,6 +14,7 @@ interface EmailRequest {
   subject: string;
   html: string;
   testEmail?: string; // If provided, only send to this email
+  emailType?: "product_updates" | "marketing" | "welcome"; // Type of email
 }
 
 serve(async (req: Request) => {
@@ -32,11 +33,13 @@ serve(async (req: Request) => {
     }
 
     // 2. Parse Request Body
-    const { subject, html, testEmail }: EmailRequest = await req.json();
+    const { subject, html, testEmail, emailType = "product_updates" }: EmailRequest = await req.json();
 
     if (!subject || !html) {
       throw new Error("Missing 'subject' or 'html' in request body");
     }
+
+    console.log(`📧 Email Type: ${emailType}`);
 
     // 3. Initialize Supabase Admin Client
     const supabaseAdmin = createClient(
@@ -59,18 +62,76 @@ serve(async (req: Request) => {
 
       if (userError) throw userError;
 
-      // Filter out unsubscribed users
+      // Get user IDs
+      const userIds = users.map((u: any) => u.id);
+
+      // Fetch user_settings for all users to check email preferences
+      const { data: userSettings, error: settingsError } = await supabaseAdmin
+        .from("user_settings")
+        .select("user_id, email_preferences")
+        .in("user_id", userIds);
+
+      if (settingsError) {
+        console.warn("⚠️ Error fetching user settings:", settingsError);
+        // Continue without settings check
+      }
+
+      // Create a map of user_id -> email_preferences
+      const preferencesMap = new Map();
+      if (userSettings) {
+        userSettings.forEach((setting: any) => {
+          preferencesMap.set(setting.user_id, setting.email_preferences);
+        });
+      }
+
+      // Filter users based on email type and preferences
       recipients = users
         .filter((u: any) => {
+          // Skip if no email
+          if (!u.email) return false;
+
+          // Check old unsubscribe flag
           const isUnsubscribed = u.user_metadata?.unsubscribed === true;
           if (isUnsubscribed) {
             console.log(`🚫 Skipping unsubscribed user: ${u.email}`);
+            return false;
           }
-          return !isUnsubscribed && !!u.email;
+
+          // Welcome emails always send (don't check preferences)
+          if (emailType === "welcome") {
+            return true;
+          }
+
+          // Check email preferences from user_settings
+          const preferences = preferencesMap.get(u.id);
+          
+          if (!preferences) {
+            // If no preferences found, use defaults
+            // product_updates: true (default on)
+            // marketing: false (default off)
+            if (emailType === "product_updates") {
+              return true; // Default is to receive product updates
+            } else if (emailType === "marketing") {
+              return false; // Default is NOT to receive marketing
+            }
+          }
+
+          // Check specific preference
+          if (emailType === "product_updates" && preferences?.product_updates === false) {
+            console.log(`🚫 Skipping user (product_updates disabled): ${u.email}`);
+            return false;
+          }
+
+          if (emailType === "marketing" && preferences?.marketing !== true) {
+            console.log(`🚫 Skipping user (marketing not enabled): ${u.email}`);
+            return false;
+          }
+
+          return true;
         })
         .map((u: any) => ({ email: u.email!, id: u.id }));
       
-      console.log(`📢 Found ${recipients.length} subscribed users to email.`);
+      console.log(`📢 Found ${recipients.length} eligible users for ${emailType} emails.`);
     }
 
     // 5. Send Emails via Resend API
@@ -106,7 +167,12 @@ serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ message: "Emails processed", count: results.length, results }),
+      JSON.stringify({ 
+        message: "Emails processed", 
+        emailType,
+        count: results.length, 
+        results 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

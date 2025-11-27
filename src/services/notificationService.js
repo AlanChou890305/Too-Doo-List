@@ -129,15 +129,9 @@ export async function scheduleTaskNotification(
     const taskTime = new Date(year, month - 1, day, hours, minutes);
     const now = new Date();
 
-    // 先取消舊的通知（如果存在）
-    if (task.notificationIds && Array.isArray(task.notificationIds)) {
-      for (const id of task.notificationIds) {
-        await cancelTaskNotification(id);
-      }
-    } else if (task.notificationId) {
-      // 向後兼容：支援舊的單一 notificationId
-      await cancelTaskNotification(task.notificationId);
-    }
+    // 1. 先取消該任務的所有舊通知
+    // 我們現在使用 taskId 來查找並取消所有相關通知，而不是依賴傳入的 notificationIds
+    await cancelTaskNotification(null, task.id);
 
     const scheduledNotificationIds = [];
 
@@ -162,14 +156,20 @@ export async function scheduleTaskNotification(
         translations || {}
       );
 
+      // 使用確定性的 identifier，這樣可以避免重複並容易追蹤
+      // 格式: task-{taskId}-{minutesBefore}
+      const identifier = `task-${task.id}-${minutesBefore}`;
+
       // 安排通知
       const notificationId = await Notifications.scheduleNotificationAsync({
+        identifier: identifier, // 指定 ID，防止重複
         content: {
           title: notificationText.title,
           body: `${notificationText.body}: ${task.title}`,
           data: {
             taskId: task.id,
             minutesBefore: minutesBefore,
+            type: "task_reminder",
           },
           sound: true,
           priority: Notifications.AndroidNotificationPriority.HIGH,
@@ -194,22 +194,60 @@ export async function scheduleTaskNotification(
 }
 
 /**
- * 取消任務通知（支援單一 ID 或 ID 陣列）
- * @param {string|Array<string>} notificationIds - 通知 ID 或通知 ID 陣列
+ * 取消任務通知
+ * @param {string|Array<string>} notificationIds - (已棄用，保留相容性) 通知 ID 或通知 ID 陣列
+ * @param {string} taskId - 任務 ID (推薦使用)
  */
-export async function cancelTaskNotification(notificationIds) {
+export async function cancelTaskNotification(notificationIds, taskId = null) {
   try {
-    if (!notificationIds) return;
+    // 如果提供了 taskId，則查找並取消該任務的所有通知
+    if (taskId) {
+      console.log(`🔍 Cancelling notifications for Task ID: ${taskId}`);
+      
+      // 獲取所有已安排的通知
+      const allScheduled = await Notifications.getAllScheduledNotificationsAsync();
+      
+      // 篩選出屬於該任務的通知
+      const taskNotifications = allScheduled.filter(
+        (n) => n.content.data && n.content.data.taskId === taskId
+      );
+      
+      if (taskNotifications.length > 0) {
+        console.log(`Found ${taskNotifications.length} notifications to cancel`);
+        for (const notification of taskNotifications) {
+          await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+          console.log(`✅ Cancelled notification: ${notification.identifier}`);
+        }
+      } else {
+        console.log("No existing notifications found for this task");
+      }
+      
+      // 額外保險：嘗試取消可能的確定性 ID
+      // 即使 getAllScheduledNotificationsAsync 漏掉（極少見），這也能確保清理
+      const commonTimes = [30, 10, 5];
+      for (const time of commonTimes) {
+        const potentialId = `task-${taskId}-${time}`;
+        try {
+          await Notifications.cancelScheduledNotificationAsync(potentialId);
+        } catch (e) {
+          // 忽略錯誤，可能不存在
+        }
+      }
+      
+      return;
+    }
 
-    // 支援單一 ID 或陣列
-    const idsArray = Array.isArray(notificationIds)
-      ? notificationIds
-      : [notificationIds];
+    // 向後兼容：如果只提供了 notificationIds
+    if (notificationIds) {
+      const idsArray = Array.isArray(notificationIds)
+        ? notificationIds
+        : [notificationIds];
 
-    for (const id of idsArray) {
-      if (id) {
-        await Notifications.cancelScheduledNotificationAsync(id);
-        console.log(`✅ Notification cancelled: ${id}`);
+      for (const id of idsArray) {
+        if (id) {
+          await Notifications.cancelScheduledNotificationAsync(id);
+          console.log(`✅ Notification cancelled (by ID): ${id}`);
+        }
       }
     }
   } catch (error) {

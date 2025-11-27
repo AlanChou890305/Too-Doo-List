@@ -22,9 +22,12 @@ class WidgetService {
     }
 
     try {
-      // Get today's date in YYYY-MM-DD format
+      // Get today's date in YYYY-MM-DD format (Local Time)
       const today = new Date();
-      const dateKey = today.toISOString().split("T")[0];
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      const dateKey = `${year}-${month}-${day}`;
 
       // Get today's tasks
       const todayTasks = tasks[dateKey] || [];

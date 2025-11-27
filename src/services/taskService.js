@@ -5,7 +5,10 @@ import {
   createTaskObject,
   validateTaskCompleteness,
 } from "../types/taskTypes";
-import { scheduleTaskNotification } from "./notificationService";
+import {
+  scheduleTaskNotification,
+  cancelTaskNotification,
+} from "./notificationService";
 import { UserService } from "./userService";
 
 import { format } from "date-fns";
@@ -273,17 +276,13 @@ export class TaskService {
             times: [30, 10],
           };
 
-          const notificationIds = await scheduleTaskNotification(
+          // 這裡不需要手動保存 notificationIds，因為我們現在使用確定性 ID
+          await scheduleTaskNotification(
             taskResult,
             "Task Reminder", // 這裡可以根據語言設定調整
             null, // 使用用戶設定
             reminderSettings
           );
-
-          // Store notification IDs locally (not in database)
-          if (notificationIds.length > 0) {
-            taskResult.notificationIds = notificationIds;
-          }
         } catch (error) {
           console.error("Error scheduling notification for new task:", error);
         }
@@ -361,34 +360,23 @@ export class TaskService {
             times: [30, 10],
           };
 
-          // 取消舊的通知
-          if (data.notificationIds && Array.isArray(data.notificationIds)) {
-            const { cancelTaskNotification } = await import(
-              "./notificationService"
-            );
-            await cancelTaskNotification(data.notificationIds);
-          }
+          // 1. 取消舊的通知 (使用 taskId)
+          // 這會清除所有與此任務相關的通知，包括 "ghost" notifications
+          await cancelTaskNotification(null, taskId);
 
-          // 如果新時間存在，安排新通知
+          // 2. 如果新時間存在，安排新通知
           if (data.time && data.date) {
-            const notificationIds = await scheduleTaskNotification(
+            await scheduleTaskNotification(
               taskResult,
               "Task Reminder",
               null,
               reminderSettings
             );
-
-            // Store notification IDs locally (not in database)
-            if (notificationIds.length > 0) {
-              taskResult.notificationIds = notificationIds;
-            }
           }
         } catch (error) {
           console.error("Error updating notifications for task:", error);
         }
       }
-
-
 
       return taskResult;
     } catch (error) {
@@ -418,6 +406,13 @@ export class TaskService {
         throw error;
       }
 
+      // 刪除任務時，取消所有相關通知
+      try {
+        await cancelTaskNotification(null, taskId);
+      } catch (error) {
+        console.error("Error cancelling notifications for deleted task:", error);
+      }
+
       return true;
     } catch (error) {
       console.error("Error in deleteTask:", error);
@@ -428,6 +423,9 @@ export class TaskService {
   // Toggle task completed status
   static async toggleTaskChecked(taskId, isCompleted) {
     try {
+      // 如果任務完成，取消通知；如果未完成，updateTask 會重新安排（如果需要）
+      // 但為了簡單起見，我們讓 updateTask 處理所有邏輯
+      // 這裡我們只更新狀態
       return await this.updateTask(taskId, {
         is_completed: isCompleted,
         completed_at: isCompleted ? new Date().toISOString() : null,

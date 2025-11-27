@@ -88,11 +88,6 @@ struct ToDoWidgetEntryView : View {
                 Text("No tasks for today!")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
-                // Debug info
-                Text("Debug: \(entry.debugInfo)")
-                    .font(.system(size: 8))
-                    .foregroundColor(.red)
             } else {
                 ForEach(entry.tasks.prefix(4)) { task in
                     HStack(spacing: 6) {

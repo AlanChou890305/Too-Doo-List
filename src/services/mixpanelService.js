@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import Mixpanel from "mixpanel-react-native";
+import { Mixpanel } from "mixpanel-react-native";
 import { getCurrentEnvironment } from "../config/environment";
 
 /**
@@ -49,7 +49,7 @@ class MixpanelService {
         return;
       }
 
-      this.mixpanel = new Mixpanel(this.token);
+      this.mixpanel = new Mixpanel(this.token, true);
       
       // Check if init method exists
       if (typeof this.mixpanel.init !== 'function') {

@@ -4285,7 +4285,7 @@ function SettingScreen() {
               textAlign: "center",
             }}
           >
-            {t.version} {require("./package.json").version}
+            {t.version} {Application.nativeApplicationVersion} ({Application.nativeBuildVersion})
           </Text>
         </View>
       </ScrollView>
@@ -5145,7 +5145,7 @@ function CalendarScreen({ navigation, route }) {
   const startMoveTask = (task) => {
     setMoveMode(true);
     setTaskToMove(task);
-    Alert.alert(t.moveTask, t.moveTaskAlert);
+    Alert.alert(t.moveTask, t.moveTaskAlert, [{ text: t.confirm }]);
   };
 
   const moveTaskToDate = async (task, toDate) => {

@@ -105,6 +105,10 @@ export class UserService {
               last_active_at: newData.last_active_at,
               display_name: newData.display_name,
               reminder_settings: newData.reminder_settings,
+              email_preferences: newData.email_preferences || {
+                product_updates: true,
+                marketing: false,
+              },
             };
           } catch (insertError) {
             console.error("Error inserting user settings:", insertError);
@@ -129,6 +133,10 @@ export class UserService {
         last_active_at: data.last_active_at,
         display_name: data.display_name,
         reminder_settings: data.reminder_settings,
+        email_preferences: data.email_preferences || {
+          product_updates: true,
+          marketing: false,
+        },
       };
     } catch (error) {
       console.error("Error in getUserSettings:", error);
@@ -139,6 +147,7 @@ export class UserService {
         platform: Platform.OS,
         last_active_at: null,
         reminder_settings: { enabled: true, times: [30, 10] },
+        email_preferences: { product_updates: true, marketing: false },
       };
     }
   }
@@ -187,6 +196,7 @@ export class UserService {
         last_active_at: data.last_active_at,
         display_name: data.display_name,
         reminder_settings: data.reminder_settings,
+        email_preferences: data.email_preferences,
       };
     } catch (error) {
       console.error("Error in updateUserSettings:", error);

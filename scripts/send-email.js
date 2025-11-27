@@ -25,7 +25,12 @@ async function sendEmail() {
         // 1. Validate Arguments
         if (!args.template) {
             console.error('❌ Error: Please specify a template using --template=filename (without .html)');
-            console.log('Usage: node scripts/send-email.js --template=update-v1.1.1 --subject="Your Subject" [--test=email@example.com]');
+            console.log('Usage: node scripts/send-email.js --template=update-v1.1.1 --subject="Your Subject" [--type=product_updates|marketing] [--test=email@example.com]');
+            console.log('');
+            console.log('Email Types:');
+            console.log('  --type=product_updates  (default) Feature updates, tips, announcements');
+            console.log('  --type=marketing        Promotions and special offers');
+            console.log('  --type=welcome          Welcome emails (always sent)');
             process.exit(1);
         }
         
@@ -47,7 +52,8 @@ async function sendEmail() {
         // 3. Prepare Request Payload
         const payload = {
             subject: args.subject,
-            html: htmlContent
+            html: htmlContent,
+            emailType: args.type || 'product_updates' // Default to product_updates
         };
 
         if (args.test) {
@@ -61,7 +67,7 @@ async function sendEmail() {
                 process.exit(1);
             }
         } else {
-            console.log('🚀 Production Mode: Sending to ALL users');
+            console.log(`🚀 Production Mode: Sending to ALL users (type: ${payload.emailType})`);
             // Add a small safety delay/confirmation could be good here, but for now we proceed.
         }
 
