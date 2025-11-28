@@ -229,6 +229,8 @@ const translations = {
     privacy: "Privacy Policy",
     version: "Version",
     general: "General",
+    support: "Support",
+    feedback: "Send Feedback",
     legal: "Legal",
     calendar: "Calendar",
     noTasks: "No tasks for this day.",
@@ -410,6 +412,8 @@ const translations = {
     privacy: "隱私政策",
     version: "版本",
     general: "一般",
+    support: "支援",
+    feedback: "使用回饋",
     legal: "法律",
     calendar: "行事曆",
     noTasks: "這天沒有任務。",
@@ -1069,8 +1073,10 @@ const SplashScreen = ({ navigation }) => {
 
             // Mixpanel: 識別使用者並追蹤登入事件
             mixpanelService.identify(user.id, {
+              $email: user.email,
+              $name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
               email: user.email,
-              name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+              name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
               platform: Platform.OS,
             });
             mixpanelService.track("User Signed In", {
@@ -4092,6 +4098,64 @@ function SettingScreen() {
           )}
         </View>
 
+        {/* Support Section Title */}
+        <Text
+          style={{
+            color: theme.textSecondary,
+            fontSize: 15,
+            fontWeight: "bold",
+            marginLeft: 28,
+            marginTop: 18,
+            marginBottom: 2,
+            letterSpacing: 0.5,
+          }}
+        >
+          {t.support}
+        </Text>
+
+        {/* Send Feedback */}
+        <View
+          style={{
+            backgroundColor: theme.card,
+            borderRadius: 14,
+            marginHorizontal: 20,
+            marginTop: 8,
+            marginBottom: 0,
+            overflow: "hidden",
+            shadowColor: theme.shadow,
+            shadowOpacity: theme.shadowOpacity,
+            shadowRadius: 6,
+            elevation: 1,
+          }}
+        >
+          <TouchableOpacity
+            onPress={async () => {
+              const feedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLSclqPkboMn_BVtOHojyIsS47ydbZaU7MEjca_Qvkh_eHqpM5w/viewform?usp=dialog";
+              try {
+                const { openBrowserAsync } = await import('expo-web-browser');
+                await openBrowserAsync(feedbackUrl);
+              } catch (error) {
+                console.error('Failed to open feedback form:', error);
+              }
+            }}
+            activeOpacity={0.6}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+            }}
+          >
+            <Text style={{ color: theme.text, fontSize: 16 }}>{t.feedback}</Text>
+            <MaterialIcons
+              name="open-in-new"
+              size={20}
+              color={theme.textTertiary}
+            />
+          </TouchableOpacity>
+        </View>
+
         {/* Legal Section Title */}
         <Text
           style={{
@@ -4235,7 +4299,7 @@ function SettingScreen() {
               textAlign: "center",
             }}
           >
-            {t.version} {Application.nativeApplicationVersion} ({Application.nativeBuildVersion})
+            {t.version} {Application.nativeApplicationVersion}
           </Text>
         </View>
       </ScrollView>
