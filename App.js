@@ -4132,8 +4132,14 @@ function SettingScreen() {
             onPress={async () => {
               const feedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLSclqPkboMn_BVtOHojyIsS47ydbZaU7MEjca_Qvkh_eHqpM5w/viewform?usp=dialog";
               try {
-                const { openBrowserAsync } = await import('expo-web-browser');
-                await openBrowserAsync(feedbackUrl);
+                if (Platform.OS === 'web') {
+                  // Web: 在新分頁開啟
+                  window.open(feedbackUrl, '_blank');
+                } else {
+                  // iOS/Android: 使用 expo-web-browser
+                  const { openBrowserAsync } = await import('expo-web-browser');
+                  await openBrowserAsync(feedbackUrl);
+                }
               } catch (error) {
                 console.error('Failed to open feedback form:', error);
               }
