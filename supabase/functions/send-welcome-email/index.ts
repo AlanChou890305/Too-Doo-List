@@ -3,8 +3,25 @@ import { serve } from "http/server.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 
+// ⚠️ EMAIL FUNCTION TEMPORARILY DISABLED
+// Email sending is temporarily disabled until a proper domain is configured
+const EMAIL_ENABLED = false;
+
 serve(async (req: Request) => {
   try {
+    // Early return if email is disabled
+    if (!EMAIL_ENABLED) {
+      console.log(`📧 Welcome email function called but disabled (email sending temporarily disabled)`);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: "Email sending temporarily disabled",
+        skipped: true 
+      }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // 1. Validate Environment Variables
     if (!RESEND_API_KEY) {
       throw new Error("Missing RESEND_API_KEY");
@@ -96,7 +113,7 @@ serve(async (req: Request) => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ToDo-待辦清單 <onboarding@resend.dev>",
+        from: "ToDo - 待辦清單 <onboarding@resend.dev>",
         to: [user.email],
         subject: "歡迎使用 ToDo！",
         html: html,

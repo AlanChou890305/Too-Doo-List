@@ -13,12 +13,12 @@ const getEnvironmentConfig = () => {
   return {
     name: "ToDo - 待辦清單",
     slug: "too-doo-list",
-    version: "1.1.3",
+    version: "1.1.7",
     description: "Simple and intuitive task management app with Google SSO",
     scheme: "too-doo-list",
     bundleIdentifier: "com.cty0305.too.doo.list",
     package: "com.cty0305.too.doo.list",
-    iosBuildNumber: "3",
+    iosBuildNumber: "7",
   };
 };
 

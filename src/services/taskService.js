@@ -271,18 +271,21 @@ export class TaskService {
       if (data.time && data.date) {
         try {
           const userSettings = await UserService.getUserSettings();
-          const reminderSettings = userSettings.reminder_settings || {
-            enabled: true,
-            times: [30, 10],
-          };
-
-          // 這裡不需要手動保存 notificationIds，因為我們現在使用確定性 ID
-          await scheduleTaskNotification(
-            taskResult,
-            "Task Reminder", // 這裡可以根據語言設定調整
-            null, // 使用用戶設定
-            reminderSettings
-          );
+          // 如果 reminder_settings 不存在或 enabled 為 false，不安排通知
+          const reminderSettings = userSettings.reminder_settings;
+          
+          // 只有在用戶啟用提醒時才安排通知
+          if (reminderSettings && reminderSettings.enabled === true) {
+            // 這裡不需要手動保存 notificationIds，因為我們現在使用確定性 ID
+            await scheduleTaskNotification(
+              taskResult,
+              "Task Reminder", // 這裡可以根據語言設定調整
+              null, // 使用用戶設定
+              reminderSettings
+            );
+          } else {
+            console.log("Reminder notifications are disabled, skipping notification scheduling");
+          }
         } catch (error) {
           console.error("Error scheduling notification for new task:", error);
         }
@@ -352,29 +355,37 @@ export class TaskService {
       };
 
       // 如果任務時間被更新，重新安排通知
-      if (updates.time !== undefined || updates.date !== undefined) {
+      // 只有在任務有時間時才處理通知（取消舊的並安排新的）
+      if ((updates.time !== undefined || updates.date !== undefined) && data.time && data.date) {
         try {
           const userSettings = await UserService.getUserSettings();
-          const reminderSettings = userSettings.reminder_settings || {
-            enabled: true,
-            times: [30, 10],
-          };
+          // 如果 reminder_settings 不存在或 enabled 為 false，不安排通知
+          const reminderSettings = userSettings.reminder_settings;
 
           // 1. 取消舊的通知 (使用 taskId)
           // 這會清除所有與此任務相關的通知，包括 "ghost" notifications
           await cancelTaskNotification(null, taskId);
 
-          // 2. 如果新時間存在，安排新通知
-          if (data.time && data.date) {
+          // 2. 只有在用戶啟用提醒時才安排新通知
+          if (reminderSettings && reminderSettings.enabled === true) {
             await scheduleTaskNotification(
               taskResult,
               "Task Reminder",
               null,
               reminderSettings
             );
+          } else {
+            console.log("Reminder notifications are disabled, skipping notification scheduling");
           }
         } catch (error) {
           console.error("Error updating notifications for task:", error);
+        }
+      } else if (updates.time !== undefined && !data.time) {
+        // 如果時間被移除（從有時間變成沒有時間），取消舊通知
+        try {
+          await cancelTaskNotification(null, taskId);
+        } catch (error) {
+          console.error("Error cancelling notifications for task:", error);
         }
       }
 

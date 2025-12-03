@@ -12,18 +12,16 @@
 ### 步驟 1: 啟用 Apple Provider
 
 1. 前往 Supabase Dashboard: https://supabase.com/dashboard
-2. 選擇你的專案（Staging 或 Production）
+2. 選擇你的專案（Production）
 3. 前往 **Authentication** > **Providers**
 4. 找到 **Apple** 並點擊啟用
 
 ### 步驟 2: 配置 Client IDs
 
-在 Apple Provider 設定中，添加以下 Bundle IDs 到 **Client IDs** 欄位（用逗號分隔）：
+在 Apple Provider 設定中，添加以下 Bundle ID 到 **Client IDs** 欄位：
 
 ```
 com.cty0305.too.doo.list
-com.cty0305.too.doo.list.staging
-com.cty0305.too.doo.list.dev
 ```
 
 **重要：** 對於原生 iOS 應用，**不需要**配置 OAuth 設定（Services ID、Team ID、Secret Key）。只需要添加 Bundle IDs 到 Client IDs 列表即可。

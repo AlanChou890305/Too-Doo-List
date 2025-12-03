@@ -23,7 +23,7 @@ class WidgetReloader: NSObject {
   func reloadWidgetWithData(_ json: String) {
       let suiteName = "group.com.cty0305.too.doo.list.data"
       if let sharedDefaults = UserDefaults(suiteName: suiteName) {
-          sharedDefaults.set(json, forKey: "todayTasks")
+          sharedDefaults.set(json, forKey: "widgetTasksByDate")
           sharedDefaults.synchronize() // Force write to disk
           print("✅ [WidgetReloader] Saved data to App Group")
           

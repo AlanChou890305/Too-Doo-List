@@ -8,9 +8,13 @@ import React, {
 } from "react";
 import { Platform } from "react-native";
 import * as Application from "expo-application";
+import * as Constants from "expo-constants";
 import { getCurrentEnvironment } from "./src/config/environment";
+import appConfig from "./app.config";
 import { mixpanelService } from "./src/services/mixpanelService";
 import { widgetService } from "./src/services/widgetService";
+import { useResponsive } from "./src/hooks/useResponsive";
+import { ResponsiveContainer } from "./src/components/ResponsiveContainer";
 import { format } from "date-fns";
 
 // 獲取重定向 URL
@@ -25,7 +29,6 @@ const getAppDisplayName = () => {
 
 import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
 import ReactGA from "react-ga4";
-import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
 import {
@@ -123,7 +126,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
           // Show a message to the user
           setTimeout(() => {
             document.body.innerHTML =
-              '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the To Do app.</div></div>';
+              '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the ToDo - 待辦清單 app.</div></div>';
           }, 100);
         } catch (e) {
           console.log(
@@ -167,10 +170,12 @@ import {
 // Services
 import { TaskService } from "./src/services/taskService";
 import { UserService } from "./src/services/userService";
+import { dataPreloadService } from "./src/services/dataPreloadService";
 import {
   registerForPushNotificationsAsync,
   scheduleTaskNotification,
   cancelTaskNotification,
+  cancelAllNotifications,
 } from "./src/services/notificationService";
 
 // Notification Config
@@ -224,7 +229,6 @@ const translations = {
     userName: "User Name",
     account: "Account",
     logout: "Log out",
-    comingSoon: "Coming soon...",
     terms: "Terms of Use",
     privacy: "Privacy Policy",
     version: "Version",
@@ -290,10 +294,10 @@ const translations = {
     termsLastUpdated: "Last updated:",
     termsAcceptance: "1. Acceptance of Terms",
     termsAcceptanceText:
-      'Welcome to To Do ("we," "our company," or "the Service Provider"). By accessing, downloading, installing, or using our task management application, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree to any part of these terms, please discontinue use of the Service immediately.',
+      'Welcome to ToDo - 待辦清單 ("we," "our company," or "the Service Provider"). By accessing, downloading, installing, or using our task management application, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree to any part of these terms, please discontinue use of the Service immediately.',
     termsDescription: "2. Service Description",
     termsDescriptionText:
-      "To Do is a comprehensive personal task management application designed to help users effectively organize and manage their daily tasks and schedules. Our Service provides the following key features:\n• Task creation, editing, and deletion\n• Calendar integration and task scheduling\n• Google Single Sign-On (SSO) authentication\n• Cross-device data synchronization\n• Task reminder notifications\n• Personalized settings and preference management\n• Secure cloud storage and backup",
+      "ToDo - 待辦清單 is a comprehensive personal task management application designed to help users effectively organize and manage their daily tasks and schedules. Our Service provides the following key features:\n• Task creation, editing, and deletion\n• Calendar integration and task scheduling\n• Google Single Sign-On (SSO) authentication\n• Cross-device data synchronization\n• Task reminder notifications\n• Personalized settings and preference management\n• Secure cloud storage and backup",
     termsAccounts: "3. User Accounts and Authentication",
     termsAccountsText:
       "Account Creation:\n• You must create an account using Google Single Sign-On (SSO)\n• You must be at least 13 years old to use this Service\n• You agree to provide accurate, complete, and truthful information\n• You are responsible for maintaining the security of your account\n\nAccount Responsibilities:\n• You are responsible for maintaining the confidentiality of your account credentials\n• You are fully responsible for all activities that occur under your account\n• You must immediately notify us of any unauthorized use of your account\n• You may not transfer your account to any third party\n• You must comply with all applicable laws and regulations",
@@ -319,13 +323,13 @@ const translations = {
     termsContactText:
       "Technical Support:\n• For technical issues, please contact us through the in-app support feature\n• We will respond to your inquiries within a reasonable timeframe\n• Support is available during business hours (Monday-Friday, 9 AM - 6 PM)\n\nDispute Resolution:\n• We encourage resolving disputes through friendly negotiation\n• These terms are governed by the laws of the jurisdiction where our company is incorporated\n• Any legal proceedings should be brought in the appropriate courts\n• We are committed to fair and transparent dispute resolution processes",
     termsAcknowledgment:
-      "Thank you for choosing To Do. By using our Service, you acknowledge that you have thoroughly read, understood, and agree to be bound by these Terms of Use. We are committed to providing you with an excellent task management experience.",
+      "Thank you for choosing ToDo - 待辦清單. By using our Service, you acknowledge that you have thoroughly read, understood, and agree to be bound by these Terms of Use. We are committed to providing you with an excellent task management experience.",
     // Privacy Policy translations
     privacyTitle: "Privacy Policy",
     privacyLastUpdated: "Last updated:",
     privacyIntroduction: "1. Policy Overview",
     privacyIntroductionText:
-      'To Do ("we," "our company," or "the Service Provider") recognizes the importance of personal privacy and is committed to protecting the security of your personal data. This Privacy Policy provides detailed information about how we collect, use, store, protect, and share your personal information when you use the To Do task management application.\n\nWe are committed to complying with relevant laws and regulations, including data protection laws, to ensure your privacy rights are fully protected.',
+      'ToDo - 待辦清單 ("we," "our company," or "the Service Provider") recognizes the importance of personal privacy and is committed to protecting the security of your personal data. This Privacy Policy provides detailed information about how we collect, use, store, protect, and share your personal information when you use the ToDo - 待辦清單 task management application.\n\nWe are committed to complying with relevant laws and regulations, including data protection laws, to ensure your privacy rights are fully protected.',
     privacyInformation: "2. Types of Personal Data We Collect",
     privacyAccountInfo: "Account-Related Data:",
     privacyAccountInfoText:
@@ -361,7 +365,7 @@ const translations = {
     privacyContactText:
       "Privacy Inquiries:\n• In-app support feature\n• Email: privacy@todo-app.com\n• We will respond within 7 business days\n• Dedicated privacy officer contact\n\nData Protection Complaints:\n• Submit complaints if you have concerns about data processing\n• We take every complaint seriously\n• Provide clear processing results and explanations\n• Escalation procedures for unresolved issues\n\nRegulatory Authorities:\n• Contact relevant supervisory authorities if dissatisfied with our response\n• Data Protection Authority in your jurisdiction\n• Legal remedies available\n• Independent dispute resolution mechanisms",
     privacyAcknowledgment:
-      "Thank you for trusting To Do. We are committed to continuously improving our privacy protection measures to provide you with secure and reliable task management services. If you have any privacy-related questions, please don't hesitate to contact us.",
+      "Thank you for trusting ToDo - 待辦清單. We are committed to continuously improving our privacy protection measures to provide you with secure and reliable task management services. If you have any privacy-related questions, please don't hesitate to contact us.",
     googleAccount: "Google Account",
     signInWithGoogle: "Sign in with Google",
     signInWithApple: "Sign in with Apple",
@@ -383,7 +387,7 @@ const translations = {
     reminder5minBody: "Your task is starting in 5 minutes",
     notificationPermission: "Notification Permission",
     notificationPermissionMessage:
-      "To Do needs notification permission to remind you about your tasks 30 minutes before they're due.",
+      "ToDo - 待辦清單 needs notification permission to remind you about your tasks 30 minutes before they're due.",
     enableNotifications: "Enable Notifications",
     notLater: "Not Now",
     theme: "Theme",
@@ -473,10 +477,10 @@ const translations = {
     termsLastUpdated: "最後更新：",
     termsAcceptance: "1. 條款接受",
     termsAcceptanceText:
-      "歡迎使用 To Do（「我們」、「本公司」或「服務提供者」）。當您訪問、下載、安裝或使用本應用程式時，即表示您已閱讀、理解並同意受本使用條款的約束。如果您不同意本條款的任何部分，請立即停止使用本服務。",
+      "歡迎使用 ToDo - 待辦清單（「我們」、「本公司」或「服務提供者」）。當您訪問、下載、安裝或使用本應用程式時，即表示您已閱讀、理解並同意受本使用條款的約束。如果您不同意本條款的任何部分，請立即停止使用本服務。",
     termsDescription: "2. 服務描述",
     termsDescriptionText:
-      "To Do 是一款個人任務管理應用程式，旨在幫助用戶有效組織和管理日常任務。本服務提供以下主要功能：\n• 任務創建、編輯和刪除\n• 日曆整合與任務排程\n• Google 單一登入（SSO）認證\n• 跨裝置資料同步\n• 任務提醒通知\n• 個人化設定與偏好管理",
+      "ToDo - 待辦清單 是一款個人任務管理應用程式，旨在幫助用戶有效組織和管理日常任務。本服務提供以下主要功能：\n• 任務創建、編輯和刪除\n• 日曆整合與任務排程\n• Google 單一登入（SSO）認證\n• 跨裝置資料同步\n• 任務提醒通知\n• 個人化設定與偏好管理",
     termsAccounts: "3. 用戶帳號與認證",
     termsAccountsText:
       "帳號創建：\n• 您必須透過 Google 單一登入（SSO）創建帳號\n• 您必須年滿 13 歲才能使用本服務\n• 您同意提供真實、準確且完整的個人資訊\n\n帳號責任：\n• 您有責任維護帳號密碼的機密性\n• 您對帳號下發生的所有活動負完全責任\n• 如發現未經授權使用您的帳號，請立即通知我們\n• 您不得將帳號轉讓給第三方",
@@ -502,13 +506,13 @@ const translations = {
     termsContactText:
       "技術支援：\n• 如遇技術問題，請透過應用程式內支援功能聯繫我們\n• 我們將在合理時間內回應您的詢問\n\n爭議解決：\n• 如發生爭議，我們鼓勵透過友好協商解決\n• 本條款受中華民國法律管轄\n• 任何法律訴訟應向有管轄權的法院提起",
     termsAcknowledgment:
-      "感謝您選擇 To Do。透過使用本服務，您確認已充分閱讀、理解並同意受本使用條款的約束。我們承諾為您提供優質的任務管理服務體驗。",
+      "感謝您選擇 ToDo - 待辦清單。透過使用本服務，您確認已充分閱讀、理解並同意受本使用條款的約束。我們承諾為您提供優質的任務管理服務體驗。",
     // Privacy Policy translations
     privacyTitle: "隱私政策",
     privacyLastUpdated: "最後更新：",
     privacyIntroduction: "1. 政策概述",
     privacyIntroductionText:
-      "To Do（「我們」、「本公司」或「服務提供者」）深知個人隱私的重要性，並致力於保護您的個人資料安全。本隱私政策詳細說明我們如何收集、使用、儲存、保護和分享您在使用 To Do 任務管理應用程式時提供的個人資訊。\n\n我們承諾遵循相關法律法規，包括《個人資料保護法》等，確保您的隱私權得到充分保護。",
+      "ToDo - 待辦清單（「我們」、「本公司」或「服務提供者」）深知個人隱私的重要性，並致力於保護您的個人資料安全。本隱私政策詳細說明我們如何收集、使用、儲存、保護和分享您在使用 ToDo - 待辦清單 任務管理應用程式時提供的個人資訊。\n\n我們承諾遵循相關法律法規，包括《個人資料保護法》等，確保您的隱私權得到充分保護。",
     privacyInformation: "2. 我們收集的個人資料類型",
     privacyAccountInfo: "帳號相關資料：",
     privacyAccountInfoText:
@@ -544,7 +548,7 @@ const translations = {
     privacyContactText:
       "隱私問題諮詢：\n• 應用程式內支援功能\n• 電子郵件：privacy@todo-app.com\n• 我們會在 7 個工作天內回覆\n\n資料保護申訴：\n• 如對資料處理有疑慮，可提出申訴\n• 我們會認真處理每件申訴\n• 提供明確的處理結果和說明\n\n監管機關：\n• 如對處理結果不滿，可向主管機關申訴\n• 台灣個人資料保護委員會\n• 相關法律救濟管道",
     privacyAcknowledgment:
-      "感謝您信任 To Do。我們承諾持續改進隱私保護措施，為您提供安全可靠的任務管理服務。如有任何隱私相關問題，請隨時與我們聯繫。",
+      "感謝您信任 ToDo - 待辦清單。我們承諾持續改進隱私保護措施，為您提供安全可靠的任務管理服務。如有任何隱私相關問題，請隨時與我們聯繫。",
     googleAccount: "Google 帳號",
     signInWithGoogle: "使用 Google 登入",
     signInWithApple: "使用 Apple 登入",
@@ -566,7 +570,7 @@ const translations = {
     reminder5minBody: "您的任務將在 5 分鐘後開始",
     notificationPermission: "通知權限",
     notificationPermissionMessage:
-      "To Do 需要通知權限才能在任務開始前 30 分鐘提醒您。",
+      "ToDo - 待辦清單 需要通知權限才能在任務開始前 30 分鐘提醒您。",
     enableNotifications: "啟用通知",
     notLater: "暫不啟用",
     theme: "主題",
@@ -599,6 +603,7 @@ const ThemeContext = createContext({
   themeMode: "light",
   setThemeMode: () => {},
   toggleTheme: () => {},
+  loadTheme: () => {},
 });
 
 function getToday() {
@@ -626,7 +631,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const SplashScreen = ({ navigation }) => {
-  const { theme } = useContext(ThemeContext);
+  const { theme, loadTheme: reloadTheme } = useContext(ThemeContext);
   const { t } = useContext(LanguageContext);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -694,11 +699,7 @@ const SplashScreen = ({ navigation }) => {
 
           // Determine the correct URL scheme based on environment/domain
           const envScheme = process.env.NEXT_PUBLIC_APP_SCHEME;
-          let appScheme =
-            envScheme ||
-            (window.location.hostname.includes("to-do-staging.vercel.app")
-              ? "too-doo-list-staging"
-              : "too-doo-list");
+          let appScheme = envScheme || "too-doo-list";
 
           console.log("OAuth callback: Using app scheme:", appScheme);
 
@@ -730,7 +731,7 @@ const SplashScreen = ({ navigation }) => {
               // Show user message after attempting redirect
               setTimeout(() => {
                 alert(
-                  "Please return to the To Do app. The login was successful!"
+                  "Please return to the ToDo - 待辦清單 app. The login was successful!"
                 );
               }, 1000);
               return;
@@ -881,7 +882,9 @@ const SplashScreen = ({ navigation }) => {
                     "Account created but some settings could not be saved. You can continue using the app."
                   );
                 } else {
-                  alert("Account created successfully! Welcome to To Do!");
+                  alert(
+                    "Account created successfully! Welcome to ToDo - 待辦清單!"
+                  );
                 }
 
                 // Navigate to main app even if there were some issues
@@ -1001,6 +1004,17 @@ const SplashScreen = ({ navigation }) => {
         return;
       }
 
+      // Check if already in MainTabs to avoid resetting navigation
+      const currentRoute =
+        navigation.getState?.()?.routes?.[navigation.getState?.()?.index];
+      if (currentRoute?.name === "MainTabs") {
+        console.log(
+          "📍 [navigateToMainApp] ⚠️ Already in MainTabs, skipping reset to preserve current tab"
+        );
+        setHasNavigated(true);
+        return;
+      }
+
       console.log(
         "📍 [navigateToMainApp] Navigation object exists, attempting reset..."
       );
@@ -1074,9 +1088,16 @@ const SplashScreen = ({ navigation }) => {
             // Mixpanel: 識別使用者並追蹤登入事件
             mixpanelService.identify(user.id, {
               $email: user.email,
-              $name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
+              $name:
+                user.user_metadata?.full_name ||
+                user.user_metadata?.name ||
+                user.email?.split("@")[0],
+              $avatar: user.user_metadata?.avatar_url,
               email: user.email,
-              name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
+              name:
+                user.user_metadata?.full_name ||
+                user.user_metadata?.name ||
+                user.email?.split("@")[0],
               platform: Platform.OS,
             });
             mixpanelService.track("User Signed In", {
@@ -1101,6 +1122,25 @@ const SplashScreen = ({ navigation }) => {
                 );
               });
 
+            // 立即開始預載入所有數據（不等待完成，在背景執行）
+            dataPreloadService.preloadAllData().catch((preloadError) => {
+              console.error("❌ Error preloading data:", preloadError);
+            });
+
+            // 注意：不需要在登入後重新載入 theme，因為：
+            // 1. App 啟動時已經載入過 theme（如果用戶已登入）
+            // 2. INITIAL_SESSION 事件表示用戶已經有 session，theme 應該已經正確載入
+            // 3. 只有在 SIGNED_IN（新登入）時才需要重新載入 theme
+            if (event === "SIGNED_IN" && reloadTheme) {
+              // 只有在新登入時才重新載入 theme
+              reloadTheme().catch((themeError) => {
+                console.error(
+                  "❌ Error reloading theme after login:",
+                  themeError
+                );
+              });
+            }
+
             console.log("🚀 Navigating to main app...");
             // Check if already navigated to prevent double navigation
             if (!hasNavigated) {
@@ -1112,6 +1152,9 @@ const SplashScreen = ({ navigation }) => {
             console.error("Error in auth state change handler:", error);
           }
         } else if (event === "SIGNED_OUT") {
+          // 清除預載入緩存
+          dataPreloadService.clearCache();
+
           // Navigate back to splash screen when user logs out
           setHasNavigated(false); // Reset navigation flag
           navigation.reset({
@@ -1203,6 +1246,12 @@ const SplashScreen = ({ navigation }) => {
             email: user.email,
             provider: user.app_metadata?.provider,
           });
+
+          // 立即開始預載入所有數據（不等待完成，在背景執行）
+          dataPreloadService.preloadAllData().catch((preloadError) => {
+            console.error("❌ Error preloading data:", preloadError);
+          });
+
           console.log("[checkSession] Navigating to main app...");
           // Check if already navigated to prevent double navigation
           if (!hasNavigated) {
@@ -1464,10 +1513,27 @@ const SplashScreen = ({ navigation }) => {
               console.log(
                 `Mobile: Session found on attempt ${attempt}, navigating to main app`
               );
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "MainTabs" }],
+
+              // 立即開始預載入所有數據（不等待完成，在背景執行）
+              dataPreloadService.preloadAllData().catch((preloadError) => {
+                console.error("❌ Error preloading data:", preloadError);
               });
+
+              // Check if already in MainTabs to avoid resetting navigation
+              const currentRoute =
+                navigation.getState?.()?.routes?.[
+                  navigation.getState?.()?.index
+                ];
+              if (currentRoute?.name !== "MainTabs") {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "MainTabs" }],
+                });
+              } else {
+                console.log(
+                  "⚠️ [checkSession] Already in MainTabs, skipping reset to preserve current tab"
+                );
+              }
               return;
             } else {
               console.log(`No session found on attempt ${attempt}`);
@@ -1643,10 +1709,7 @@ const SplashScreen = ({ navigation }) => {
 
           // Get app scheme based on environment
           // Use the same scheme as defined in app.config.js
-          const appScheme =
-            currentEnv === "production"
-              ? "too-doo-list"
-              : "too-doo-list-staging";
+          const appScheme = "too-doo-list";
 
           console.log("🔍 DEBUG - Using app scheme:", appScheme);
 
@@ -1709,42 +1772,21 @@ const SplashScreen = ({ navigation }) => {
             window.location.replace(data.url);
           }
         } else {
-          // For mobile, use AuthSession which handles deep links better
+          // For mobile, use WebBrowser which handles deep links properly
           console.log(
-            "VERBOSE: Opening OAuth browser session with AuthSession..."
+            "VERBOSE: Opening OAuth browser session with WebBrowser..."
           );
           console.log("VERBOSE: Redirect URL:", redirectUrl);
 
-          // Use AuthSession.startAsync for better deep link handling
-          let result;
-          try {
-            result = await AuthSession.startAsync({
-              authUrl: data.url,
-              returnUrl: redirectUrl,
-            });
-
-            console.log(
-              "VERBOSE: Auth session result:",
-              JSON.stringify(result, null, 2)
-            );
-            console.log("VERBOSE: Result type:", result.type);
-            console.log("VERBOSE: Result URL:", result.url);
-          } catch (authSessionError) {
-            console.log(
-              "VERBOSE: AuthSession failed, trying WebBrowser fallback..."
-            );
-            console.log("VERBOSE: AuthSession error:", authSessionError);
-
-            // Fallback to WebBrowser if AuthSession fails
-            result = await WebBrowser.openAuthSessionAsync(
-              data.url,
-              redirectUrl
-            );
-            console.log(
-              "VERBOSE: WebBrowser result:",
-              JSON.stringify(result, null, 2)
-            );
-          }
+          // Use WebBrowser.openAuthSessionAsync for OAuth flow
+          const result = await WebBrowser.openAuthSessionAsync(
+            data.url,
+            redirectUrl
+          );
+          console.log(
+            "VERBOSE: WebBrowser result:",
+            JSON.stringify(result, null, 2)
+          );
 
           // ✅ KEY FIX: The result.url contains the OAuth callback URL
           // We need to manually process it since iOS doesn't automatically trigger the deep link
@@ -2126,10 +2168,7 @@ const SplashScreen = ({ navigation }) => {
               sub: payload.sub,
             });
             console.log("⚠️ Bundle ID in token (aud):", payload.aud);
-            console.log(
-              "⚠️ Expected for staging:",
-              "com.cty0305.too.doo.list.staging"
-            );
+            console.log("⚠️ Expected Bundle ID:", "com.cty0305.too.doo.list");
             console.log(
               "⚠️ Current EXPO_PUBLIC_APP_ENV:",
               process.env.EXPO_PUBLIC_APP_ENV || "not set"
@@ -2278,20 +2317,7 @@ const SplashScreen = ({ navigation }) => {
                     console.warn("⚠️ Could not verify user update:", verifyErr);
                   }
 
-                  // Also update display_name in user_settings table
-                  try {
-                    await UserService.updateUserSettings({
-                      display_name: fullName,
-                    });
-                    console.log(
-                      "✅ display_name synced to user_settings table"
-                    );
-                  } catch (settingsError) {
-                    console.warn(
-                      "⚠️ Failed to sync display_name to user_settings:",
-                      settingsError
-                    );
-                  }
+                  // display_name 會自動在 updateUserSettings 中同步，無需手動同步
                 }
               } catch (updateError) {
                 console.error("❌ Error updating user name:", updateError);
@@ -2337,20 +2363,7 @@ const SplashScreen = ({ navigation }) => {
                     emailPrefix
                   );
 
-                  // Also update display_name in user_settings table
-                  try {
-                    await UserService.updateUserSettings({
-                      display_name: emailPrefix,
-                    });
-                    console.log(
-                      "✅ display_name synced to user_settings table"
-                    );
-                  } catch (settingsError) {
-                    console.warn(
-                      "⚠️ Failed to sync display_name to user_settings:",
-                      settingsError
-                    );
-                  }
+                  // display_name 會自動在 updateUserSettings 中同步，無需手動同步
                 }
               } catch (updateError) {
                 console.error(
@@ -2739,9 +2752,9 @@ function TermsScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingTop: 20,
-          paddingBottom: 40,
+          paddingHorizontal: 20,
+          paddingTop: 24,
+          paddingBottom: 48,
           flexGrow: 1,
         }}
         showsVerticalScrollIndicator={true}
@@ -2749,11 +2762,12 @@ function TermsScreen() {
       >
         <Text
           style={{
-            fontSize: 20,
+            fontSize: 24,
             color: theme.text,
             fontWeight: "bold",
-            marginBottom: 16,
+            marginBottom: 8,
             textAlign: "center",
+            letterSpacing: -0.5,
           }}
         >
           {t.termsTitle}
@@ -2761,9 +2775,9 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 13,
             color: theme.textSecondary,
-            marginBottom: 20,
+            marginBottom: 32,
             textAlign: "center",
           }}
         >
@@ -2772,10 +2786,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsAcceptance}
@@ -2784,8 +2800,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsAcceptanceText}
@@ -2793,10 +2809,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsDescription}
@@ -2805,8 +2823,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsDescriptionText}
@@ -2814,10 +2832,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsAccounts}
@@ -2826,8 +2846,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsAccountsText}
@@ -2835,10 +2855,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsContent}
@@ -2847,8 +2869,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsContentText}
@@ -2856,10 +2878,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsAcceptableUse}
@@ -2868,8 +2892,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsAcceptableUseText}
@@ -2877,10 +2901,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsPrivacy}
@@ -2889,8 +2915,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsPrivacyText}
@@ -2898,10 +2924,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsAvailability}
@@ -2910,8 +2938,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsAvailabilityText}
@@ -2919,10 +2947,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsLiability}
@@ -2931,8 +2961,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsLiabilityText}
@@ -2940,10 +2970,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsChanges}
@@ -2952,8 +2984,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsChangesText}
@@ -2961,10 +2993,12 @@ function TermsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.termsContact}
@@ -2973,8 +3007,8 @@ function TermsScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 20,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.termsContactText}
@@ -2983,10 +3017,9 @@ function TermsScreen() {
         <Text
           style={{
             fontSize: 14,
-            color: theme.textTertiary,
-            marginTop: 20,
-            textAlign: "center",
-            fontStyle: "italic",
+            color: theme.textSecondary,
+            marginTop: 32,
+            lineHeight: 20,
           }}
         >
           {t.termsAcknowledgment}
@@ -3046,9 +3079,9 @@ function PrivacyScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingTop: 20,
-          paddingBottom: 40,
+          paddingHorizontal: 20,
+          paddingTop: 24,
+          paddingBottom: 48,
           flexGrow: 1,
         }}
         showsVerticalScrollIndicator={true}
@@ -3056,11 +3089,12 @@ function PrivacyScreen() {
       >
         <Text
           style={{
-            fontSize: 20,
+            fontSize: 24,
             color: theme.text,
             fontWeight: "bold",
-            marginBottom: 16,
+            marginBottom: 8,
             textAlign: "center",
+            letterSpacing: -0.5,
           }}
         >
           {t.privacyTitle}
@@ -3068,9 +3102,9 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 13,
             color: theme.textSecondary,
-            marginBottom: 20,
+            marginBottom: 32,
             textAlign: "center",
           }}
         >
@@ -3079,10 +3113,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyIntroduction}
@@ -3091,8 +3127,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyIntroductionText}
@@ -3100,10 +3136,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyInformation}
@@ -3112,8 +3150,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           <Text style={{ fontWeight: "600" }}>{t.privacyAccountInfo}</Text>
@@ -3123,10 +3161,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyUse}
@@ -3135,8 +3175,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyUseText}
@@ -3144,10 +3184,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyStorage}
@@ -3156,8 +3198,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyStorageText}
@@ -3165,10 +3207,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacySharing}
@@ -3177,8 +3221,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacySharingText}
@@ -3186,10 +3230,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyThirdParty}
@@ -3198,8 +3244,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyThirdPartyText}
@@ -3207,10 +3253,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyRights}
@@ -3219,8 +3267,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyRightsText}
@@ -3228,10 +3276,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyRetention}
@@ -3240,8 +3290,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyRetentionText}
@@ -3249,10 +3299,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyChildren}
@@ -3261,8 +3313,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyChildrenText}
@@ -3270,10 +3322,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyInternational}
@@ -3282,8 +3336,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyInternationalText}
@@ -3291,10 +3345,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyChanges}
@@ -3303,8 +3359,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 16,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyChangesText}
@@ -3312,10 +3368,12 @@ function PrivacyScreen() {
 
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 17,
             color: theme.text,
-            fontWeight: "600",
+            fontWeight: "700",
+            marginTop: 24,
             marginBottom: 8,
+            letterSpacing: -0.3,
           }}
         >
           {t.privacyContact}
@@ -3324,8 +3382,8 @@ function PrivacyScreen() {
           style={{
             fontSize: 15,
             color: theme.text,
-            marginBottom: 20,
-            lineHeight: 22,
+            marginBottom: 24,
+            lineHeight: 24,
           }}
         >
           {t.privacyContactText}
@@ -3334,10 +3392,9 @@ function PrivacyScreen() {
         <Text
           style={{
             fontSize: 14,
-            color: theme.textTertiary,
-            marginTop: 20,
-            textAlign: "center",
-            fontStyle: "italic",
+            color: theme.textSecondary,
+            marginTop: 32,
+            lineHeight: 20,
           }}
         >
           {t.privacyAcknowledgment}
@@ -3346,6 +3403,98 @@ function PrivacyScreen() {
     </SafeAreaView>
   );
 }
+
+// Loading Skeleton Component
+const TaskSkeleton = ({ theme }) => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={styles.taskItemRow}>
+      <View style={styles.checkbox}>
+        <Animated.View
+          style={[
+            {
+              width: 24,
+              height: 24,
+              borderRadius: 4,
+              backgroundColor:
+                theme.mode === "dark"
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.1)",
+            },
+            { opacity },
+          ]}
+        />
+      </View>
+      <View
+        style={[
+          styles.taskItem,
+          {
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.mode === "dark" ? "rgb(58, 58, 60)" : "#fff",
+          },
+        ]}
+      >
+        <View style={styles.taskTextContainer}>
+          <Animated.View
+            style={[
+              {
+                height: 16,
+                borderRadius: 4,
+                backgroundColor:
+                  theme.mode === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.1)",
+                width: "80%",
+              },
+              { opacity },
+            ]}
+          />
+        </View>
+        <View style={styles.taskTimeContainer}>
+          <Animated.View
+            style={[
+              {
+                height: 14,
+                borderRadius: 4,
+                backgroundColor:
+                  theme.mode === "dark"
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.1)",
+                width: 50,
+              },
+              { opacity },
+            ]}
+          />
+        </View>
+      </View>
+    </View>
+  );
+};
 
 function SettingScreen() {
   const { language, setLanguage, t } = useContext(LanguageContext);
@@ -3357,20 +3506,63 @@ function SettingScreen() {
     useState(false);
   const [userName, setUserName] = useState("User");
   const [userProfile, setUserProfile] = useState(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
   const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
   const [themeDropdownVisible, setThemeDropdownVisible] = useState(false);
   const [reminderSettings, setReminderSettings] = useState({
     enabled: true,
-    times: [30, 10], // 預設30分鐘和10分鐘前提醒
+    times: [30, 10, 5], // 預設30分鐘、10分鐘和5分鐘前提醒
   });
   const [reminderDropdownVisible, setReminderDropdownVisible] = useState(false);
   const navigation = useNavigation();
+  const userProfileCache = useRef(null); // Cache user profile to avoid redundant API calls
 
   useEffect(() => {
     const getUserProfile = async () => {
+      setIsLoadingProfile(true);
       try {
+        // 先檢查預載入的數據
+        const cachedData = dataPreloadService.getCachedData();
+        if (cachedData && cachedData.userProfile) {
+          console.log("📦 [SettingScreen] Using preloaded user profile");
+          userProfileCache.current = cachedData.userProfile;
+          setUserProfile(cachedData.userProfile);
+          setUserName(cachedData.userProfile.name);
+          setIsLoadingProfile(false);
+          return;
+        }
+
+        // Check cache first
+        if (userProfileCache.current) {
+          console.log("📦 [Cache] Using cached user profile");
+          setUserProfile(userProfileCache.current);
+          setUserName(userProfileCache.current.name);
+          setIsLoadingProfile(false);
+          return;
+        }
+
         const profile = await UserService.getUserProfile();
         if (profile) {
+          userProfileCache.current = profile; // Cache the profile
           setUserProfile(profile);
           setUserName(profile.name);
         } else {
@@ -3379,25 +3571,90 @@ function SettingScreen() {
       } catch (error) {
         console.error("Error retrieving user profile:", error);
         setUserName("User");
+      } finally {
+        setIsLoadingProfile(false);
       }
     };
     getUserProfile();
   }, []);
 
+  // 使用 ref 來追蹤是否已經載入過 reminder 設定，避免重新掛載時重置
+  const reminderSettingsLoadedRef = useRef(false);
+
   // 載入提醒設定
   useEffect(() => {
     const loadReminderSettings = async () => {
+      // 如果已經載入過且當前狀態不是預設值，不要重新載入
+      // 這可以防止組件重新掛載時重置用戶的設定
+      if (
+        reminderSettingsLoadedRef.current &&
+        JSON.stringify(reminderSettings) !==
+          JSON.stringify({ enabled: true, times: [30, 10, 5] })
+      ) {
+        console.log(
+          "📦 [SettingScreen] Reminder settings already loaded, skipping reload"
+        );
+        return;
+      }
+
+      setIsLoadingSettings(true);
       try {
-        const settings = await UserService.getUserSettings();
-        if (settings.reminder_settings) {
-          setReminderSettings(settings.reminder_settings);
+        // 先檢查預載入的數據
+        const cachedData = dataPreloadService.getCachedData();
+        let settings = cachedData?.userSettings;
+
+        if (!settings) {
+          settings = await UserService.getUserSettings();
+        } else {
+          console.log("📦 [SettingScreen] Using preloaded user settings");
         }
+
+        if (
+          settings.reminder_settings &&
+          typeof settings.reminder_settings === "object"
+        ) {
+          const isEnabled = settings.reminder_settings.enabled === true;
+
+          // 如果 enabled 為 false，只設置 enabled: false（不包含 times）
+          // 如果 enabled 為 true，才包含 times 陣列
+          if (isEnabled && Array.isArray(settings.reminder_settings.times)) {
+            setReminderSettings({
+              enabled: true,
+              times: settings.reminder_settings.times || [30, 10, 5],
+            });
+          } else {
+            // enabled 為 false 或沒有 times 陣列
+            setReminderSettings({
+              enabled: false,
+              times: [30, 10, 5], // UI 顯示用，但不會存到 Supabase
+            });
+          }
+        } else {
+          // 確保有預設值
+          setReminderSettings({
+            enabled: true,
+            times: [30, 10, 5],
+          });
+        }
+
+        reminderSettingsLoadedRef.current = true;
       } catch (error) {
         console.error("Error loading reminder settings:", error);
+        // 錯誤時使用預設值
+        setReminderSettings({
+          enabled: true,
+          times: [30, 10, 5],
+        });
+      } finally {
+        setIsLoadingSettings(false);
       }
     };
     loadReminderSettings();
-  }, []);
+  }, []); // 只在組件掛載時執行一次
+
+  // 注意：不再在語言切換時從緩存同步 reminder 設定
+  // 因為用戶可能剛剛更新了 reminder 設定，應該保持當前狀態
+  // 只有在組件首次載入時才從緩存讀取 reminder 設定
 
   // 當頁面獲得焦點時，關閉所有下拉選單
   useFocusEffect(
@@ -3410,13 +3667,99 @@ function SettingScreen() {
 
   // 更新提醒設定
   const updateReminderSettings = async (newSettings) => {
-    try {
-      setReminderSettings(newSettings);
-      await UserService.updateUserSettings({
-        reminder_settings: newSettings,
+    const isEnabled = newSettings.enabled === true;
+    const wasEnabled = reminderSettings?.enabled === true;
+
+    // 如果 enabled 為 false，只存儲 { enabled: false }
+    // 如果 enabled 為 true，才包含 times 陣列
+    // 如果從 disabled 切換到 enabled，預設開啟所有三個時間
+    const normalizedSettings = isEnabled
+      ? {
+          enabled: true,
+          times:
+            Array.isArray(newSettings.times) && newSettings.times.length > 0
+              ? newSettings.times
+              : [30, 10, 5], // 啟用時預設全開
+        }
+      : {
+          enabled: false,
+        };
+
+    // 保存之前的設定，以便錯誤時恢復
+    const previousSettings = { ...reminderSettings };
+
+    // 樂觀更新：先更新 UI，讓用戶立即看到變化
+    setReminderSettings(normalizedSettings);
+
+    // 如果用戶關閉提醒，取消所有已安排的任務通知
+    if (!isEnabled) {
+      console.log(
+        "Reminder notifications disabled, cancelling all task notifications"
+      );
+      // 在背景執行，不阻塞 UI
+      cancelAllNotifications().catch((error) => {
+        console.error("Error cancelling notifications:", error);
       });
+    }
+
+    // 在背景更新 Supabase，不阻塞 UI
+    try {
+      const result = await UserService.updateUserSettings({
+        reminder_settings: normalizedSettings,
+      });
+
+      // 更新緩存，確保語言切換時不會讀取到舊的 reminder 設定
+      if (result) {
+        dataPreloadService.updateCachedUserSettings(result);
+      }
+
+      // 如果 Supabase 返回的結果與我們保存的不同，使用 Supabase 的結果
+      // 這可以處理競態條件：如果用戶在更新期間切換語言，確保狀態一致
+      if (result && result.reminder_settings) {
+        const savedSettings = result.reminder_settings;
+        const isSavedEnabled = savedSettings.enabled === true;
+        if (isSavedEnabled && Array.isArray(savedSettings.times)) {
+          // 只有當 Supabase 的結果與當前 UI 狀態不同時才更新
+          if (
+            savedSettings.enabled !== normalizedSettings.enabled ||
+            JSON.stringify(savedSettings.times) !==
+              JSON.stringify(normalizedSettings.times)
+          ) {
+            setReminderSettings({
+              enabled: true,
+              times: savedSettings.times || [30, 10, 5],
+            });
+          }
+        } else if (!isSavedEnabled && normalizedSettings.enabled) {
+          // Supabase 返回 disabled，但我們設置為 enabled，使用 Supabase 的結果
+          setReminderSettings({
+            enabled: false,
+            times: [30, 10, 5],
+          });
+        }
+      }
     } catch (error) {
-      console.error("Error updating reminder settings:", error);
+      // 檢查是否為網絡錯誤
+      const isNetworkError =
+        error.message?.includes("Network request failed") ||
+        error.message?.includes("Failed to fetch") ||
+        error.message?.includes("network") ||
+        (!error.code && error.message);
+
+      if (isNetworkError) {
+        console.warn(
+          "⚠️ Network error updating reminder settings. UI will revert to previous state."
+        );
+        // 發生網絡錯誤時恢復之前的設定
+        setReminderSettings(previousSettings);
+      } else {
+        console.error("❌ Error updating reminder settings:", {
+          code: error.code,
+          message: error.message,
+        });
+        // 發生其他錯誤時也恢復之前的設定
+        setReminderSettings(previousSettings);
+      }
     }
   };
 
@@ -3434,6 +3777,9 @@ function SettingScreen() {
         platform: Platform.OS,
       });
       mixpanelService.reset();
+
+      // 清除預載入緩存
+      dataPreloadService.clearCache();
 
       // Try to log out (using Supabase's signOut API)
       // Even if this fails (e.g., network error), we should still navigate to splash
@@ -3573,62 +3919,118 @@ function SettingScreen() {
               marginBottom: 15,
             }}
           >
-            {userProfile?.avatar_url ? (
-              <Image
-                source={{ uri: userProfile.avatar_url }}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  marginRight: 15,
-                }}
-              />
-            ) : (
-              <View
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  marginRight: 15,
-                  backgroundColor: theme.primary,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
+            {isLoadingProfile ? (
+              <>
+                <Animated.View
                   style={{
-                    color: "#FFFFFF",
-                    fontSize: 20,
-                    fontWeight: "bold",
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    marginRight: 15,
+                    backgroundColor:
+                      theme.mode === "dark"
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.1)",
+                    opacity: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.7],
+                    }),
                   }}
-                >
-                  {(userProfile?.name || userName || "U")
-                    .charAt(0)
-                    .toUpperCase()}
-                </Text>
-              </View>
+                />
+                <View style={{ flex: 1 }}>
+                  <Animated.View
+                    style={{
+                      height: 20,
+                      borderRadius: 4,
+                      backgroundColor:
+                        theme.mode === "dark"
+                          ? "rgba(255,255,255,0.1)"
+                          : "rgba(0,0,0,0.1)",
+                      width: "60%",
+                      marginBottom: 8,
+                      opacity: shimmerAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.3, 0.7],
+                      }),
+                    }}
+                  />
+                  <Animated.View
+                    style={{
+                      height: 14,
+                      borderRadius: 4,
+                      backgroundColor:
+                        theme.mode === "dark"
+                          ? "rgba(255,255,255,0.1)"
+                          : "rgba(0,0,0,0.1)",
+                      width: "40%",
+                      opacity: shimmerAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.3, 0.7],
+                      }),
+                    }}
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                {userProfile?.avatar_url ? (
+                  <Image
+                    source={{ uri: userProfile.avatar_url }}
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                      marginRight: 15,
+                    }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                      marginRight: 15,
+                      backgroundColor: theme.primary,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#FFFFFF",
+                        fontSize: 20,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {(userProfile?.name || userName || "U")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 16,
+                      marginBottom: 5,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {userProfile?.name || userName || "User"}
+                  </Text>
+                  <Text
+                    style={{
+                      color: theme.textSecondary,
+                      fontSize: 14,
+                      marginBottom: 0,
+                    }}
+                  >
+                    {userProfile?.email || "No email available"}
+                  </Text>
+                </View>
+              </>
             )}
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  color: theme.text,
-                  fontSize: 16,
-                  marginBottom: 5,
-                  fontWeight: "600",
-                }}
-              >
-                {userProfile?.name || userName}
-              </Text>
-              <Text
-                style={{
-                  color: theme.textSecondary,
-                  fontSize: 14,
-                  marginBottom: 0,
-                }}
-              >
-                {userProfile?.email || "No email available"}
-              </Text>
-            </View>
           </View>
           <View
             style={{
@@ -3637,24 +4039,66 @@ function SettingScreen() {
               paddingTop: 15,
             }}
           >
-            <Text
-              style={{
-                color: theme.textTertiary,
-                fontSize: 12,
-                marginBottom: 5,
-              }}
-            >
-              {t.accountType}
-            </Text>
-            <Text
-              style={{ color: theme.primary, fontSize: 14, fontWeight: "500" }}
-            >
-              {userProfile?.provider === "apple"
-                ? t.appleAccount
-                : userProfile?.provider === "google"
-                ? t.googleAccount
-                : t.googleAccount}
-            </Text>
+            {isLoadingProfile ? (
+              <>
+                <Animated.View
+                  style={{
+                    height: 12,
+                    borderRadius: 4,
+                    backgroundColor:
+                      theme.mode === "dark"
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.1)",
+                    width: "40%",
+                    marginBottom: 8,
+                    opacity: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.7],
+                    }),
+                  }}
+                />
+                <Animated.View
+                  style={{
+                    height: 14,
+                    borderRadius: 4,
+                    backgroundColor:
+                      theme.mode === "dark"
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.1)",
+                    width: "50%",
+                    opacity: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.7],
+                    }),
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Text
+                  style={{
+                    color: theme.textTertiary,
+                    fontSize: 12,
+                    marginBottom: 5,
+                  }}
+                >
+                  {t.accountType}
+                </Text>
+                <Text
+                  style={{
+                    color: theme.primary,
+                    fontSize: 14,
+                    fontWeight: "500",
+                  }}
+                >
+                  {userProfile?.provider === "apple"
+                    ? t.appleAccount
+                    : userProfile?.provider === "google"
+                    ? t.googleAccount
+                    : t.googleAccount}
+                </Text>
+              </>
+            )}
           </View>
         </View>
         {/* General Section Title */}
@@ -3932,9 +4376,13 @@ function SettingScreen() {
         >
           <TouchableOpacity
             onPress={() => {
-              setReminderDropdownVisible(!reminderDropdownVisible);
-              setLanguageDropdownVisible(false);
-              setThemeDropdownVisible(false);
+              try {
+                setReminderDropdownVisible(!reminderDropdownVisible);
+                setLanguageDropdownVisible(false);
+                setThemeDropdownVisible(false);
+              } catch (error) {
+                console.error("Error toggling reminder dropdown:", error);
+              }
             }}
             activeOpacity={0.6}
             style={{
@@ -3946,22 +4394,59 @@ function SettingScreen() {
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontSize: 16 }}>
-                {t.reminderSettings}
-              </Text>
+              {isLoadingSettings ? (
+                <Animated.View
+                  style={{
+                    height: 16,
+                    borderRadius: 4,
+                    backgroundColor:
+                      theme.mode === "dark"
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.1)",
+                    width: "60%",
+                    opacity: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.7],
+                    }),
+                  }}
+                />
+              ) : (
+                <Text style={{ color: theme.text, fontSize: 16 }}>
+                  {t.reminderSettings}
+                </Text>
+              )}
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text
-                style={{
-                  color: theme.textSecondary,
-                  fontSize: 14,
-                  marginRight: 8,
-                }}
-              >
-                {reminderSettings.enabled
-                  ? t.reminderEnabled
-                  : t.reminderDisabled}
-              </Text>
+              {isLoadingSettings ? (
+                <Animated.View
+                  style={{
+                    height: 14,
+                    borderRadius: 4,
+                    backgroundColor:
+                      theme.mode === "dark"
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.1)",
+                    width: 80,
+                    marginRight: 8,
+                    opacity: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.7],
+                    }),
+                  }}
+                />
+              ) : (
+                <Text
+                  style={{
+                    color: theme.textSecondary,
+                    fontSize: 14,
+                    marginRight: 8,
+                  }}
+                >
+                  {reminderSettings?.enabled === true
+                    ? t.reminderEnabled
+                    : t.reminderDisabled}
+                </Text>
+              )}
               <MaterialIcons
                 name={
                   reminderDropdownVisible
@@ -3988,10 +4473,21 @@ function SettingScreen() {
               {/* 啟用/停用提醒 */}
               <TouchableOpacity
                 onPress={() => {
-                  updateReminderSettings({
-                    ...reminderSettings,
-                    enabled: !reminderSettings.enabled,
-                  });
+                  try {
+                    const newEnabled = !(reminderSettings?.enabled === true);
+                    // 如果從停用切換到啟用，預設開啟所有三個時間
+                    const newTimes = newEnabled
+                      ? [30, 10, 5] // 啟用時預設全開
+                      : Array.isArray(reminderSettings?.times)
+                      ? reminderSettings.times
+                      : [30, 10, 5];
+                    updateReminderSettings({
+                      enabled: newEnabled,
+                      times: newTimes,
+                    });
+                  } catch (error) {
+                    console.error("Error toggling reminder enabled:", error);
+                  }
                 }}
                 activeOpacity={0.6}
                 style={{
@@ -4007,20 +4503,20 @@ function SettingScreen() {
                 </Text>
                 <MaterialIcons
                   name={
-                    reminderSettings.enabled
+                    reminderSettings?.enabled !== false
                       ? "check-box"
                       : "check-box-outline-blank"
                   }
                   size={24}
                   color={
-                    reminderSettings.enabled
+                    reminderSettings?.enabled !== false
                       ? theme.primary
                       : theme.textTertiary
                   }
                 />
               </TouchableOpacity>
 
-              {reminderSettings.enabled && (
+              {reminderSettings?.enabled !== false && (
                 <>
                   <View
                     style={{ borderTopWidth: 1, borderTopColor: theme.divider }}
@@ -4031,52 +4527,58 @@ function SettingScreen() {
                     { value: 30, label: t.reminder30min },
                     { value: 10, label: t.reminder10min },
                     { value: 5, label: t.reminder5min },
-                  ].map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() => {
-                        const newTimes = reminderSettings.times.includes(
-                          option.value
-                        )
-                          ? reminderSettings.times.filter(
-                              (time) => time !== option.value
-                            )
-                          : [...reminderSettings.times, option.value].sort(
-                              (a, b) => b - a
-                            );
+                  ].map((option) => {
+                    const times = Array.isArray(reminderSettings.times)
+                      ? reminderSettings.times
+                      : [30, 10, 5];
+                    const isSelected = times.includes(option.value);
 
-                        updateReminderSettings({
-                          ...reminderSettings,
-                          times: newTimes,
-                        });
-                      }}
-                      activeOpacity={0.6}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        paddingVertical: 12,
-                        paddingHorizontal: 20,
-                      }}
-                    >
-                      <Text style={{ color: theme.text, fontSize: 15 }}>
-                        {option.label}
-                      </Text>
-                      <MaterialIcons
-                        name={
-                          reminderSettings.times.includes(option.value)
-                            ? "check-box"
-                            : "check-box-outline-blank"
-                        }
-                        size={24}
-                        color={
-                          reminderSettings.times.includes(option.value)
-                            ? theme.primary
-                            : theme.textTertiary
-                        }
-                      />
-                    </TouchableOpacity>
-                  ))}
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() => {
+                          const currentTimes = Array.isArray(
+                            reminderSettings.times
+                          )
+                            ? reminderSettings.times
+                            : [30, 10, 5];
+                          const newTimes = isSelected
+                            ? currentTimes.filter(
+                                (time) => time !== option.value
+                              )
+                            : [...currentTimes, option.value].sort(
+                                (a, b) => b - a
+                              );
+
+                          updateReminderSettings({
+                            ...reminderSettings,
+                            times: newTimes,
+                          });
+                        }}
+                        activeOpacity={0.6}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          paddingVertical: 12,
+                          paddingHorizontal: 20,
+                        }}
+                      >
+                        <Text style={{ color: theme.text, fontSize: 15 }}>
+                          {option.label}
+                        </Text>
+                        <MaterialIcons
+                          name={
+                            isSelected ? "check-box" : "check-box-outline-blank"
+                          }
+                          size={24}
+                          color={
+                            isSelected ? theme.primary : theme.textTertiary
+                          }
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
 
                   <View
                     style={{ borderTopWidth: 1, borderTopColor: theme.divider }}
@@ -4130,18 +4632,19 @@ function SettingScreen() {
         >
           <TouchableOpacity
             onPress={async () => {
-              const feedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLSclqPkboMn_BVtOHojyIsS47ydbZaU7MEjca_Qvkh_eHqpM5w/viewform?usp=dialog";
+              const feedbackUrl =
+                "https://docs.google.com/forms/d/e/1FAIpQLSclqPkboMn_BVtOHojyIsS47ydbZaU7MEjca_Qvkh_eHqpM5w/viewform?usp=dialog";
               try {
-                if (Platform.OS === 'web') {
+                if (Platform.OS === "web") {
                   // Web: 在新分頁開啟
-                  window.open(feedbackUrl, '_blank');
+                  window.open(feedbackUrl, "_blank");
                 } else {
                   // iOS/Android: 使用 expo-web-browser
-                  const { openBrowserAsync } = await import('expo-web-browser');
+                  const { openBrowserAsync } = await import("expo-web-browser");
                   await openBrowserAsync(feedbackUrl);
                 }
               } catch (error) {
-                console.error('Failed to open feedback form:', error);
+                console.error("Failed to open feedback form:", error);
               }
             }}
             activeOpacity={0.6}
@@ -4153,7 +4656,9 @@ function SettingScreen() {
               paddingHorizontal: 20,
             }}
           >
-            <Text style={{ color: theme.text, fontSize: 16 }}>{t.feedback}</Text>
+            <Text style={{ color: theme.text, fontSize: 16 }}>
+              {t.feedback}
+            </Text>
             <MaterialIcons
               name="open-in-new"
               size={20}
@@ -4305,7 +4810,11 @@ function SettingScreen() {
               textAlign: "center",
             }}
           >
-            {t.version} {Application.nativeApplicationVersion}
+            {t.version}{" "}
+            {Constants.expoConfig?.version ||
+              appConfig.expo?.version ||
+              Application.nativeApplicationVersion ||
+              "1.1.6"}
           </Text>
         </View>
       </ScrollView>
@@ -4578,12 +5087,17 @@ function CalendarScreen({ navigation, route }) {
   const { language, t } = useContext(LanguageContext);
   const { theme, themeMode } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
+  const { isDesktop, isMobile, isTablet } = useResponsive();
   const getCurrentDate = () => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const [tasks, setTasks] = useState({});
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [selectedDate, setSelectedDate] = useState(getCurrentDate());
   const [modalVisible, setModalVisible] = useState(false);
   const [moveMode, setMoveMode] = useState(false);
@@ -4609,6 +5123,7 @@ function CalendarScreen({ navigation, route }) {
   const taskTitleInputRef = useRef(null);
   const scrollViewRef = useRef(null); // 日曆 ScrollView
   const modalScrollViewRef = useRef(null); // Modal ScrollView
+  const fetchedRangesRef = useRef(new Set()); // Track fetched date ranges for caching
 
   // 格式化日期輸入 (YYYY-MM-DD)
   const formatDateInput = (text) => {
@@ -4714,8 +5229,13 @@ function CalendarScreen({ navigation, route }) {
     }
   }, [selectedDate, modalVisible]);
 
+  // Track if initial setup is done to avoid duplicate fetches
+  const [isInitialized, setIsInitialized] = useState(false);
+
   // Load tasks from Supabase based on visible range
   useEffect(() => {
+    if (!isInitialized) return; // 等待初始化完成
+
     const fetchTasksForVisibleRange = async () => {
       try {
         // 首先檢查用戶認證狀態
@@ -4727,6 +5247,7 @@ function CalendarScreen({ navigation, route }) {
         if (!user) {
           console.log("No authenticated user found");
           setTasks({});
+          setIsLoadingTasks(false);
           return;
         }
 
@@ -4738,6 +5259,61 @@ function CalendarScreen({ navigation, route }) {
         const startDateStr = format(startDate, "yyyy-MM-dd");
         const endDateStr = format(endDate, "yyyy-MM-dd");
 
+        // Check cache before fetching
+        const rangeKey = `${startDateStr}_${endDateStr}`;
+        if (fetchedRangesRef.current.has(rangeKey)) {
+          console.log(
+            `📦 [Cache] Using cached tasks for ${startDateStr} to ${endDateStr}`
+          );
+          setIsLoadingTasks(false);
+          return; // Skip API call
+        }
+
+        setIsLoadingTasks(true);
+
+        // 檢查預載入的數據是否包含當前範圍的任務
+        const cachedData = dataPreloadService.getCachedData();
+        if (cachedData && cachedData.calendarTasks) {
+          // 檢查預載入的任務是否涵蓋當前範圍
+          const preloadedTasks = cachedData.calendarTasks;
+          const hasTasksInRange = Object.keys(preloadedTasks).some((date) => {
+            const taskDate = new Date(date);
+            return taskDate >= startDate && taskDate <= endDate;
+          });
+
+          if (hasTasksInRange) {
+            console.log(
+              `📦 [CalendarScreen] Using preloaded tasks for ${startDateStr} to ${endDateStr}`
+            );
+            // 過濾出當前範圍的任務
+            const filteredTasks = {};
+            Object.keys(preloadedTasks).forEach((date) => {
+              const taskDate = new Date(date);
+              if (taskDate >= startDate && taskDate <= endDate) {
+                filteredTasks[date] = preloadedTasks[date];
+              }
+            });
+
+            setTasks((prevTasks) => {
+              const updatedTasks = {
+                ...prevTasks,
+                ...filteredTasks,
+              };
+
+              // Sync to widget
+              widgetService.syncTodayTasks(updatedTasks);
+
+              return updatedTasks;
+            });
+
+            setIsLoadingTasks(false);
+
+            // Mark this range as fetched
+            fetchedRangesRef.current.add(rangeKey);
+            return;
+          }
+        }
+
         console.log(`Fetching tasks from ${startDateStr} to ${endDateStr}`);
 
         const newTasks = await TaskService.getTasksByDateRange(
@@ -4745,46 +5321,33 @@ function CalendarScreen({ navigation, route }) {
           endDateStr
         );
 
+        // Mark this range as fetched
+        fetchedRangesRef.current.add(rangeKey);
 
         setTasks((prevTasks) => {
           const updatedTasks = {
             ...prevTasks,
             ...newTasks,
           };
-          
+
           // Sync to widget
           widgetService.syncTodayTasks(updatedTasks);
-          
+
           return updatedTasks;
         });
+
+        setIsLoadingTasks(false);
       } catch (error) {
         console.error("Error loading tasks:", error);
+        setIsLoadingTasks(false);
       }
     };
 
     fetchTasksForVisibleRange();
-  }, [visibleYear, visibleMonth]);
+  }, [visibleYear, visibleMonth, isInitialized]);
 
-  // Reset to today when app loads/reloads
-  useEffect(() => {
-    const today = getCurrentDate();
-    const todayDate = new Date(today);
-    setSelectedDate(today);
-    setVisibleMonth(todayDate.getMonth());
-    setVisibleYear(todayDate.getFullYear());
-  }, []); // Empty dependency array = only run once on mount
-
-  // Note: We no longer need to save tasks to AsyncStorage
-  // Tasks are automatically saved to Supabase when modified
-
-  useEffect(() => {
-    const today = getToday();
-    setSelectedDate(today);
-    const timer = setTimeout(centerToday, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const centerToday = () => {
+  // Center calendar to today
+  const centerToday = useCallback(() => {
     if (!scrollViewRef.current) return;
     const todayDate = new Date(getToday());
     todayDate.setHours(12, 0, 0, 0);
@@ -4799,12 +5362,105 @@ function CalendarScreen({ navigation, route }) {
     const weekHeight = 50;
     const visibleWeeks = 4;
     const scrollPosition =
-      weekNumber * weekHeight - (visibleWeeks / 2) * weekHeight;
+      weekNumber * weekHeight - (visibleWeeks * weekHeight) / 2;
     scrollViewRef.current.scrollTo({
-      y: scrollPosition,
+      y: Math.max(0, scrollPosition),
       animated: true,
     });
-  };
+  }, [visibleYear, visibleMonth]);
+
+  // Initialize calendar to today when app loads/reloads
+  useEffect(() => {
+    if (isInitialized) return; // 已經初始化過，不再執行
+
+    const today = getCurrentDate();
+    const todayDate = new Date(today);
+    const todayMonth = todayDate.getMonth();
+    const todayYear = todayDate.getFullYear();
+
+    setSelectedDate(today);
+    setVisibleMonth(todayMonth);
+    setVisibleYear(todayYear);
+
+    // 立即檢查並使用預載入的數據
+    const cachedData = dataPreloadService.getCachedData();
+    if (cachedData && cachedData.calendarTasks) {
+      console.log("📦 [CalendarScreen] Using preloaded tasks on mount");
+      const preloadedTasks = cachedData.calendarTasks;
+
+      // 計算當前可見範圍
+      const startDate = new Date(todayYear, todayMonth - 1, 1);
+      const endDate = new Date(todayYear, todayMonth + 2, 0);
+
+      // 過濾出當前範圍的任務
+      const filteredTasks = {};
+      Object.keys(preloadedTasks).forEach((date) => {
+        const taskDate = new Date(date);
+        if (taskDate >= startDate && taskDate <= endDate) {
+          filteredTasks[date] = preloadedTasks[date];
+        }
+      });
+
+      if (Object.keys(filteredTasks).length > 0) {
+        setTasks(filteredTasks);
+        setIsLoadingTasks(false);
+
+        // 標記這個範圍已經獲取
+        const startDateStr = format(startDate, "yyyy-MM-dd");
+        const endDateStr = format(endDate, "yyyy-MM-dd");
+        const rangeKey = `${startDateStr}_${endDateStr}`;
+        fetchedRangesRef.current.add(rangeKey);
+
+        // Sync to widget
+        widgetService.syncTodayTasks(filteredTasks);
+      }
+      // 如果沒有預載入數據，保持 isLoadingTasks 為 true，讓後續的 fetchTasksForVisibleRange 來處理
+    }
+    // 如果沒有預載入數據，保持 isLoadingTasks 為 true，讓後續的 fetchTasksForVisibleRange 來處理
+
+    // 標記初始化完成
+    setIsInitialized(true);
+
+    // Center calendar to today after state is set
+    setTimeout(() => {
+      centerToday();
+    }, 500);
+  }, [centerToday, isInitialized]); // Include centerToday and isInitialized in dependencies
+
+  // Reset to today when Calendar tab is focused (but avoid duplicate fetches)
+  useFocusEffect(
+    React.useCallback(() => {
+      const today = getCurrentDate();
+      const todayDate = new Date(today);
+      const todayMonth = todayDate.getMonth();
+      const todayYear = todayDate.getFullYear();
+
+      // Only update if values have changed to avoid unnecessary re-renders and fetches
+      setSelectedDate((prevDate) => {
+        if (prevDate !== today) {
+          return today;
+        }
+        return prevDate;
+      });
+
+      setVisibleMonth((prevMonth) => {
+        if (prevMonth !== todayMonth) {
+          return todayMonth;
+        }
+        return prevMonth;
+      });
+
+      setVisibleYear((prevYear) => {
+        if (prevYear !== todayYear) {
+          return todayYear;
+        }
+        return prevYear;
+      });
+    }, [])
+  );
+
+  // Note: We no longer need to save tasks to AsyncStorage
+  // Tasks are automatically saved to Supabase when modified
 
   const openAddTask = (date) => {
     setEditingTask(null);
@@ -4829,6 +5485,12 @@ function CalendarScreen({ navigation, route }) {
     setModalVisible(true);
   };
 
+  // Helper function to clear task cache when tasks are modified
+  const clearTaskCache = () => {
+    fetchedRangesRef.current.clear();
+    console.log("🗑️ [Cache] Cleared task cache");
+  };
+
   const saveTask = async () => {
     if (taskText.trim() === "") return;
     if (taskDate.trim() === "") return;
@@ -4849,14 +5511,16 @@ function CalendarScreen({ navigation, route }) {
     // 1. Optimistic Update
     if (editingTask) {
       const updatedTask = { ...editingTask, ...taskData };
-      
+
       if (editingTask.date !== targetDate) {
         // Date changed
         const oldDayTasks = tasks[editingTask.date] || [];
-        const newOldDayTasks = oldDayTasks.filter(t => t.id !== editingTask.id);
+        const newOldDayTasks = oldDayTasks.filter(
+          (t) => t.id !== editingTask.id
+        );
         const newDayTasks = tasks[targetDate] || [];
         const updatedNewDayTasks = [...newDayTasks, updatedTask];
-        
+
         const newTasksState = {
           ...tasks,
           [editingTask.date]: newOldDayTasks,
@@ -4867,7 +5531,9 @@ function CalendarScreen({ navigation, route }) {
       } else {
         // Same date
         const dayTasks = tasks[targetDate] || [];
-        const updatedDayTasks = dayTasks.map(t => t.id === editingTask.id ? updatedTask : t);
+        const updatedDayTasks = dayTasks.map((t) =>
+          t.id === editingTask.id ? updatedTask : t
+        );
         const newTasksState = { ...tasks, [targetDate]: updatedDayTasks };
         setTasks(newTasksState);
         widgetService.syncTodayTasks(newTasksState);
@@ -4875,13 +5541,13 @@ function CalendarScreen({ navigation, route }) {
     } else {
       // Create new task
       tempId = `temp-${Date.now()}`;
-      const newTask = { 
-        id: tempId, 
-        ...taskData, 
+      const newTask = {
+        id: tempId,
+        ...taskData,
         is_completed: false,
-        checked: false 
+        checked: false,
       };
-      
+
       const dayTasks = tasks[targetDate] || [];
       const newTasksState = { ...tasks, [targetDate]: [...dayTasks, newTask] };
       setTasks(newTasksState);
@@ -4904,10 +5570,13 @@ function CalendarScreen({ navigation, route }) {
       if (currentEditingTask) {
         // --- UPDATE TASK ---
         console.log("Updating existing task:", currentEditingTask.id);
-        
+
         // Check if it's a temporary task
         if (String(currentEditingTask.id).startsWith("temp-")) {
-          console.log("Updating temporary task locally:", currentEditingTask.id);
+          console.log(
+            "Updating temporary task locally:",
+            currentEditingTask.id
+          );
           return; // Skip API call, the create flow will handle the sync
         }
 
@@ -4919,7 +5588,10 @@ function CalendarScreen({ navigation, route }) {
         }
 
         // API Call
-        const updatedTaskFromServer = await TaskService.updateTask(currentEditingTask.id, taskData);
+        const updatedTaskFromServer = await TaskService.updateTask(
+          currentEditingTask.id,
+          taskData
+        );
 
         // Schedule new notification
         if (Platform.OS !== "web") {
@@ -4936,16 +5608,18 @@ function CalendarScreen({ navigation, route }) {
             null,
             t
           );
-          
+
           // Update local state with new notification IDs (silent update)
           if (notificationIds.length > 0) {
-             setTasks(currentTasks => {
-                const dayTasks = currentTasks[targetDate] || [];
-                const updatedDayTasks = dayTasks.map(t => 
-                    t.id === updatedTaskFromServer.id ? { ...t, notificationIds } : t
-                );
-                return { ...currentTasks, [targetDate]: updatedDayTasks };
-             });
+            setTasks((currentTasks) => {
+              const dayTasks = currentTasks[targetDate] || [];
+              const updatedDayTasks = dayTasks.map((t) =>
+                t.id === updatedTaskFromServer.id
+                  ? { ...t, notificationIds }
+                  : t
+              );
+              return { ...currentTasks, [targetDate]: updatedDayTasks };
+            });
           }
         }
 
@@ -4959,6 +5633,8 @@ function CalendarScreen({ navigation, route }) {
           platform: Platform.OS,
         });
 
+        // Clear cache after update
+        clearTaskCache();
       } else {
         // --- CREATE TASK ---
         // API Call
@@ -4967,74 +5643,93 @@ function CalendarScreen({ navigation, route }) {
           is_completed: false,
         });
 
+        // Clear cache after creation
+        clearTaskCache();
+
         // Replace temp ID with real ID and handle any pending actions/changes
-        setTasks(currentTasks => {
-            // Check if task was deleted while creating
-            if (pendingTempActions.current[tempId] === 'delete') {
-                console.log("Task deleted while creating, deleting from server:", createdTask.id);
-                TaskService.deleteTask(createdTask.id).catch(e => console.error("Failed to delete ghost task", e));
-                
-                // Remove from state if it exists
-                const dayTasks = currentTasks[targetDate] || [];
-                const filteredTasks = dayTasks.filter(t => t.id !== tempId);
-                const updatedTasksState = { ...currentTasks, [targetDate]: filteredTasks };
-                widgetService.syncTodayTasks(updatedTasksState);
-                return updatedTasksState;
-            }
+        setTasks((currentTasks) => {
+          // Check if task was deleted while creating
+          if (pendingTempActions.current[tempId] === "delete") {
+            console.log(
+              "Task deleted while creating, deleting from server:",
+              createdTask.id
+            );
+            TaskService.deleteTask(createdTask.id).catch((e) =>
+              console.error("Failed to delete ghost task", e)
+            );
 
+            // Remove from state if it exists
             const dayTasks = currentTasks[targetDate] || [];
-            // Find the current state of this task (it might have been edited or toggled)
-            const currentTempTask = dayTasks.find(t => t.id === tempId);
-            
-            if (!currentTempTask) {
-                // Task not found in state? Maybe moved date? 
-                // For now, just return currentTasks, but this is an edge case.
-                return currentTasks;
-            }
-
-            // Merge server data with local changes
-            // We keep the real ID from server
-            // We take other fields from local state to preserve edits/toggles
-            const finalTask = {
-                ...createdTask,
-                ...currentTempTask,
-                id: createdTask.id
+            const filteredTasks = dayTasks.filter((t) => t.id !== tempId);
+            const updatedTasksState = {
+              ...currentTasks,
+              [targetDate]: filteredTasks,
             };
-
-            // Sync changes to server if local state diverged from initial creation
-            const needsUpdate = 
-                finalTask.title !== createdTask.title ||
-                finalTask.date !== createdTask.date ||
-                finalTask.time !== createdTask.time ||
-                finalTask.link !== createdTask.link ||
-                finalTask.note !== createdTask.note;
-            
-            const needsToggle = finalTask.is_completed !== createdTask.is_completed;
-
-            if (needsUpdate) {
-                console.log("Syncing pending updates for new task");
-                TaskService.updateTask(createdTask.id, {
-                    title: finalTask.title,
-                    date: finalTask.date,
-                    time: finalTask.time,
-                    link: finalTask.link,
-                    note: finalTask.note
-                }).catch(e => console.error("Failed to sync update", e));
-            }
-
-            if (needsToggle) {
-                console.log("Syncing pending toggle for new task");
-                TaskService.toggleTaskChecked(createdTask.id, finalTask.is_completed)
-                    .catch(e => console.error("Failed to sync toggle", e));
-            }
-
-            const updatedDayTasks = dayTasks.map(t => t.id === tempId ? finalTask : t);
-            const updatedTasksState = { ...currentTasks, [targetDate]: updatedDayTasks };
-            
-            // Sync widget again with real ID
             widgetService.syncTodayTasks(updatedTasksState);
-            
             return updatedTasksState;
+          }
+
+          const dayTasks = currentTasks[targetDate] || [];
+          // Find the current state of this task (it might have been edited or toggled)
+          const currentTempTask = dayTasks.find((t) => t.id === tempId);
+
+          if (!currentTempTask) {
+            // Task not found in state? Maybe moved date?
+            // For now, just return currentTasks, but this is an edge case.
+            return currentTasks;
+          }
+
+          // Merge server data with local changes
+          // We keep the real ID from server
+          // We take other fields from local state to preserve edits/toggles
+          const finalTask = {
+            ...createdTask,
+            ...currentTempTask,
+            id: createdTask.id,
+          };
+
+          // Sync changes to server if local state diverged from initial creation
+          const needsUpdate =
+            finalTask.title !== createdTask.title ||
+            finalTask.date !== createdTask.date ||
+            finalTask.time !== createdTask.time ||
+            finalTask.link !== createdTask.link ||
+            finalTask.note !== createdTask.note;
+
+          const needsToggle =
+            finalTask.is_completed !== createdTask.is_completed;
+
+          if (needsUpdate) {
+            console.log("Syncing pending updates for new task");
+            TaskService.updateTask(createdTask.id, {
+              title: finalTask.title,
+              date: finalTask.date,
+              time: finalTask.time,
+              link: finalTask.link,
+              note: finalTask.note,
+            }).catch((e) => console.error("Failed to sync update", e));
+          }
+
+          if (needsToggle) {
+            console.log("Syncing pending toggle for new task");
+            TaskService.toggleTaskChecked(
+              createdTask.id,
+              finalTask.is_completed
+            ).catch((e) => console.error("Failed to sync toggle", e));
+          }
+
+          const updatedDayTasks = dayTasks.map((t) =>
+            t.id === tempId ? finalTask : t
+          );
+          const updatedTasksState = {
+            ...currentTasks,
+            [targetDate]: updatedDayTasks,
+          };
+
+          // Sync widget again with real ID
+          widgetService.syncTodayTasks(updatedTasksState);
+
+          return updatedTasksState;
         });
 
         // Schedule notification for new task (native only)
@@ -5054,13 +5749,13 @@ function CalendarScreen({ navigation, route }) {
 
           if (notificationIds.length > 0) {
             // Update local state with notification IDs
-             setTasks(currentTasks => {
-                const dayTasks = currentTasks[targetDate] || [];
-                const updatedDayTasks = dayTasks.map(t => 
-                    t.id === createdTask.id ? { ...t, notificationIds } : t
-                );
-                return { ...currentTasks, [targetDate]: updatedDayTasks };
-             });
+            setTasks((currentTasks) => {
+              const dayTasks = currentTasks[targetDate] || [];
+              const updatedDayTasks = dayTasks.map((t) =>
+                t.id === createdTask.id ? { ...t, notificationIds } : t
+              );
+              return { ...currentTasks, [targetDate]: updatedDayTasks };
+            });
           }
         }
 
@@ -5122,10 +5817,10 @@ function CalendarScreen({ navigation, route }) {
     const dayTasks = tasks[day] ? [...tasks[day]] : [];
     const filteredTasks = dayTasks.filter((t) => t.id !== editingTask.id);
     const newTasks = { ...tasks, [day]: filteredTasks };
-    
+
     setTasks(newTasks);
     widgetService.syncTodayTasks(newTasks);
-    
+
     // Close modal immediately
     setModalVisible(false);
     setEditingTask(null);
@@ -5153,6 +5848,9 @@ function CalendarScreen({ navigation, route }) {
       }
 
       await TaskService.deleteTask(editingTask.id);
+
+      // Clear cache after deletion
+      clearTaskCache();
     } catch (error) {
       console.error("Error deleting task:", error);
       // 3. Rollback on Failure
@@ -5172,25 +5870,43 @@ function CalendarScreen({ navigation, route }) {
     if (task.date === toDate) return;
     if (task.date !== selectedDate) return;
 
+    // Optimistic update: 立即更新 UI
+    const fromTasks = tasks[selectedDate] ? [...tasks[selectedDate]] : [];
+    const toTasks = tasks[toDate] ? [...tasks[toDate]] : [];
+    const filteredTasks = fromTasks.filter((t) => t.id !== task.id);
+    const updatedTask = { ...task, date: toDate };
+    toTasks.push(updatedTask);
+    const updatedTasks = {
+      ...tasks,
+      [selectedDate]: filteredTasks,
+      [toDate]: toTasks,
+    };
+
+    // 保存舊狀態以便回滾
+    const previousTasks = { ...tasks };
+
+    // 立即更新 UI
+    setTasks(updatedTasks);
+
+    // 非阻塞 widget sync（不等待完成）
+    widgetService.syncTodayTasks(updatedTasks).catch((error) => {
+      console.error("Error syncing widget:", error);
+    });
+
+    setMoveMode(false);
+    setTaskToMove(null);
+
+    // 在背景更新數據庫（不阻塞 UI）
     try {
-      // 更新任務的日期到數據庫
       await TaskService.updateTask(task.id, { date: toDate });
-
-      // 更新本地狀態
-      const fromTasks = tasks[selectedDate] ? [...tasks[selectedDate]] : [];
-      const toTasks = tasks[toDate] ? [...tasks[toDate]] : [];
-      const filteredTasks = fromTasks.filter((t) => t.id !== task.id);
-      const updatedTask = { ...task, date: toDate };
-      toTasks.push(updatedTask);
-      const updatedTasks = { ...tasks, [selectedDate]: filteredTasks, [toDate]: toTasks };
-      setTasks(updatedTasks);
-      widgetService.syncTodayTasks(updatedTasks);
-
-      setMoveMode(false);
-      setTaskToMove(null);
     } catch (error) {
       console.error("Error moving task:", error);
-      Alert.alert("Error", "Failed to move task. Please try again.");
+      // 回滾 UI 狀態
+      setTasks(previousTasks);
+      widgetService.syncTodayTasks(previousTasks).catch((err) => {
+        console.error("Error syncing widget on rollback:", err);
+      });
+      Alert.alert("Error", "Failed to move task. Changes have been reverted.");
     }
   };
 
@@ -5330,7 +6046,7 @@ function CalendarScreen({ navigation, route }) {
         : t
     );
     const newTasksState = { ...tasks, [task.date]: updatedTasksList };
-    
+
     setTasks(newTasksState);
     widgetService.syncTodayTasks(newTasksState);
 
@@ -5354,10 +6070,13 @@ function CalendarScreen({ navigation, route }) {
       await TaskService.toggleTaskChecked(task.id, newCompletedState);
 
       // Mixpanel: Track event
-      mixpanelService.track(newCompletedState ? "Task Completed" : "Task Uncompleted", {
-        task_id: task.id,
-        platform: Platform.OS,
-      });
+      mixpanelService.track(
+        newCompletedState ? "Task Completed" : "Task Uncompleted",
+        {
+          task_id: task.id,
+          platform: Platform.OS,
+        }
+      );
     } catch (error) {
       console.error("Error toggling task:", error);
       // 3. Rollback on Failure
@@ -5366,7 +6085,6 @@ function CalendarScreen({ navigation, route }) {
       Alert.alert("Error", "Failed to update task. Please try again.");
     }
   };
-
 
   const renderTask = ({ item }) => (
     <View style={styles.taskItemRow}>
@@ -5457,6 +6175,9 @@ function CalendarScreen({ navigation, route }) {
 
   const renderTaskArea = () => {
     const dayTasks = tasks[selectedDate] || [];
+    // 如果正在載入且還沒有任何任務數據，顯示 skeleton
+    const shouldShowSkeleton =
+      isLoadingTasks && Object.keys(tasks).length === 0;
 
     const taskAreaContent = (
       <View
@@ -5496,7 +6217,12 @@ function CalendarScreen({ navigation, route }) {
           <TouchableOpacity
             style={[
               styles.fabAddButton,
-              { backgroundColor: theme.primary, shadowColor: theme.primary },
+              {
+                backgroundColor: theme.primary,
+                shadowColor: theme.primary,
+                // Web 版需要更多底部空間，避免被底部導航欄切到
+                bottom: Platform.OS === "web" ? 80 : 8,
+              },
             ]}
             onPress={() => openAddTask(selectedDate)}
             activeOpacity={0.7}
@@ -5534,7 +6260,20 @@ function CalendarScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
 
-          {dayTasks.length === 0 ? (
+          {shouldShowSkeleton ? (
+            <View style={{ flex: 1 }}>
+              <FlatList
+                data={[1, 2, 3, 4]} // 顯示 4 個 skeleton
+                keyExtractor={(item) => `skeleton-${item}`}
+                renderItem={() => <TaskSkeleton theme={theme} />}
+                contentContainerStyle={[
+                  styles.tasksScrollContent,
+                  { paddingBottom: 32 },
+                ]}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
+          ) : dayTasks.length === 0 ? (
             <View style={styles.noTaskContainer}>
               <Svg
                 width={64}
@@ -6544,15 +7283,17 @@ function CalendarScreen({ navigation, route }) {
       style={{ flex: 1, backgroundColor: theme.background }}
       edges={["top"]}
     >
-      {Platform.OS === "web" ? (
-        calendarContent
-      ) : (
-        <GestureHandlerRootView
-          style={[styles.container, { backgroundColor: theme.background }]}
-        >
-          {calendarContent}
-        </GestureHandlerRootView>
-      )}
+      <ResponsiveContainer style={{ flex: 1 }}>
+        {Platform.OS === "web" ? (
+          calendarContent
+        ) : (
+          <GestureHandlerRootView
+            style={[styles.container, { backgroundColor: theme.background }]}
+          >
+            {calendarContent}
+          </GestureHandlerRootView>
+        )}
+      </ResponsiveContainer>
     </SafeAreaView>
   );
 }
@@ -6567,15 +7308,6 @@ export default function App() {
     NotoSansTC_500Medium,
     NotoSansTC_700Bold,
   });
-
-  // Initialize Mixpanel (only in production)
-  useEffect(() => {
-    const env = getCurrentEnvironment();
-    if (env === "production") {
-      mixpanelService.initialize();
-      mixpanelService.track("App Opened");
-    }
-  }, []);
 
   useEffect(() => {
     // Add Google Fonts for web only - keep it simple for native
@@ -6671,6 +7403,38 @@ export default function App() {
   const [themeMode, setThemeModeState] = useState("light");
   const [loadingTheme, setLoadingTheme] = useState(true);
 
+  // Load theme function (定義在外部，可以在登入後重新調用)
+  const loadTheme = React.useCallback(async () => {
+    try {
+      console.log("🎨 Loading theme settings from Supabase...");
+      const userSettings = await UserService.getUserSettings();
+      console.log("📦 Theme settings received:", userSettings);
+      console.log(
+        "📦 Theme value:",
+        userSettings.theme,
+        "Type:",
+        typeof userSettings.theme
+      );
+
+      // 明確檢查 theme 值
+      if (userSettings.theme === "dark" || userSettings.theme === "light") {
+        console.log(`✅ Theme loaded: ${userSettings.theme}`);
+        setThemeModeState(userSettings.theme);
+      } else {
+        console.log(
+          `⚠️ Invalid theme setting (${userSettings.theme}), using default: light`
+        );
+        setThemeModeState("light");
+      }
+    } catch (error) {
+      console.error("❌ Error loading theme settings:", error);
+      // 錯誤時使用預設值
+      setThemeModeState("light");
+    } finally {
+      setLoadingTheme(false);
+    }
+  }, []);
+
   // Request notification permissions on app start (native only)
   useEffect(() => {
     if (Platform.OS !== "web") {
@@ -6695,7 +7459,7 @@ export default function App() {
     if (typeof document !== "undefined") {
       document.title = getAppDisplayName();
     }
-    
+
     // 初始化 Google Analytics (僅 Web 平台且 Production 環境)
     if (Platform.OS === "web") {
       const env = getCurrentEnvironment();
@@ -6703,14 +7467,19 @@ export default function App() {
         ReactGA.initialize(process.env.EXPO_PUBLIC_GA_WEB_ID || "G-EW2TBM5EML");
         console.log("✅ [GA] Web Production 環境 - 已初始化");
       } else {
-        console.log(`🔧 [GA] Web ${env} 環境 - 跳過初始化（僅 Production 追蹤）`);
+        console.log(
+          `🔧 [GA] Web ${env} 環境 - 跳過初始化（僅 Production 追蹤）`
+        );
       }
     }
-    
+
     // 初始化 Mixpanel (僅 iOS/Android 平台且 Production 環境)
-    const env = getCurrentEnvironment();
-    if (env === "production") {
-      mixpanelService.initialize();
+    if (Platform.OS !== "web") {
+      const env = getCurrentEnvironment();
+      if (env === "production") {
+        mixpanelService.initialize();
+        mixpanelService.track("App Opened");
+      }
     }
 
     if (
@@ -6750,28 +7519,6 @@ export default function App() {
       }
     };
 
-    const loadTheme = async () => {
-      try {
-        console.log("🎨 Loading theme settings from Supabase...");
-        const userSettings = await UserService.getUserSettings();
-        console.log("📦 Theme settings received:", userSettings);
-
-        if (
-          userSettings.theme &&
-          (userSettings.theme === "light" || userSettings.theme === "dark")
-        ) {
-          console.log(`✅ Theme loaded: ${userSettings.theme}`);
-          setThemeModeState(userSettings.theme);
-        } else {
-          console.log("⚠️ No theme setting found, using default: light");
-        }
-      } catch (error) {
-        console.error("❌ Error loading theme settings:", error);
-      } finally {
-        setLoadingTheme(false);
-      }
-    };
-
     // 每次 App 啟動時都更新平台資訊
     const updatePlatformOnStart = async () => {
       try {
@@ -6790,7 +7537,7 @@ export default function App() {
     loadLanguage();
     loadTheme();
     updatePlatformOnStart();
-  }, []);
+  }, [loadTheme]);
 
   const setLanguage = async (lang) => {
     console.log(`🌐 Setting language to: ${lang}`);
@@ -6802,8 +7549,33 @@ export default function App() {
         language: lang,
       });
       console.log("✅ Language saved to Supabase:", result);
+
+      // 更新預載入緩存，確保 reminder_settings 等設定保持最新
+      // 使用 Supabase 返回的完整結果更新緩存，這樣可以保留 reminder_settings
+      if (result) {
+        dataPreloadService.updateCachedUserSettings(result);
+      }
     } catch (error) {
-      console.error("❌ Error saving language to Supabase:", error);
+      // 檢查是否為網絡錯誤
+      const isNetworkError =
+        error.message?.includes("Network request failed") ||
+        error.message?.includes("Failed to fetch") ||
+        error.message?.includes("network") ||
+        (!error.code && error.message);
+
+      if (isNetworkError) {
+        console.warn(
+          "⚠️ Network error saving language to Supabase:",
+          error.message
+        );
+      } else {
+        console.error("❌ Error saving language to Supabase:", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        });
+      }
       // Fallback to AsyncStorage
       AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
     }
@@ -6849,8 +7621,9 @@ export default function App() {
       fontsLoaded,
       fontTimeout,
       loadingLang,
+      loadingTheme,
     });
-  }, [fontsLoaded, fontTimeout, loadingLang]);
+  }, [fontsLoaded, fontTimeout, loadingLang, loadingTheme]);
 
   // Allow app to start even if fonts aren't loaded (with fallback)
   if (!fontsLoaded && !fontTimeout) {
@@ -6868,8 +7641,8 @@ export default function App() {
       </View>
     );
   }
-  if (loadingLang && !fontTimeout) {
-    console.log("Waiting for language...");
+  if ((loadingLang || loadingTheme) && !fontTimeout) {
+    console.log("Waiting for language and theme...");
     return (
       <View
         style={{
@@ -6943,7 +7716,7 @@ export default function App() {
 
   return (
     <ThemeContext.Provider
-      value={{ theme, themeMode, setThemeMode, toggleTheme }}
+      value={{ theme, themeMode, setThemeMode, toggleTheme, loadTheme }}
     >
       <LanguageContext.Provider value={{ language, setLanguage, t }}>
         <NavigationContainer
@@ -6951,8 +7724,6 @@ export default function App() {
             prefixes: [
               getRedirectUrl(),
               "http://localhost:8081",
-              "too-doo-list-staging://",
-              "too-doo-list-dev://",
               "too-doo-list://",
             ],
             config: {
@@ -6961,7 +7732,6 @@ export default function App() {
                 MainTabs: "app",
                 Terms: "terms",
                 Privacy: "privacy",
-                ComingSoon: "coming-soon",
               },
             },
           }}
@@ -7008,10 +7778,6 @@ export default function App() {
                 gestureEnabled: true,
                 gestureDirection: "horizontal",
               }}
-            />
-            <Stack.Screen
-              name="ComingSoon"
-              component={require("./ComingSoonScreen").default}
             />
           </Stack.Navigator>
         </NavigationContainer>

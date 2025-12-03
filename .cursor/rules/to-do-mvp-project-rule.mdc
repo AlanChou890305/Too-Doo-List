@@ -1,4 +1,4 @@
-# Too-Doo-List 專案開發規則
+# ToDo - 待辦清單 專案開發規則
 
 ## 平台支援
 
@@ -31,13 +31,13 @@ npx expo prebuild --platform ios --clean
 **在 Xcode 中設定環境變數，不要使用 prebuild：**
 
 1. **開啟 Xcode 專案**：`ios/ToDo.xcodeproj`
-2. **建立兩個 Schemes**：
-   - `To Do Staging` - 使用 staging 環境變數
-   - `To Do Production` - 使用 production 環境變數
+2. **建立 Scheme**：
 
-3. **在每個 Scheme 中設定環境變數**：
+   - `ToDo` - 使用 production 環境變數
+
+3. **在 Scheme 中設定環境變數**：
    - 編輯 Scheme → Run → Arguments → Environment Variables
-   - 添加 `EXPO_PUBLIC_APP_ENV` = `staging` 或 `production`
+   - 添加 `EXPO_PUBLIC_APP_ENV` = `production`
 
 ### 禁止的操作
 
@@ -49,8 +49,8 @@ npx expo prebuild --platform ios --clean
 ### 環境切換
 
 ```bash
-# 切換環境變數（僅用於開發）
-export EXPO_PUBLIC_APP_ENV=production  # 或 staging
+# 設定環境變數（僅用於開發）
+export EXPO_PUBLIC_APP_ENV=production
 
 # 在 Xcode 中選擇對應的 Scheme 建置
 ```
@@ -155,6 +155,67 @@ export EXPO_PUBLIC_APP_ENV=production  # 或 staging
 3. **eas.json** (如果有設定)
    - iOS: `buildNumber`
    - Android: `versionCode`
+
+### Before Pushing to GitHub
+
+**ALWAYS verify that README.md version information matches the latest release version before pushing to GitHub.**
+
+Checklist:
+
+- [ ] Verify `package.json` version matches README.md version (section "版本資訊" / "Version Information")
+- [ ] Ensure README.md shows the correct latest version number (e.g., v1.1.3)
+- [ ] Confirm both Traditional Chinese and English sections in README.md have matching version numbers
+- [ ] Version format should be: `v1.1.3 (最新版本)` / `v1.1.3 (Latest)`
+
+Files to check:
+
+- `README.md` - Check both Traditional Chinese and English sections
+- `package.json` - Verify "version" field
+
+### Before Xcode Archive
+
+**When preparing to create an Xcode archive, you MUST:**
+
+1. **Update Version and Build Number:**
+
+   - Update `CFBundleShortVersionString` in `ios/ToDo/Info.plist` (version number, e.g., "1.1.3")
+   - Update `CFBundleVersion` in `ios/ToDo/Info.plist` (build number, increment by 1)
+   - Update `CFBundleShortVersionString` and `CFBundleVersion` in `ios/ToDoWidget/Info.plist` (must match main app)
+   - Update `package.json` "version" field to match the new version
+
+2. **Update README.md Version Information:**
+
+   - Update the version number in Traditional Chinese section under "## 📝 版本資訊"
+   - Update the version number in English section under "## 📝 Version Information"
+   - Add changelog entries for the new version with key changes/fixes
+   - Update version references in usage instructions (e.g., "確認目前應用程式版本 (v1.1.3)")
+
+3. **Version Synchronization:**
+   All these must match:
+   - `package.json` → `"version": "1.1.3"`
+   - `ios/ToDo/Info.plist` → `CFBundleShortVersionString` = "1.1.3"
+   - `ios/ToDo/Info.plist` → `CFBundleVersion` = incremented build number
+   - `ios/ToDoWidget/Info.plist` → `CFBundleShortVersionString` and `CFBundleVersion` (match main app)
+   - `README.md` → Version information in both Traditional Chinese and English sections
+
+### Version Numbering Convention
+
+- Follow Semantic Versioning: MAJOR.MINOR.PATCH (e.g., 1.1.3)
+- CFBundleVersion (build number) increments on every archive, even for same version
+- Version numbers should be consistent across all files
+
+### Code Standards for Version Management
+
+- Always include error handling in async operations
+- Use optional chaining (`?.`) when accessing potentially undefined properties
+- Validate data structures before accessing nested properties
+- Include try-catch blocks in critical sections
+
+### Documentation Requirements
+
+- Keep README.md updated with latest version information
+- Maintain both Traditional Chinese and English documentation
+- Update changelog with meaningful descriptions of changes
 
 ---
 

@@ -48,7 +48,7 @@ serve(async (req: Request) => {
       <body>
         <div class="card">
           <h1>已取消訂閱</h1>
-          <p>您已成功取消訂閱 Too-Doo-List 的更新通知。</p>
+          <p>您已成功取消訂閱 ToDo - 待辦清單 的更新通知。</p>
           <p>You have been unsubscribed from future updates.</p>
         </div>
       </body>

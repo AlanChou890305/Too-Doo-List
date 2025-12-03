@@ -19,6 +19,11 @@ class MixpanelService {
    * 僅在原生平台（iOS/Android）且 Production 環境初始化
    */
   initialize() {
+    // 如果已經初始化，跳過
+    if (this.isInitialized) {
+      return;
+    }
+
     // Web 平台不使用 Mixpanel
     if (Platform.OS === "web") {
       return;

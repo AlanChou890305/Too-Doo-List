@@ -2,16 +2,9 @@
 
 ## 環境配置
 
-本專案僅支援兩個環境：
+本專案僅支援 Production 正式環境：
 
-### 1. Staging 測試環境
-- **用途**：內部測試和 Beta 測試
-- **更新方式**：透過 TestFlight
-- **URL Scheme**：`itms-beta://beta.itunes.apple.com/v1/app/{APP_ID}`
-- **按鈕文字**：立即更新
-- **目標**：直接開啟 TestFlight 中該 App 的更新畫面
-
-### 2. Production 正式環境
+### Production 正式環境
 - **用途**：正式發布給用戶
 - **更新方式**：透過 App Store
 - **URL Scheme**：`itms-apps://itunes.apple.com/app/id{APP_ID}`
@@ -22,21 +15,13 @@
 
 ### 1. 環境判斷
 ```javascript
-// 根據環境變數判斷
-const appEnv = process.env.EXPO_PUBLIC_APP_ENV || 'production';
-
-// 只支援 staging 和 production
-if (appEnv === 'staging') {
-  // 使用 TestFlight URL scheme
-} else {
-  // 使用 App Store URL scheme
-}
+// 本專案僅支援 Production 環境
+// 使用 App Store URL scheme
 ```
 
 ### 2. 更新連結配置
 ```javascript
 export const UPDATE_URLS = {
-  staging: "itms-beta://beta.itunes.apple.com/v1/app/{APP_ID}",
   production: "itms-apps://itunes.apple.com/app/id{APP_ID}"
 };
 ```
@@ -52,22 +37,16 @@ export const UPDATE_URLS = {
 ## 重要注意事項
 
 ### ❌ 禁止事項
-- 不要添加 development 環境的更新連結
+- 不要添加 staging 或 development 環境的更新連結
 - 不要使用 HTTP/HTTPS 連結（必須使用 URL scheme）
 - 不要為不同環境設置不同的按鈕文字
 
 ### ✅ 必須事項
 - 使用正確的 URL scheme
 - 替換 {APP_ID} 為實際的 App ID
-- 確保 TestFlight 和 App Store 的 App ID 一致
-- 測試時確保 URL scheme 能正確開啟對應的 App
+- 測試時確保 URL scheme 能正確開啟 App Store
 
 ## 測試檢查清單
-
-### Staging 環境測試
-- [ ] 點擊「立即更新」按鈕
-- [ ] 確認開啟 TestFlight 中的 App 更新頁面
-- [ ] 確認不是開啟 App Store
 
 ### Production 環境測試
 - [ ] 點擊「立即更新」按鈕
@@ -101,7 +80,7 @@ export const UPDATE_URLS = {
 
 ## 更新流程
 
-1. **獲取 App ID**：從 App Store Connect 或 TestFlight 獲取
+1. **獲取 App ID**：從 App Store Connect 獲取
 2. **更新配置**：在 `src/config/updateUrls.js` 中替換 `{APP_ID}`
-3. **測試功能**：分別測試 staging 和 production 環境
-4. **部署驗證**：確保各環境的更新連結正確運作
+3. **測試功能**：測試 production 環境的更新連結
+4. **部署驗證**：確保更新連結正確運作

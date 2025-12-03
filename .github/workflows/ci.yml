@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-check:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for common issues
+        run: |
+          echo "🔍 Checking for common issues..."
+
+          # 檢查是否有 console.log 遺留
+          if grep -r "console\.log" --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" App.js src/ | grep -v "node_modules" | grep -v "scripts"; then
+            echo "⚠️ Warning: Found console.log statements (consider removing for production)"
+          fi
+
+          # 檢查版本號是否更新
+          echo "📦 Current version: $(node -p "require('./package.json').version")"
+
+          # 檢查是否有硬編碼的 API keys
+          if grep -r "api.*key\|secret\|password" --include="*.js" --include="*.jsx" App.js src/ -i | grep -v "node_modules" | grep -v "EXPO_PUBLIC"; then
+            echo "⚠️ Warning: Potential hardcoded secrets found"
+          fi
+
+      - name: Verify build
+        run: |
+          echo "🔨 Verifying web build..."
+          npm run build
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for outdated packages
+        run: |
+          echo "📦 Checking for outdated packages..."
+          npm outdated || true
+
+  version-check:
+    name: Version Consistency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check version consistency
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          APP_CONFIG_VERSION=$(node -p "require('./app.config.js').default.extra.version || 'not found'")
+
+          echo "📦 Package.json version: $PACKAGE_VERSION"
+          echo "📱 App.config.js version: $APP_CONFIG_VERSION"
+
+          if [ "$APP_CONFIG_VERSION" != "not found" ] && [ "$PACKAGE_VERSION" != "$APP_CONFIG_VERSION" ]; then
+            echo "❌ Version mismatch detected!"
+            exit 1
+          fi
+
+          echo "✅ Versions are consistent"

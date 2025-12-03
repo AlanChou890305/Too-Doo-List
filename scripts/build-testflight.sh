@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Too-Doo-List TestFlight Build Script
+# ToDo - 待辦清單 TestFlight Build Script
 # 這個腳本會幫你建立 iOS TestFlight 測試版
 
-echo "🚀 Too-Doo-List TestFlight Build Script"
+echo "🚀 ToDo - 待辦清單 TestFlight Build Script"
 echo "========================================"
 echo ""
 

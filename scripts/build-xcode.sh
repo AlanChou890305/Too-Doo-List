@@ -1,25 +1,18 @@
 #!/bin/bash
 
 # Xcode Build Script
-# Usage: ./scripts/build-xcode.sh [production|staging]
+# Usage: ./scripts/build-xcode.sh [production]
 
 ENV=${1:-production}
-SCHEME=""
-BUNDLE_ID=""
+SCHEME="ToDo"
+BUNDLE_ID="com.cty0305.too.doo.list"
 
-if [ "$ENV" = "production" ]; then
-    SCHEME="ToDo"
-    BUNDLE_ID="com.cty0305.too.doo.list"
-    echo "📱 Building Production: $SCHEME"
-elif [ "$ENV" = "staging" ]; then
-    SCHEME="To Do Staging"
-    BUNDLE_ID="com.cty0305.too.doo.list.staging"
-    echo "🧪 Building Staging: $SCHEME"
-else
-    echo "❌ Invalid environment: $ENV"
-    echo "Usage: ./scripts/build-xcode.sh [production|staging]"
-    exit 1
+if [ "$ENV" != "production" ]; then
+    echo "⚠️  Warning: Only production builds are supported"
+    echo "   Building production by default"
 fi
+
+echo "📱 Building Production: $SCHEME"
 
 # Check if .env.local exists
 if [ -f .env.local ]; then
