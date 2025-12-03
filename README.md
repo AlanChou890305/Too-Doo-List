@@ -72,7 +72,7 @@
 ### 設定
 
 - **切換語言：** 在英文與繁體中文之間切換
-- **查看版本：** 確認目前應用程式版本 (v1.1.6)
+- **查看版本：** 確認目前應用程式版本 (v1.1.7)
 - **法律資訊：** 查看使用條款與隱私權政策
 - **登出：** 安全登出並立即返回登入畫面
 
@@ -97,12 +97,24 @@
 
 ### 版本管理
 
-- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.1.6)
+- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.1.7)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 版本資訊
 
-### v1.1.6 (最新版本)
+### v1.1.7 (最新版本)
+
+- ✨ **增強提醒設定：** 啟用提醒通知時，現在預設包含三個時間選項（任務前 30、10 和 5 分鐘）
+- 🎨 **改善載入體驗：** 為帳號資訊和設定頁面添加骨架載入動畫，提升載入時的視覺體驗
+- 🧭 **更好的導航：** 修復了進入設定頁面時意外跳回行事曆的問題
+- 🎨 **介面優化：** 改進使用條款和隱私政策的排版，提升閱讀體驗
+- 🔧 **代碼品質：** 修復了多項效能問題，包括重複初始化和循環依賴
+- 🐛 **錯誤修復：** 修復提醒設定預設值不包含 5 分鐘選項的問題
+- 🐛 **錯誤修復：** 修復數據載入完成後導航重置的問題
+- 🐛 **錯誤修復：** 修復提醒設定在語言切換時的競態條件問題
+- 🌐 **錯誤修復：** 修復 web 版日曆建立按鈕位置問題
+
+### v1.1.6
 
 - ⚡ **效能優化：** 優化移動任務到其他日期的速度，採用 optimistic update 策略，立即更新 UI
 - ⚡ **效能優化：** 改善 widget 同步機制，改為非阻塞執行，提升整體響應速度
@@ -213,7 +225,7 @@ A cross-platform React Native task management application with calendar view, Go
 ### Settings
 
 - **Switch Language:** Toggle between English and Traditional Chinese
-- **View Version:** Check current application version (v1.1.6)
+- **View Version:** Check current application version (v1.1.7)
 - **Legal Information:** View terms of use and privacy policy
 - **Sign Out:** Securely sign out and return to login screen
 
@@ -238,12 +250,30 @@ A cross-platform React Native task management application with calendar view, Go
 
 ### Version Management
 
-- **Semantic Versioning** - Major.Minor.Patch (Current: v1.1.6)
+- **Semantic Versioning** - Major.Minor.Patch (Current: v1.1.7)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Version Information
 
-### v1.1.5 (Latest)
+### v1.1.7 (Latest)
+
+- ✨ **Enhanced Reminder Settings:** Reminder notifications now default to all three time options (30, 10, and 5 minutes before tasks) when enabled
+- 🎨 **Improved Loading Experience:** Added skeleton loading animations for account information and settings while data is being loaded
+- 🧭 **Better Navigation:** Fixed issue where navigating to Settings page would unexpectedly redirect back to Calendar
+- 🎨 **UI Refinements:** Improved Terms of Use and Privacy Policy layout for better readability
+- 🔧 **Code Quality:** Fixed various performance issues including duplicate initializations and circular dependencies
+- 🐛 **Bug Fix:** Fixed reminder settings not including 5-minute option by default
+- 🐛 **Bug Fix:** Fixed navigation resetting when data finishes loading
+- 🐛 **Bug Fix:** Fixed reminder settings race condition when switching language
+- 🌐 **Bug Fix:** Fixed web calendar create button position
+
+### v1.1.6
+
+- ⚡ **Performance:** Optimized task moving speed with optimistic update strategy
+- ⚡ **Performance:** Improved widget sync mechanism with non-blocking execution
+- 🐛 **Bug Fix:** Fixed version number display issue, now reads from app.config.js
+
+### v1.1.5
 
 - 🐛 **Bug Fix:** Fixed JSX tag mismatch issue
 - 🐛 **Bug Fix:** Fixed widget service variable redeclaration issue
