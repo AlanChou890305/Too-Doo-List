@@ -48,40 +48,78 @@ Notifications.setNotificationHandler({
 
 /**
  * 請求通知權限
+ * @returns {Promise<boolean>} - 是否成功獲得權限
  */
 export async function registerForPushNotificationsAsync() {
-  let token = null;
+  try {
+    console.log("🔔 Requesting notification permissions...");
+    
+    // 檢查 Notifications 是否可用
+    if (!Notifications) {
+      console.error("❌ Notifications module is undefined");
+      return false;
+    }
 
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#6c63ff",
-    });
+    if (Platform.OS === "android") {
+      try {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "default",
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#6c63ff",
+        });
+        console.log("✅ Android notification channel set");
+      } catch (error) {
+        console.error("❌ Error setting Android notification channel:", error);
+      }
+    }
+
+    // 獲取現有權限狀態
+    const existingPermissions = await Notifications.getPermissionsAsync();
+    console.log("📋 Existing permissions:", existingPermissions);
+    
+    if (!existingPermissions) {
+      console.error("❌ Failed to get existing permissions");
+      return false;
+    }
+
+    const existingStatus = existingPermissions.status || "undetermined";
+    let finalStatus = existingStatus;
+
+    console.log("📊 Current permission status:", existingStatus);
+
+    // 如果權限未授予，則請求權限
+    if (existingStatus !== "granted") {
+      console.log("📝 Requesting notification permissions...");
+      const requestResult = await Notifications.requestPermissionsAsync();
+      console.log("📋 Request result:", requestResult);
+      
+      if (!requestResult) {
+        console.error("❌ Request permissions returned undefined");
+        return false;
+      }
+      
+      finalStatus = requestResult.status || "undetermined";
+      console.log("📊 Final permission status:", finalStatus);
+    }
+
+    const isGranted = finalStatus === "granted";
+    console.log(isGranted ? "✅ Notification permissions granted" : "❌ Notification permissions denied");
+    
+    return isGranted;
+  } catch (error) {
+    console.error("❌ Error requesting notification permissions:", error);
+    console.error("   Error message:", error?.message || "Unknown error");
+    console.error("   Error stack:", error?.stack || "No stack trace");
+    return false;
   }
-
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  if (existingStatus !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== "granted") {
-    console.log("Failed to get push token for push notification!");
-    return null;
-  }
-
-  return finalStatus === "granted";
 }
 
 /**
  * 安排任務提醒通知（支援多個提醒時間點）
  * @param {Object} task - 任務物件
  * @param {string} task.id - 任務 ID
- * @param {string} task.title - 任務標題
+ * @param {string} task.title - 任務標題（必需）
  * @param {string} task.date - 任務日期 (YYYY-MM-DD)
  * @param {string} task.time - 任務時間 (HH:MM)
  * @param {string} reminderText - 提醒文字（多語系）
@@ -97,6 +135,12 @@ export async function scheduleTaskNotification(
   translations = null // 新增多語系翻譯參數
 ) {
   try {
+    // 驗證必需欄位
+    if (!task.title) {
+      console.warn("Task missing title, skipping notification");
+      return [];
+    }
+
     // 如果沒有設定時間，則不安排通知
     if (!task.time || !task.date) {
       console.log("Task has no time set, skipping notification");
@@ -160,27 +204,42 @@ export async function scheduleTaskNotification(
       // 格式: task-{taskId}-{minutesBefore}
       const identifier = `task-${task.id}-${minutesBefore}`;
 
-      // 安排通知
-      const notificationId = await Notifications.scheduleNotificationAsync({
+      // 使用任務標題（已在函數開頭驗證，確保存在）
+      const taskTitle = task.title;
+
+      // 準備通知內容
+      const notificationContent = {
         identifier: identifier, // 指定 ID，防止重複
         content: {
-          title: notificationText.title,
-          body: `${notificationText.body}: ${task.title}`,
+          title: notificationText?.title || "Task Reminder",
+          body: `${notificationText?.body || "Your task is starting soon"}: ${taskTitle}`,
           data: {
             taskId: task.id,
             minutesBefore: minutesBefore,
             type: "task_reminder",
           },
           sound: true,
-          priority: Notifications.AndroidNotificationPriority.HIGH,
         },
         trigger: reminderTime,
-      });
+      };
 
-      scheduledNotificationIds.push(notificationId);
+      // iOS 不需要 priority，Android 才需要
+      if (Platform.OS === "android") {
+        notificationContent.content.priority = Notifications.AndroidNotificationPriority.HIGH;
+      }
+
+      // 安排通知
+      const notificationId = await Notifications.scheduleNotificationAsync(notificationContent);
+
+      // 驗證 notificationId
+      if (notificationId) {
+        scheduledNotificationIds.push(notificationId);
+      } else {
+        console.warn(`⚠️ Notification ID is undefined for task ${task.id}, minutesBefore: ${minutesBefore}`);
+      }
 
       console.log(`✅ Notification scheduled (${minutesBefore}min before)`);
-      console.log(`   Task: ${task.title}`);
+      console.log(`   Task: ${taskTitle}`);
       console.log(`   Task time: ${taskTime.toLocaleString()}`);
       console.log(`   Reminder time: ${reminderTime.toLocaleString()}`);
       console.log(`   Notification ID: ${notificationId}`);
@@ -269,15 +328,105 @@ export async function cancelAllNotifications() {
 
 /**
  * 獲取所有已安排的通知
+ * @returns {Promise<Array>} - 通知陣列，永遠不會返回 undefined
  */
 export async function getAllScheduledNotifications() {
   try {
-    const notifications =
-      await Notifications.getAllScheduledNotificationsAsync();
+    if (!Notifications) {
+      console.error("❌ Notifications module is undefined");
+      return [];
+    }
+
+    const notifications = await Notifications.getAllScheduledNotificationsAsync();
+    
+    if (!notifications) {
+      console.warn("⚠️ getAllScheduledNotificationsAsync returned undefined");
+      return [];
+    }
+
+    if (!Array.isArray(notifications)) {
+      console.warn("⚠️ getAllScheduledNotificationsAsync did not return an array:", typeof notifications);
+      return [];
+    }
+
     console.log(`📋 Scheduled notifications: ${notifications.length}`);
     return notifications;
   } catch (error) {
-    console.error("Error getting scheduled notifications:", error);
+    console.error("❌ Error getting scheduled notifications:", error);
+    console.error("   Error message:", error?.message || "Unknown error");
     return [];
+  }
+}
+
+/**
+ * 發送測試通知（用於測試通知功能）
+ * @param {number} secondsFromNow - 幾秒後發送通知，預設 5 秒
+ * @returns {Promise<string|null>} - 通知 ID 或 null
+ */
+export async function sendTestNotification(secondsFromNow = 5) {
+  try {
+    console.log("🔔 Starting test notification...");
+    
+    // 檢查 Notifications 是否可用
+    if (!Notifications) {
+      console.error("❌ Notifications module is undefined");
+      return null;
+    }
+
+    // 檢查通知權限
+    const permissions = await Notifications.getPermissionsAsync();
+    console.log("📋 Permission status:", permissions);
+    
+    if (!permissions || permissions.status !== "granted") {
+      console.warn("⚠️ Notification permission not granted. Status:", permissions?.status || "undefined");
+      return null;
+    }
+
+    // 計算通知時間
+    const triggerTime = new Date(Date.now() + secondsFromNow * 1000);
+    console.log("⏰ Trigger time:", triggerTime.toLocaleString());
+    
+    // 準備通知內容
+    const notificationContent = {
+      identifier: `test-notification-${Date.now()}`,
+      content: {
+        title: "測試通知",
+        body: `這是一個測試通知，將在 ${secondsFromNow} 秒後顯示`,
+        data: {
+          type: "test",
+          timestamp: Date.now(),
+        },
+        sound: true,
+      },
+      trigger: triggerTime,
+    };
+
+    // iOS 不需要 priority，Android 才需要
+    if (Platform.OS === "android") {
+      notificationContent.content.priority = Notifications.AndroidNotificationPriority.HIGH;
+    }
+
+    console.log("📤 Scheduling notification with content:", JSON.stringify(notificationContent, null, 2));
+    
+    // 發送測試通知
+    const notificationId = await Notifications.scheduleNotificationAsync(notificationContent);
+
+    console.log(`✅ Test notification scheduled successfully`);
+    console.log(`   Notification ID: ${notificationId || "undefined"}`);
+    console.log(`   Will appear in ${secondsFromNow} seconds`);
+    console.log(`   Trigger time: ${triggerTime.toLocaleString()}`);
+    
+    // 驗證 notificationId
+    if (!notificationId) {
+      console.warn("⚠️ Notification ID is undefined or null");
+      return null;
+    }
+
+    return notificationId;
+  } catch (error) {
+    console.error("❌ Error sending test notification:", error);
+    console.error("   Error message:", error?.message || "Unknown error");
+    console.error("   Error stack:", error?.stack || "No stack trace");
+    return null;
   }
 }

@@ -114,35 +114,13 @@
 - 🐛 **錯誤修復：** 修復提醒設定在語言切換時的競態條件問題
 - 🌐 **錯誤修復：** 修復 web 版日曆建立按鈕位置問題
 
-### v1.1.6
-
-- ⚡ **效能優化：** 優化移動任務到其他日期的速度，採用 optimistic update 策略，立即更新 UI
-- ⚡ **效能優化：** 改善 widget 同步機制，改為非阻塞執行，提升整體響應速度
-- 🐛 **錯誤修正：** 修正版本號顯示問題，改為從 app.config.js 讀取版本資訊
-
-### v1.1.5
-
-- 🐛 **錯誤修正：** 修正 JSX 標籤不匹配問題
-- 🐛 **錯誤修正：** 修正 widget service 變數重複宣告問題
-- 🐛 **錯誤修正：** 修正載入時先顯示 "no task" 再顯示 skeleton 的問題
-- ⚡ **效能優化：** 改善載入狀態顯示邏輯，確保正確顯示 loading skeleton
-
-### v1.1.4
-
-- 🔗 **新增功能：** 新增意見回饋連結，讓我們知道您的想法！
-- 📱 **小工具修復：** 修復 iOS 小工具顯示問題
-- ⚡ **效能優化：** 改善應用程式效能與穩定性
-- 🎨 **介面優化：** 使用者介面微調與改進
-
-
-
 ## 🤝 貢獻
 
 歡迎貢獻！請提交 Issue 或 Pull Request 來回報錯誤或建議新功能。
 
 ## 📄 授權
 
-_在此指定您的授權條款（例如 MIT, GPL 等）_
+本專案為私有專案，版權所有。未經授權不得使用、複製或分發。
 
 ---
 
@@ -267,35 +245,13 @@ A cross-platform React Native task management application with calendar view, Go
 - 🐛 **Bug Fix:** Fixed reminder settings race condition when switching language
 - 🌐 **Bug Fix:** Fixed web calendar create button position
 
-### v1.1.6
-
-- ⚡ **Performance:** Optimized task moving speed with optimistic update strategy
-- ⚡ **Performance:** Improved widget sync mechanism with non-blocking execution
-- 🐛 **Bug Fix:** Fixed version number display issue, now reads from app.config.js
-
-### v1.1.5
-
-- 🐛 **Bug Fix:** Fixed JSX tag mismatch issue
-- 🐛 **Bug Fix:** Fixed widget service variable redeclaration issue
-- 🐛 **Bug Fix:** Fixed issue where "no task" was shown before skeleton during loading
-- ⚡ **Performance:** Improved loading state logic to correctly display loading skeleton
-
-### v1.1.4
-
-- 🔗 **New Feature:** Added a feedback link - let us know what you think!
-- 📱 **Widget Fix:** Fixed issues with the iOS Widget
-- ⚡ **Performance:** Improved app performance and stability
-- 🎨 **UI Improvements:** User interface enhancements
-
-
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please submit Issues or Pull Requests to report bugs or suggest new features.
 
 ## 📄 License
 
-_License terms (e.g., MIT, GPL, etc.)_
+This project is private and proprietary. All rights reserved. Unauthorized use, copying, or distribution is prohibited.
 
 ---
 

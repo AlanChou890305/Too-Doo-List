@@ -30,11 +30,16 @@ export const ResponsiveContainer = ({ children, style }) => {
           width: '100%',
           flex: 1,
           backgroundColor: cardBg,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.1,
-          shadowRadius: 20,
-          elevation: 5,
+          // Web platform uses boxShadow instead of shadow* props
+          ...(Platform.OS === 'web' ? {
+            boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
+          } : {
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.1,
+            shadowRadius: 20,
+            elevation: 5,
+          }),
           marginVertical: 20,
           borderRadius: 12,
           overflow: 'hidden',

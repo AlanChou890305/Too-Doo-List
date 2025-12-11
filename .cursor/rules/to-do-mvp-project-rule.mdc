@@ -163,9 +163,10 @@ export EXPO_PUBLIC_APP_ENV=production
 Checklist:
 
 - [ ] Verify `package.json` version matches README.md version (section "版本資訊" / "Version Information")
-- [ ] Ensure README.md shows the correct latest version number (e.g., v1.1.3)
+- [ ] Ensure README.md shows the correct latest version number (check `package.json` for current version)
 - [ ] Confirm both Traditional Chinese and English sections in README.md have matching version numbers
-- [ ] Version format should be: `v1.1.3 (最新版本)` / `v1.1.3 (Latest)`
+- [ ] Version format should be: `v{latest_version} (最新版本)` / `v{latest_version} (Latest)` - Use the actual latest version from `package.json`
+- [ ] **IMPORTANT:** Only keep the latest version information in README.md, remove all old version history
 
 Files to check:
 
@@ -187,16 +188,17 @@ Files to check:
 
    - Update the version number in Traditional Chinese section under "## 📝 版本資訊"
    - Update the version number in English section under "## 📝 Version Information"
+   - **Remove all old version history** - Only keep the latest version (e.g., v1.1.7) in the changelog
    - Add changelog entries for the new version with key changes/fixes
-   - Update version references in usage instructions (e.g., "確認目前應用程式版本 (v1.1.3)")
+   - Update version references in usage instructions (e.g., "確認目前應用程式版本 (v1.1.7)")
 
 3. **Version Synchronization:**
-   All these must match:
-   - `package.json` → `"version": "1.1.3"`
-   - `ios/ToDo/Info.plist` → `CFBundleShortVersionString` = "1.1.3"
+   All these must match (use the latest version from `package.json`):
+   - `package.json` → `"version": "{latest_version}"` (e.g., "1.1.7")
+   - `ios/ToDo/Info.plist` → `CFBundleShortVersionString` = "{latest_version}"
    - `ios/ToDo/Info.plist` → `CFBundleVersion` = incremented build number
    - `ios/ToDoWidget/Info.plist` → `CFBundleShortVersionString` and `CFBundleVersion` (match main app)
-   - `README.md` → Version information in both Traditional Chinese and English sections
+   - `README.md` → Version information in both Traditional Chinese and English sections (use latest version)
 
 ### Version Numbering Convention
 
@@ -214,8 +216,9 @@ Files to check:
 ### Documentation Requirements
 
 - Keep README.md updated with latest version information
+- **Only keep the latest version in README.md** - Remove old version history (v1.1.6, v1.1.5, etc.)
 - Maintain both Traditional Chinese and English documentation
-- Update changelog with meaningful descriptions of changes
+- Update changelog with meaningful descriptions of changes for the latest version only
 
 ---
 

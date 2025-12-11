@@ -177,6 +177,7 @@ import {
   cancelTaskNotification,
   cancelAllNotifications,
 } from "./src/services/notificationService";
+import * as Notifications from "expo-notifications";
 
 // Notification Config
 import { getActiveReminderMinutes } from "./src/config/notificationConfig";
@@ -888,7 +889,7 @@ const SplashScreen = ({ navigation }) => {
                 }
 
                 // Navigate to main app even if there were some issues
-                navigateToMainApp();
+                navigateToMainApp({ focusToday: true });
                 return;
               }
             } catch (manualError) {
@@ -937,7 +938,7 @@ const SplashScreen = ({ navigation }) => {
           }
 
           console.log("OAuth callback: User verified, navigating to main app");
-          navigateToMainApp();
+          navigateToMainApp({ focusToday: true });
         } else {
           console.log("OAuth callback: No session found in callback");
 
@@ -949,7 +950,7 @@ const SplashScreen = ({ navigation }) => {
               const { data: fallbackData, error: fallbackError } =
                 await supabase.auth.getSession();
               if (fallbackData?.session) {
-                navigateToMainApp();
+                navigateToMainApp({ focusToday: true });
                 return;
               }
 
@@ -959,7 +960,7 @@ const SplashScreen = ({ navigation }) => {
                 error: userError,
               } = await supabase.auth.getUser();
               if (user && !userError) {
-                navigateToMainApp();
+                navigateToMainApp({ focusToday: true });
                 return;
               }
             } catch (fallbackError) {
@@ -975,7 +976,7 @@ const SplashScreen = ({ navigation }) => {
                 error: userError,
               } = await supabase.auth.getUser();
               if (user && !userError) {
-                navigateToMainApp();
+                navigateToMainApp({ focusToday: true });
                 return;
               }
             } catch (finalError) {
@@ -989,10 +990,10 @@ const SplashScreen = ({ navigation }) => {
     };
 
     // Navigate to main app
-    const navigateToMainApp = () => {
-      console.log("📍 [navigateToMainApp] Function called");
+    const navigateToMainApp = (options = {}) => {
+      console.log("📍 [navigateToMainApp] Function called", options);
 
-      if (hasNavigated) {
+      if (hasNavigated && !options.focusToday) {
         console.log("📍 [navigateToMainApp] ⚠️ Already navigated, skipping");
         return;
       }
@@ -1007,7 +1008,7 @@ const SplashScreen = ({ navigation }) => {
       // Check if already in MainTabs to avoid resetting navigation
       const currentRoute =
         navigation.getState?.()?.routes?.[navigation.getState?.()?.index];
-      if (currentRoute?.name === "MainTabs") {
+      if (currentRoute?.name === "MainTabs" && !options.focusToday) {
         console.log(
           "📍 [navigateToMainApp] ⚠️ Already in MainTabs, skipping reset to preserve current tab"
         );
@@ -1023,7 +1024,14 @@ const SplashScreen = ({ navigation }) => {
         setHasNavigated(true);
         navigation.reset({
           index: 0,
-          routes: [{ name: "MainTabs" }],
+          routes: [
+            {
+              name: "MainTabs",
+              params: options.focusToday
+                ? { screen: "Calendar", params: { focusToday: true } }
+                : undefined,
+            },
+          ],
         });
         console.log("📍 [navigateToMainApp] ✅ Navigation reset successful!");
       } catch (error) {
@@ -1144,7 +1152,7 @@ const SplashScreen = ({ navigation }) => {
             console.log("🚀 Navigating to main app...");
             // Check if already navigated to prevent double navigation
             if (!hasNavigated) {
-              navigateToMainApp();
+              navigateToMainApp({ focusToday: true });
             } else {
               console.log("⚠️ Navigation skipped - already navigated");
             }
@@ -1167,7 +1175,7 @@ const SplashScreen = ({ navigation }) => {
     // Listen for custom auth success event from deep link handling
     const handleCustomAuthSuccess = (event) => {
       console.log("Custom auth success event received:", event.detail);
-      navigateToMainApp();
+      navigateToMainApp({ focusToday: true });
     };
 
     // Add event listener for custom auth success (web only)
@@ -1219,6 +1227,37 @@ const SplashScreen = ({ navigation }) => {
             new Date(session.expires_at * 1000).toISOString()
           );
 
+          // Check if session is expired
+          const now = Math.floor(Date.now() / 1000);
+          const isSessionExpired = session.expires_at && session.expires_at < now;
+
+          if (isSessionExpired) {
+            console.log("[checkSession] Session expired, attempting refresh...");
+            // Try to refresh the session
+            const {
+              data: { session: refreshedSession },
+              error: refreshError,
+            } = await supabase.auth.refreshSession();
+
+            if (refreshError || !refreshedSession) {
+              console.error(
+                "[checkSession] Failed to refresh expired session:",
+                refreshError
+              );
+              console.log(
+                "[checkSession] Session expired, navigating to today page..."
+              );
+              // Session expired, navigate to MainTabs with today focus
+              if (!hasNavigated) {
+                navigateToMainApp({ focusToday: true });
+              }
+              return;
+            }
+
+            // Session refreshed successfully, continue with refreshed session
+            console.log("[checkSession] Session refreshed successfully");
+          }
+
           // Verify the user is still valid
           const {
             data: { user },
@@ -1255,7 +1294,7 @@ const SplashScreen = ({ navigation }) => {
           console.log("[checkSession] Navigating to main app...");
           // Check if already navigated to prevent double navigation
           if (!hasNavigated) {
-            navigateToMainApp();
+            navigateToMainApp({ focusToday: true });
           } else {
             console.log(
               "⚠️ [checkSession] Navigation skipped - already navigated"
@@ -1375,7 +1414,7 @@ const SplashScreen = ({ navigation }) => {
                   console.log(
                     "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app..."
                   );
-                  navigateToMainApp();
+                  navigateToMainApp({ focusToday: true });
                 }
               }, 2000);
             } else if (accessToken && refreshToken) {
@@ -1424,7 +1463,7 @@ const SplashScreen = ({ navigation }) => {
                   console.log(
                     "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app..."
                   );
-                  navigateToMainApp();
+                  navigateToMainApp({ focusToday: true });
                 }
               }, 2000);
             } else {
@@ -1612,7 +1651,7 @@ const SplashScreen = ({ navigation }) => {
           }
 
           console.log("Fallback: User verified, navigating to main app");
-          navigateToMainApp();
+          navigateToMainApp({ focusToday: true });
           return true; // Success
         } else {
           console.log("Fallback: No session found");
@@ -3409,17 +3448,20 @@ const TaskSkeleton = ({ theme }) => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Web platform doesn't support useNativeDriver
+    const useNativeDriver = Platform.OS !== 'web';
+    
     Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
         Animated.timing(shimmerAnim, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
       ])
     ).start();
@@ -5435,28 +5477,38 @@ function CalendarScreen({ navigation, route }) {
       const todayMonth = todayDate.getMonth();
       const todayYear = todayDate.getFullYear();
 
+      // Check if focusToday param is passed (e.g., when session expired)
+      const shouldFocusToday = route?.params?.focusToday;
+
       // Only update if values have changed to avoid unnecessary re-renders and fetches
       setSelectedDate((prevDate) => {
-        if (prevDate !== today) {
+        if (shouldFocusToday || prevDate !== today) {
           return today;
         }
         return prevDate;
       });
 
       setVisibleMonth((prevMonth) => {
-        if (prevMonth !== todayMonth) {
+        if (shouldFocusToday || prevMonth !== todayMonth) {
           return todayMonth;
         }
         return prevMonth;
       });
 
       setVisibleYear((prevYear) => {
-        if (prevYear !== todayYear) {
+        if (shouldFocusToday || prevYear !== todayYear) {
           return todayYear;
         }
         return prevYear;
       });
-    }, [])
+
+      // If focusToday is true, also center the calendar to today
+      if (shouldFocusToday) {
+        setTimeout(() => {
+          centerToday();
+        }, 100);
+      }
+    }, [route?.params?.focusToday, centerToday])
   );
 
   // Note: We no longer need to save tasks to AsyncStorage
@@ -5598,7 +5650,7 @@ function CalendarScreen({ navigation, route }) {
           const notificationIds = await scheduleTaskNotification(
             {
               id: updatedTaskFromServer.id,
-              text: taskText,
+              title: taskText,
               date: targetDate,
               time: taskTime,
               notificationIds: currentEditingTask.notificationIds,
@@ -5737,7 +5789,7 @@ function CalendarScreen({ navigation, route }) {
           const notificationIds = await scheduleTaskNotification(
             {
               id: createdTask.id,
-              text: taskText,
+              title: taskText,
               date: targetDate,
               time: taskTime,
             },

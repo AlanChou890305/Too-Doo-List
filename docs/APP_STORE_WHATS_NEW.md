@@ -1,5 +1,65 @@
 # App Store "What's New" Text
 
+## Version 1.1.7 (Build 7)
+
+### Option 1: Standard & Clear (Recommended - English)
+
+What's New in This Version:
+• **Enhanced Reminder Settings** - Reminder notifications now default to all three time options (30, 10, and 5 minutes before tasks) when enabled
+• **Improved Loading Experience** - Added skeleton loading animations for account information and settings while data is being loaded
+• **Better Navigation** - Fixed issue where navigating to Settings page would unexpectedly redirect back to Calendar
+• **UI Refinements** - Improved Terms of Use and Privacy Policy layout for better readability
+• Bug fixes and stability improvements
+
+### Option 2: User-Friendly (English)
+
+What's New:
+• ⏰ **Enhanced Reminder Settings** - Reminder notifications now include all three time options (30, 10, and 5 minutes) by default
+• ✨ **Better Loading Experience** - Added smooth skeleton animations while loading account info and settings
+• 🧭 **Navigation Fix** - Fixed unexpected redirect when opening Settings page
+• 📄 **UI Improvements** - Improved readability of Terms of Use and Privacy Policy
+• 🐛 Bug fixes and performance improvements
+
+### Option 3: Short & Simple (English)
+
+• Enhanced reminder notification settings
+• Improved loading animations
+• Fixed navigation issues
+• UI refinements
+• Bug fixes and stability improvements
+
+---
+
+### Option 4: Traditional Chinese - Standard (繁體中文 - 標準版)
+
+**版本 1.1.7 更新內容：**
+
+• **增強提醒設定**：啟用提醒通知時，現在預設包含三個時間選項（任務前 30、10 和 5 分鐘）
+• **改善載入體驗**：為帳號資訊和設定頁面添加骨架載入動畫，提升載入時的視覺體驗
+• **更好的導航**：修復了進入設定頁面時意外跳回行事曆的問題
+• **介面優化**：改進使用條款和隱私政策的排版，提升閱讀體驗
+• 錯誤修正與穩定性提升
+
+### Option 5: Traditional Chinese - User-Friendly (繁體中文 - 友善版)
+
+**版本 1.1.7 更新內容：**
+
+• ⏰ **增強提醒設定**：提醒通知現在預設包含三個時間選項（30、10 和 5 分鐘前）
+• ✨ **更好的載入體驗**：添加流暢的骨架動畫，讓載入過程更順暢
+• 🧭 **導航修復**：修復開啟設定頁面時意外跳回的問題
+• 📄 **介面優化**：改進使用條款和隱私政策的可讀性
+• 🐛 錯誤修正與效能提升
+
+### Option 6: Traditional Chinese - Short (繁體中文 - 簡短版)
+
+• 增強提醒通知設定
+• 改善載入動畫體驗
+• 修復導航問題
+• 介面優化
+• 錯誤修正與穩定性提升
+
+---
+
 ## Version 1.1.6 (Build 6)
 
 ### Option 1: Standard & Clear (Recommended - English)
