@@ -103,6 +103,9 @@ coverage/
 public
 !public/callback.html
 !public/auth/
+!public/apple-app-site-association
+!public/privacy.html
+!public/terms.html
 
 # Storybook build outputs
 .out

@@ -83,13 +83,15 @@ jobs:
       - name: Check version consistency
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          APP_CONFIG_VERSION=$(node -p "require('./app.config.js').default.extra.version || 'not found'")
+          APP_CONFIG_VERSION=$(node -p "require('./app.config.js').expo.version")
 
           echo "📦 Package.json version: $PACKAGE_VERSION"
           echo "📱 App.config.js version: $APP_CONFIG_VERSION"
 
-          if [ "$APP_CONFIG_VERSION" != "not found" ] && [ "$PACKAGE_VERSION" != "$APP_CONFIG_VERSION" ]; then
+          if [ "$PACKAGE_VERSION" != "$APP_CONFIG_VERSION" ]; then
             echo "❌ Version mismatch detected!"
+            echo "   package.json: $PACKAGE_VERSION"
+            echo "   app.config.js: $APP_CONFIG_VERSION"
             exit 1
           fi
 
