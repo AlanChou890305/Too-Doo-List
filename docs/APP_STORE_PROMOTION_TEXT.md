@@ -160,6 +160,86 @@ Calendar task manager with Home Screen Widget support!
 
 ---
 
+## Spanish Versions - 120 Characters
+
+### Option 1: Feature-Focused (Recomendado)
+
+```
+Organiza tus tareas con nuestro gestor intuitivo basado en calendario. Visualiza por fecha, establece recordatorios, sincroniza entre dispositivos. ¡Prueba nuestro nuevo Widget de pantalla de inicio!
+```
+
+**Recuento de caracteres: 120**
+
+### Option 2: Benefit-Focused
+
+```
+¡Mantente organizado sin esfuerzo! Gestión de tareas basada en calendario con inicio de sesión Google, sincronización en la nube y un hermoso Widget de pantalla de inicio. Gestiona tus tareas con facilidad.
+```
+
+**Recuento de caracteres: 120**
+
+### Option 3: Short & Punchy
+
+```
+Gestión simple de tareas con diseño hermoso. Organiza por fecha, establece recordatorios, sincroniza entre dispositivos. ¡Nuevo: Widget de pantalla de inicio! Ve tus tareas de un vistazo.
+```
+
+**Recuento de caracteres: 120**
+
+### Option 4: User-Centric
+
+```
+¡Transforma cómo gestionas tus tareas! Nuestra app basada en calendario hace que organizar sea simple. Agrega tareas a fechas, establece horarios, adjunta enlaces. Además, nuestro nuevo Widget te mantiene al día.
+```
+
+**Recuento de caracteres: 120**
+
+---
+
+## Spanish Versions - 50 Characters
+
+### Option 1: Feature-Focused (Recomendado)
+
+```
+¡Gestor de tareas con calendario y Widget!
+```
+
+**Recuento de caracteres: 48**
+
+### Option 2: Benefit-Focused
+
+```
+Organiza tareas por fecha. Sincroniza. ¡Nuevo Widget!
+```
+
+**Recuento de caracteres: 50**
+
+### Option 3: Short & Punchy
+
+```
+Gestión simple con vista de calendario y Widget!
+```
+
+**Recuento de caracteres: 48**
+
+### Option 4: Action-Oriented
+
+```
+Rastrea tus tareas por fecha. ¡Prueba nuestro Widget!
+```
+
+**Recuento de caracteres: 47**
+
+### Option 5: Minimal
+
+```
+Gestor de tareas con calendario y Widget de inicio!
+```
+
+**Recuento de caracteres: 49**
+
+---
+
 ## Usage Notes
 
 **Promotion Text Guidelines:**

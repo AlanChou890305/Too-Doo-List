@@ -1,6 +1,80 @@
-# What's New - Version 1.1.7
+# What's New - Version 1.2.1
 
 ## English
+
+### Bug Fixes
+
+- Fixed Chinese app name display in App Store review
+
+---
+
+## 繁體中文
+
+### 錯誤修復
+
+- 修復 App Store 審核中中文版應用程式名稱顯示問題
+
+---
+
+## Español
+
+### Correcciones de errores
+
+- Corregido el nombre de la aplicación en chino en la revisión de App Store
+
+---
+
+# What's New - Version 1.2.0
+
+## English
+
+### Major Updates
+
+- **Brand Refresh**: App has been rebranded to "TaskCal" with a new modern logo design
+- **Improved App Icon**: Updated app icon with transparent background for better visual consistency across iOS themes
+- **Enhanced Calendar Navigation**: Reduced scroll threshold for month switching from 50px to 30px for more responsive navigation
+
+### Improvements
+
+- **Better Logo Display**: Removed background and shadow from app logo to prevent "logo in logo" effect
+- **Smoother Calendar Scrolling**: More sensitive month switching makes navigation feel more natural
+- **Visual Consistency**: App icon now adapts better to iOS system themes and appearance settings
+
+---
+
+## 繁體中文
+
+### 重大更新
+
+- **品牌更新**：應用程式已重新命名為 "TaskCal"，並採用全新的現代化 logo 設計
+- **改進的應用程式圖示**：更新應用程式圖示，使用透明背景，在不同 iOS 主題下呈現更一致的視覺效果
+- **增強的行事曆導航**：將換月滾動閾值從 50px 降低至 30px，讓導航更加靈敏
+
+### 改進項目
+
+- **更好的 Logo 顯示**：移除應用程式 logo 的背景和陰影，避免「logo 中的 logo」效果
+- **更流暢的行事曆滾動**：更靈敏的換月功能讓導航感覺更自然
+- **視覺一致性**：應用程式圖示現在能更好地適應 iOS 系統主題和外觀設定
+
+---
+
+## Español
+
+Actualizaciones Importantes
+
+Actualización de marca: La aplicación ha sido renombrada a TaskCal con un nuevo diseño de logo moderno
+Icono de aplicación mejorado: Icono actualizado con fondo transparente para mejor consistencia visual en todos los temas de iOS
+Navegación de calendario mejorada: Umbral de desplazamiento reducido para cambiar de mes de 50px a 30px para una navegación más responsiva
+
+Mejoras
+
+Mejor visualización del logo: Se eliminó el fondo y la sombra del logo de la aplicación para evitar el efecto de logo dentro de logo
+Desplazamiento de calendario más suave: Cambio de mes más sensible hace que la navegación se sienta más natural
+Consistencia visual: El icono de la aplicación ahora se adapta mejor a los temas y configuraciones de apariencia del sistema iOS
+
+---
+
+## Previous Version (1.1.7)
 
 ### Improvements
 
@@ -16,22 +90,3 @@
 - Fixed navigation resetting when data finishes loading
 - Fixed OAuth authentication flow error messages
 - Improved widget synchronization reliability
-
----
-
-## 繁體中文
-
-### 改進項目
-
-- **增強提醒設定**：啟用提醒通知時，現在預設包含三個時間選項（任務前 30、10 和 5 分鐘）
-- **改善載入體驗**：為帳號資訊和設定頁面添加骨架載入動畫，提升載入時的視覺體驗
-- **更好的導航**：修復了進入設定頁面時意外跳回行事曆的問題
-- **介面優化**：改進使用條款和隱私政策的排版，提升閱讀體驗
-- **代碼品質**：修復了多項效能問題，包括重複初始化和循環依賴
-
-### 錯誤修復
-
-- 修復提醒設定預設值不包含 5 分鐘選項的問題
-- 修復數據載入完成後導航重置的問題
-- 修復 OAuth 認證流程的錯誤訊息
-- 改善 Widget 同步的可靠性

@@ -13,6 +13,7 @@ class DataPreloadService {
     userProfile: null,
     calendarTasks: null,
     preloadTimestamp: null,
+    currentMonthTasks: null, // 當前月份的任務（優先載入）
   };
 
   static CACHE_DURATION = 5 * 60 * 1000; // 5 分鐘緩存
@@ -31,7 +32,7 @@ class DataPreloadService {
 
     console.log("🚀 [DataPreload] Starting data preload...");
     const startTime = Date.now();
-    
+
     // 設置正在預載入標記
     this.isPreloading = true;
 
@@ -56,29 +57,44 @@ class DataPreloadService {
           };
         }
 
-        // 並行載入所有數據
-        const [userSettings, userProfile, calendarTasks] = await Promise.all([
+        // 並行載入用戶設定和用戶資料
+        const [userSettings, userProfile] = await Promise.all([
           this.preloadUserSettings(),
           this.preloadUserProfile(),
-          this.preloadCalendarTasks(),
         ]);
 
-        // 更新緩存
-        this.preloadCache = {
-          userSettings,
-          userProfile,
-          calendarTasks,
-          preloadTimestamp: Date.now(),
-        };
+        // 更新緩存（先更新用戶設定和資料）
+        this.preloadCache.userSettings = userSettings;
+        this.preloadCache.userProfile = userProfile;
 
-        // 同步到 widget
+        // 分階段載入日曆任務
+        // 階段 1：優先載入當月（立即更新緩存）
+        const currentMonthTasksPromise = this.preloadCurrentMonthTasks();
+
+        // 階段 2：載入前後一個月（在當月載入完成後）
+        const calendarTasksPromise = currentMonthTasksPromise.then(() => {
+          return this.preloadCalendarTasks();
+        });
+
+        // 等待當月任務載入完成，立即更新緩存和同步 widget
+        const currentMonthTasks = await currentMonthTasksPromise;
+        if (currentMonthTasks) {
+          this.preloadCache.currentMonthTasks = currentMonthTasks;
+          this.preloadCache.preloadTimestamp = Date.now();
+        }
+
+        // 等待完整日曆任務載入完成
+        const calendarTasks = await calendarTasksPromise;
+
+        // 更新完整緩存
+        this.preloadCache.calendarTasks = calendarTasks;
+        this.preloadCache.preloadTimestamp = Date.now();
+
+        // 只同步一次完整任務到 widget（防抖機制會處理重複調用）
         if (calendarTasks) {
-          try {
-            await widgetService.syncTodayTasks(calendarTasks);
-            console.log("✅ [DataPreload] Widget data synced");
-          } catch (error) {
+          widgetService.syncTodayTasks(calendarTasks).catch((error) => {
             console.error("❌ [DataPreload] Failed to sync widget:", error);
-          }
+          });
         }
 
         const duration = Date.now() - startTime;
@@ -89,23 +105,29 @@ class DataPreloadService {
           userProfile,
           calendarTasks,
         };
-        
+
         // 重置標記
         this.isPreloading = false;
         this.preloadPromise = null;
-        
+
         return result;
       } catch (error) {
         console.error("❌ [DataPreload] Error preloading data:", error);
-        
+        console.error("❌ [DataPreload] Error details:", {
+          message: error.message,
+          stack: error.stack,
+          code: error.code,
+        });
+
         // 重置標記
         this.isPreloading = false;
         this.preloadPromise = null;
-        
+
+        // 即使預載入失敗，也返回部分結果（如果有）
         return {
-          userSettings: null,
-          userProfile: null,
-          calendarTasks: null,
+          userSettings: this.preloadCache.userSettings,
+          userProfile: this.preloadCache.userProfile,
+          calendarTasks: this.preloadCache.currentMonthTasks || null, // 至少返回當月任務（如果有）
         };
       }
     })();
@@ -144,32 +166,92 @@ class DataPreloadService {
   }
 
   /**
-   * 預載入日曆任務（當前月份及前後各一個月）
+   * 預載入當月任務（階段 1：最高優先級）
    */
-  static async preloadCalendarTasks() {
+  static async preloadCurrentMonthTasks() {
     try {
-      console.log("📥 [DataPreload] Loading calendar tasks...");
+      console.log(
+        "🚀 [DataPreload] Stage 1: Loading current month (highest priority)..."
+      );
       const today = new Date();
       const currentMonth = today.getMonth();
       const currentYear = today.getFullYear();
 
-      // 載入前一個月、當前月、後一個月的任務
-      const startDate = new Date(currentYear, currentMonth - 1, 1);
-      const endDate = new Date(currentYear, currentMonth + 2, 0);
-
-      const startDateStr = format(startDate, "yyyy-MM-dd");
-      const endDateStr = format(endDate, "yyyy-MM-dd");
+      const currentMonthStart = new Date(currentYear, currentMonth, 1);
+      const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+      const currentMonthStartStr = format(currentMonthStart, "yyyy-MM-dd");
+      const currentMonthEndStr = format(currentMonthEnd, "yyyy-MM-dd");
 
       const tasks = await TaskService.getTasksByDateRange(
-        startDateStr,
-        endDateStr
+        currentMonthStartStr,
+        currentMonthEndStr
       );
 
-      console.log("✅ [DataPreload] Calendar tasks loaded");
+      console.log(
+        `✅ [DataPreload] Stage 1 completed: Current month (${currentMonthStartStr} to ${currentMonthEndStr}) loaded`
+      );
       return tasks;
     } catch (error) {
+      console.error(
+        "❌ [DataPreload] Error loading current month tasks:",
+        error
+      );
+      return {};
+    }
+  }
+
+  /**
+   * 預載入日曆任務（分階段載入：當月 → 前後一個月 → 其他月份）
+   */
+  static async preloadCalendarTasks() {
+    try {
+      console.log(
+        "📥 [DataPreload] Starting staged calendar tasks loading (Stage 2)..."
+      );
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+
+      // 階段 2：並行載入前一個月和後一個月（當月已經在 Stage 1 載入完成）
+      console.log(
+        "🚀 [DataPreload] Stage 2: Loading previous and next month..."
+      );
+      const prevMonthStart = new Date(currentYear, currentMonth - 1, 1);
+      const prevMonthEnd = new Date(currentYear, currentMonth, 0);
+      const nextMonthStart = new Date(currentYear, currentMonth + 1, 1);
+      const nextMonthEnd = new Date(currentYear, currentMonth + 2, 0);
+
+      const prevMonthStartStr = format(prevMonthStart, "yyyy-MM-dd");
+      const prevMonthEndStr = format(prevMonthEnd, "yyyy-MM-dd");
+      const nextMonthStartStr = format(nextMonthStart, "yyyy-MM-dd");
+      const nextMonthEndStr = format(nextMonthEnd, "yyyy-MM-dd");
+
+      const [prevMonthTasks, nextMonthTasks] = await Promise.all([
+        TaskService.getTasksByDateRange(prevMonthStartStr, prevMonthEndStr),
+        TaskService.getTasksByDateRange(nextMonthStartStr, nextMonthEndStr),
+      ]);
+
+      // 合併所有任務（當月任務已經在緩存中）
+      const currentMonthTasks = this.preloadCache.currentMonthTasks || {};
+      const allTasks = {
+        ...prevMonthTasks,
+        ...currentMonthTasks,
+        ...nextMonthTasks,
+      };
+
+      console.log(
+        "✅ [DataPreload] Stage 2 completed: Previous and next month loaded"
+      );
+
+      // 階段 3：載入更遠的月份（可選，如果需要更多預載入）
+      // 目前先不載入，因為前後一個月已經足夠
+
+      console.log("✅ [DataPreload] All calendar tasks loaded");
+      return allTasks;
+    } catch (error) {
       console.error("❌ [DataPreload] Error loading calendar tasks:", error);
-      return null;
+      // 即使出錯，也返回已載入的當月任務
+      return this.preloadCache.currentMonthTasks || {};
     }
   }
 
@@ -182,6 +264,7 @@ class DataPreloadService {
       userProfile: null,
       calendarTasks: null,
       preloadTimestamp: null,
+      currentMonthTasks: null,
     };
     console.log("🗑️ [DataPreload] Cache cleared");
   }
@@ -200,7 +283,24 @@ class DataPreloadService {
         calendarTasks: this.preloadCache.calendarTasks,
       };
     }
+
+    // 即使完整預載入還沒完成，也返回當月任務（如果有的話）
+    if (this.preloadCache.currentMonthTasks) {
+      return {
+        userSettings: this.preloadCache.userSettings,
+        userProfile: this.preloadCache.userProfile,
+        calendarTasks: this.preloadCache.currentMonthTasks,
+      };
+    }
+
     return null;
+  }
+
+  /**
+   * 獲取當月任務（優先級最高）
+   */
+  static getCurrentMonthTasks() {
+    return this.preloadCache.currentMonthTasks || null;
   }
 
   /**
@@ -218,4 +318,3 @@ class DataPreloadService {
 }
 
 export const dataPreloadService = DataPreloadService;
-

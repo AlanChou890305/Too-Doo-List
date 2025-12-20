@@ -3,16 +3,16 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		40522CAD24626F65E3CD7363 /* libPods-ToDo - 待辦清單.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACFCC701BCF4C9D14AB0E946 /* libPods-ToDo - 待辦清單.a */; };
+		40522CAD24626F65E3CD7363 /* libPods-TaskCal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACFCC701BCF4C9D14AB0E946 /* libPods-TaskCal.a */; };
 		7B288C5C2ECDD37B0096234C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B288C5B2ECDD37B0096234C /* WidgetKit.framework */; };
 		7B288C5E2ECDD37B0096234C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B288C5D2ECDD37B0096234C /* SwiftUI.framework */; };
-		7B288C6F2ECDD37D0096234C /* ToDoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7B288C5A2ECDD37B0096234C /* ToDoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7B288C6F2ECDD37D0096234C /* TaskCalWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7B288C5A2ECDD37B0096234C /* TaskCalWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7BA5E7112ED014AB002DA7A7 /* WidgetReloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BA5E70F2ED014AB002DA7A7 /* WidgetReloader.m */; };
 		7BA5E7122ED014AB002DA7A7 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BA5E7102ED014AB002DA7A7 /* WidgetReloader.swift */; };
 		803A7B88263118E72711583A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B9E3A38FE8F24087EB9BFF43 /* PrivacyInfo.xcprivacy */; };
@@ -27,7 +27,7 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 7B288C592ECDD37B0096234C;
-			remoteInfo = ToDoWidgetExtension;
+			remoteInfo = TaskCalWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -38,7 +38,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				7B288C6F2ECDD37D0096234C /* ToDoWidgetExtension.appex in Embed Foundation Extensions */,
+				7B288C6F2ECDD37D0096234C /* TaskCalWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -46,41 +46,49 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		13B07F961A680F5B00A75B9A /* ToDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ToDo/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ToDo/Info.plist; sourceTree = "<group>"; };
-		436B185CDB5761B4B64C2972 /* Pods-ToDo - 待辦清單.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo - 待辦清單.debug.xcconfig"; path = "Target Support Files/Pods-ToDo - 待辦清單/Pods-ToDo - 待辦清單.debug.xcconfig"; sourceTree = "<group>"; };
-		7B288C5A2ECDD37B0096234C /* ToDoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ToDoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* TaskCal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaskCal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = TaskCal/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = TaskCal/Info.plist; sourceTree = "<group>"; };
+		436B185CDB5761B4B64C2972 /* Pods-TaskCal.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TaskCal.debug.xcconfig"; path = "Target Support Files/Pods-TaskCal/Pods-TaskCal.debug.xcconfig"; sourceTree = "<group>"; };
+		7B288C5A2ECDD37B0096234C /* TaskCalWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TaskCalWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B288C5B2ECDD37B0096234C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		7B288C5D2ECDD37B0096234C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		7BA5E70F2ED014AB002DA7A7 /* WidgetReloader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = WidgetReloader.m; path = ToDo/WidgetReloader.m; sourceTree = "<group>"; };
-		7BA5E7102ED014AB002DA7A7 /* WidgetReloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetReloader.swift; path = ToDo/WidgetReloader.swift; sourceTree = "<group>"; };
-		99FBFA71C61FFAB9C97B6AD7 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ToDo - 待辦清單/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = ToDo/SplashScreen.storyboard; sourceTree = "<group>"; };
-		ACFCC701BCF4C9D14AB0E946 /* libPods-ToDo - 待辦清單.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ToDo - 待辦清單.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B9E3A38FE8F24087EB9BFF43 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ToDo/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7BA5E70F2ED014AB002DA7A7 /* WidgetReloader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = WidgetReloader.m; path = TaskCal/WidgetReloader.m; sourceTree = "<group>"; };
+		7BA5E7102ED014AB002DA7A7 /* WidgetReloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetReloader.swift; path = TaskCal/WidgetReloader.swift; sourceTree = "<group>"; };
+		99FBFA71C61FFAB9C97B6AD7 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-TaskCal/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = TaskCal/SplashScreen.storyboard; sourceTree = "<group>"; };
+		ACFCC701BCF4C9D14AB0E946 /* libPods-TaskCal.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TaskCal.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9E3A38FE8F24087EB9BFF43 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = TaskCal/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D40492B7A5F9CD1360E5B40B /* Pods-ToDo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo.debug.xcconfig"; path = "Target Support Files/Pods-ToDo/Pods-ToDo.debug.xcconfig"; sourceTree = "<group>"; };
-		ECB3AC8122CDC266997B3C69 /* Pods-ToDo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo.release.xcconfig"; path = "Target Support Files/Pods-ToDo/Pods-ToDo.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		EE3F28DC1E7260C370A47553 /* Pods-ToDo - 待辦清單.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDo - 待辦清單.release.xcconfig"; path = "Target Support Files/Pods-ToDo - 待辦清單/Pods-ToDo - 待辦清單.release.xcconfig"; sourceTree = "<group>"; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ToDo/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* ToDo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ToDo-Bridging-Header.h"; path = "ToDo/ToDo-Bridging-Header.h"; sourceTree = "<group>"; };
+		EE3F28DC1E7260C370A47553 /* Pods-TaskCal.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TaskCal.release.xcconfig"; path = "Target Support Files/Pods-TaskCal/Pods-TaskCal.release.xcconfig"; sourceTree = "<group>"; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = TaskCal/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* TaskCal-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "TaskCal-Bridging-Header.h"; path = "TaskCal/TaskCal-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		7B288C732ECDD37D0096234C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		7B288C732ECDD37D0096234C /* Exceptions for "TaskCalWidget" folder in "TaskCalWidget" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 7B288C592ECDD37B0096234C /* ToDoWidgetExtension */;
+			target = 7B288C592ECDD37B0096234C /* TaskCalWidget */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		7B288C5F2ECDD37B0096234C /* ToDoWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7B288C732ECDD37D0096234C /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ToDoWidget; sourceTree = "<group>"; };
-		7BFDA9D42ECB1B2800150710 /* ToDo - 測試 */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "ToDo - 測試"; sourceTree = "<group>"; };
+		7B288C5F2ECDD37B0096234C /* TaskCalWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7B288C732ECDD37D0096234C /* Exceptions for "TaskCalWidget" folder in "TaskCalWidget" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = TaskCalWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,7 +96,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				40522CAD24626F65E3CD7363 /* libPods-ToDo - 待辦清單.a in Frameworks */,
+				40522CAD24626F65E3CD7363 /* libPods-TaskCal.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,27 +112,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* ToDo */ = {
+		13B07FAE1A68108700A75B9A /* TaskCal */ = {
 			isa = PBXGroup;
 			children = (
 				7BA5E70F2ED014AB002DA7A7 /* WidgetReloader.m */,
 				7BA5E7102ED014AB002DA7A7 /* WidgetReloader.swift */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748442D0722820044C1D9 /* ToDo-Bridging-Header.h */,
+				F11748442D0722820044C1D9 /* TaskCal-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				B9E3A38FE8F24087EB9BFF43 /* PrivacyInfo.xcprivacy */,
 			);
-			name = ToDo;
+			name = TaskCal;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				ACFCC701BCF4C9D14AB0E946 /* libPods-ToDo - 待辦清單.a */,
+				ACFCC701BCF4C9D14AB0E946 /* libPods-TaskCal.a */,
 				7B288C5B2ECDD37B0096234C /* WidgetKit.framework */,
 				7B288C5D2ECDD37B0096234C /* SwiftUI.framework */,
 			);
@@ -134,10 +142,8 @@
 		5FAF10C7B1271DD9BB3EFA6E /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				D40492B7A5F9CD1360E5B40B /* Pods-ToDo.debug.xcconfig */,
-				ECB3AC8122CDC266997B3C69 /* Pods-ToDo.release.xcconfig */,
-				436B185CDB5761B4B64C2972 /* Pods-ToDo - 待辦清單.debug.xcconfig */,
-				EE3F28DC1E7260C370A47553 /* Pods-ToDo - 待辦清單.release.xcconfig */,
+				436B185CDB5761B4B64C2972 /* Pods-TaskCal.debug.xcconfig */,
+				EE3F28DC1E7260C370A47553 /* Pods-TaskCal.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -152,10 +158,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* ToDo */,
+				13B07FAE1A68108700A75B9A /* TaskCal */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				7BFDA9D42ECB1B2800150710 /* ToDo - 測試 */,
-				7B288C5F2ECDD37B0096234C /* ToDoWidget */,
+				7B288C5F2ECDD37B0096234C /* TaskCalWidget */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				5FAF10C7B1271DD9BB3EFA6E /* Pods */,
@@ -169,8 +174,8 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* ToDo.app */,
-				7B288C5A2ECDD37B0096234C /* ToDoWidgetExtension.appex */,
+				13B07F961A680F5B00A75B9A /* TaskCal.app */,
+				7B288C5A2ECDD37B0096234C /* TaskCalWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -181,31 +186,31 @@
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 			);
 			name = Supporting;
-			path = ToDo/Supporting;
+			path = TaskCal/Supporting;
 			sourceTree = "<group>";
 		};
 		C03E88C70A16C7F7C5D68BDB /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				D9EAE343EC2A4E1E282CB2CC /* ToDo - 待辦清單 */,
+				D9EAE343EC2A4E1E282CB2CC /* TaskCal */,
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
-		D9EAE343EC2A4E1E282CB2CC /* ToDo - 待辦清單 */ = {
+		D9EAE343EC2A4E1E282CB2CC /* TaskCal */ = {
 			isa = PBXGroup;
 			children = (
 				99FBFA71C61FFAB9C97B6AD7 /* ExpoModulesProvider.swift */,
 			);
-			name = "ToDo - 待辦清單";
+			name = TaskCal;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* ToDo - 待辦清單 */ = {
+		13B07F861A680F5B00A75B9A /* TaskCal */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ToDo - 待辦清單" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TaskCal" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
 				113F11EA1CF5D7C161ACD818 /* [Expo] Configure project */,
@@ -222,14 +227,14 @@
 			dependencies = (
 				7B288C6E2ECDD37D0096234C /* PBXTargetDependency */,
 			);
-			name = "ToDo - 待辦清單";
-			productName = ToDo;
-			productReference = 13B07F961A680F5B00A75B9A /* ToDo.app */;
+			name = TaskCal;
+			productName = TaskCal;
+			productReference = 13B07F961A680F5B00A75B9A /* TaskCal.app */;
 			productType = "com.apple.product-type.application";
 		};
-		7B288C592ECDD37B0096234C /* ToDoWidgetExtension */ = {
+		7B288C592ECDD37B0096234C /* TaskCalWidget */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7B288C742ECDD37D0096234C /* Build configuration list for PBXNativeTarget "ToDoWidgetExtension" */;
+			buildConfigurationList = 7B288C742ECDD37D0096234C /* Build configuration list for PBXNativeTarget "TaskCalWidget" */;
 			buildPhases = (
 				7B288C562ECDD37B0096234C /* Sources */,
 				7B288C572ECDD37B0096234C /* Frameworks */,
@@ -240,11 +245,11 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				7B288C5F2ECDD37B0096234C /* ToDoWidget */,
+				7B288C5F2ECDD37B0096234C /* TaskCalWidget */,
 			);
-			name = ToDoWidgetExtension;
-			productName = ToDoWidgetExtension;
-			productReference = 7B288C5A2ECDD37B0096234C /* ToDoWidgetExtension.appex */;
+			name = TaskCalWidget;
+			productName = TaskCalWidget;
+			productReference = 7B288C5A2ECDD37B0096234C /* TaskCalWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -265,7 +270,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "ToDo" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "TaskCal" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -278,8 +283,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* ToDo - 待辦清單 */,
-				7B288C592ECDD37B0096234C /* ToDoWidgetExtension */,
+				13B07F861A680F5B00A75B9A /* TaskCal */,
+				7B288C592ECDD37B0096234C /* TaskCalWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -338,7 +343,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ToDo - 待辦清單-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-TaskCal-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -356,18 +361,18 @@
 			inputPaths = (
 				"$(SRCROOT)/.xcode.env",
 				"$(SRCROOT)/.xcode.env.local",
-				"$(SRCROOT)/ToDo/ToDo.entitlements",
-				"$(SRCROOT)/Pods/Target Support Files/Pods-ToDo - 待辦清單/expo-configure-project.sh",
+				"$(SRCROOT)/TaskCal/TaskCal.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-TaskCal/expo-configure-project.sh",
 			);
 			name = "[Expo] Configure project";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/Pods/Target Support Files/Pods-ToDo - 待辦清單/ExpoModulesProvider.swift",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-TaskCal/ExpoModulesProvider.swift",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-ToDo\\ -\\ \\待\\辦\\清\\單/expo-configure-project.sh\"\n";
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-TaskCal/expo-configure-project.sh\"\n";
 		};
 		48AB327AE1EB751CE1ECEBA9 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -375,7 +380,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ToDo - 待辦清單/Pods-ToDo - 待辦清單-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-TaskCal/Pods-TaskCal-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
@@ -388,7 +393,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ToDo - 待辦清單/Pods-ToDo - 待辦清單-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TaskCal/Pods-TaskCal-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
@@ -397,7 +402,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ToDo - 待辦清單/Pods-ToDo - 待辦清單-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-TaskCal/Pods-TaskCal-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXApplication/ExpoApplication_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
@@ -434,7 +439,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ToDo - 待辦清單/Pods-ToDo - 待辦清單-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TaskCal/Pods-TaskCal-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -463,7 +468,7 @@
 /* Begin PBXTargetDependency section */
 		7B288C6E2ECDD37D0096234C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 7B288C592ECDD37B0096234C /* ToDoWidgetExtension */;
+			target = 7B288C592ECDD37B0096234C /* TaskCalWidget */;
 			targetProxy = 7B288C6D2ECDD37D0096234C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -471,29 +476,29 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 436B185CDB5761B4B64C2972 /* Pods-ToDo - 待辦清單.debug.xcconfig */;
+			baseConfigurationReference = 436B185CDB5761B4B64C2972 /* Pods-TaskCal.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ToDo/ToDo.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TaskCal/TaskCal.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 58L27686QY;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = ToDo/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "ToDo-待辦清單";
+				INFOPLIST_FILE = TaskCal/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TaskCal;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -501,12 +506,12 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list;
-				PRODUCT_NAME = ToDo;
+				PRODUCT_NAME = TaskCal;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_OBJC_BRIDGING_HEADER = "ToDo/ToDo-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "TaskCal/TaskCal-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -516,24 +521,24 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EE3F28DC1E7260C370A47553 /* Pods-ToDo - 待辦清單.release.xcconfig */;
+			baseConfigurationReference = EE3F28DC1E7260C370A47553 /* Pods-TaskCal.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ToDo/ToDo.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TaskCal/TaskCal.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 58L27686QY;
-				INFOPLIST_FILE = ToDo/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "ToDo-待辦清單";
+				INFOPLIST_FILE = TaskCal/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TaskCal;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -541,12 +546,12 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list;
-				PRODUCT_NAME = ToDo;
+				PRODUCT_NAME = TaskCal;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_OBJC_BRIDGING_HEADER = "ToDo/ToDo-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "TaskCal/TaskCal-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -566,17 +571,17 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = ToDoWidget/ToDoWidget.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TaskCalWidget/TaskCalWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 58L27686QY;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ToDoWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ToDoWidget;
+				INFOPLIST_FILE = TaskCalWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TaskCalWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -585,11 +590,11 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.2.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list.ToDoWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list.TaskCalWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -616,18 +621,18 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = ToDoWidget/ToDoWidget.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TaskCalWidget/TaskCalWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 58L27686QY;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ToDoWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ToDoWidget;
+				INFOPLIST_FILE = TaskCalWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TaskCalWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -636,10 +641,10 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.2.1;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list.ToDoWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cty0305.too.doo.list.TaskCalWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -707,7 +712,10 @@
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -763,7 +771,10 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
@@ -775,7 +786,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ToDo - 待辦清單" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TaskCal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -784,7 +795,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7B288C742ECDD37D0096234C /* Build configuration list for PBXNativeTarget "ToDoWidgetExtension" */ = {
+		7B288C742ECDD37D0096234C /* Build configuration list for PBXNativeTarget "TaskCalWidget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7B288C712ECDD37D0096234C /* Debug */,
@@ -793,7 +804,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "ToDo" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "TaskCal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

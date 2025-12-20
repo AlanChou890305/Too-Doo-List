@@ -110,7 +110,7 @@ struct SimpleEntry: TimelineEntry {
     let debugInfo: String
 }
 
-struct ToDoWidgetEntryView : View {
+struct TaskCalWidgetEntryView : View {
     var entry: Provider.Entry
     
     // Format time to HH:MM (remove seconds if present)
@@ -177,21 +177,21 @@ struct ToDoWidgetEntryView : View {
 }
 
 @main
-struct ToDoWidget: Widget {
-    let kind: String = "ToDoWidget"
+struct TaskCalWidget: Widget {
+    let kind: String = "TaskCalWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             if #available(iOS 17.0, *) {
-                ToDoWidgetEntryView(entry: entry)
+                TaskCalWidgetEntryView(entry: entry)
                     .containerBackground(.fill.tertiary, for: .widget)
             } else {
-                ToDoWidgetEntryView(entry: entry)
+                TaskCalWidgetEntryView(entry: entry)
                     .padding()
                     .background(Color(UIColor.systemBackground))
             }
         }
-        .configurationDisplayName("Daily Tasks")
+        .configurationDisplayName("TaskCal")
         .description("View your tasks for today.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }

@@ -24,7 +24,7 @@ const getRedirectUrl = () => {
 };
 
 const getAppDisplayName = () => {
-  return "ToDo - 待辦清單";
+  return "TaskCal";
 };
 
 import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
@@ -78,7 +78,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
 
     // Determine the correct URL scheme based on environment/domain
     const envScheme = process.env.NEXT_PUBLIC_APP_SCHEME;
-    let appScheme = envScheme || "too-doo-list";
+    let appScheme = envScheme || "taskcal";
 
     // Check if this is likely from native app by checking referrer or user agent
     // For localhost, always treat as web OAuth (not from native app)
@@ -126,7 +126,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
           // Show a message to the user
           setTimeout(() => {
             document.body.innerHTML =
-              '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the ToDo - 待辦清單 app.</div></div>';
+              '<div style="font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;"><div style="font-size: 20px; margin-bottom: 20px;">Login successful!</div><div style="font-size: 16px; color: #666;">Please return to the TaskCal app.</div></div>';
           }, 100);
         } catch (e) {
           console.log(
@@ -181,6 +181,8 @@ import * as Notifications from "expo-notifications";
 
 // Notification Config
 import { getActiveReminderMinutes } from "./src/config/notificationConfig";
+import { versionService } from "./src/services/versionService";
+import { getUpdateUrl } from "./src/config/updateUrls";
 
 // Theme Config
 import { getTheme, lightTheme, darkTheme } from "./src/config/theme";
@@ -233,10 +235,14 @@ const translations = {
     terms: "Terms of Use",
     privacy: "Privacy Policy",
     version: "Version",
+    checkUpdate: "Check for Updates",
+    updateAvailable: "Update Available",
+    latestVersion: "Latest",
     general: "General",
     support: "Support",
     feedback: "Send Feedback",
     legal: "Legal",
+    about: "About",
     calendar: "Calendar",
     noTasks: "No tasks for this day.",
     addTask: "What needs to be done?",
@@ -266,6 +272,7 @@ const translations = {
     language: "Language",
     english: "English",
     chinese: "繁體中文(台灣)",
+    spanish: "Español",
     months: [
       "January",
       "February",
@@ -295,10 +302,10 @@ const translations = {
     termsLastUpdated: "Last updated:",
     termsAcceptance: "1. Acceptance of Terms",
     termsAcceptanceText:
-      'Welcome to ToDo - 待辦清單 ("we," "our company," or "the Service Provider"). By accessing, downloading, installing, or using our task management application, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree to any part of these terms, please discontinue use of the Service immediately.',
+      'Welcome to TaskCal ("we," "our company," or "the Service Provider"). By accessing, downloading, installing, or using our task management application, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree to any part of these terms, please discontinue use of the Service immediately.',
     termsDescription: "2. Service Description",
     termsDescriptionText:
-      "ToDo - 待辦清單 is a comprehensive personal task management application designed to help users effectively organize and manage their daily tasks and schedules. Our Service provides the following key features:\n• Task creation, editing, and deletion\n• Calendar integration and task scheduling\n• Google Single Sign-On (SSO) authentication\n• Cross-device data synchronization\n• Task reminder notifications\n• Personalized settings and preference management\n• Secure cloud storage and backup",
+      "TaskCal is a comprehensive personal task management application designed to help users effectively organize and manage their daily tasks and schedules. Our Service provides the following key features:\n• Task creation, editing, and deletion\n• Calendar integration and task scheduling\n• Google Single Sign-On (SSO) authentication\n• Cross-device data synchronization\n• Task reminder notifications\n• Personalized settings and preference management\n• Secure cloud storage and backup",
     termsAccounts: "3. User Accounts and Authentication",
     termsAccountsText:
       "Account Creation:\n• You must create an account using Google Single Sign-On (SSO)\n• You must be at least 13 years old to use this Service\n• You agree to provide accurate, complete, and truthful information\n• You are responsible for maintaining the security of your account\n\nAccount Responsibilities:\n• You are responsible for maintaining the confidentiality of your account credentials\n• You are fully responsible for all activities that occur under your account\n• You must immediately notify us of any unauthorized use of your account\n• You may not transfer your account to any third party\n• You must comply with all applicable laws and regulations",
@@ -324,13 +331,13 @@ const translations = {
     termsContactText:
       "Technical Support:\n• For technical issues, please contact us through the in-app support feature\n• We will respond to your inquiries within a reasonable timeframe\n• Support is available during business hours (Monday-Friday, 9 AM - 6 PM)\n\nDispute Resolution:\n• We encourage resolving disputes through friendly negotiation\n• These terms are governed by the laws of the jurisdiction where our company is incorporated\n• Any legal proceedings should be brought in the appropriate courts\n• We are committed to fair and transparent dispute resolution processes",
     termsAcknowledgment:
-      "Thank you for choosing ToDo - 待辦清單. By using our Service, you acknowledge that you have thoroughly read, understood, and agree to be bound by these Terms of Use. We are committed to providing you with an excellent task management experience.",
+      "Thank you for choosing TaskCal. By using our Service, you acknowledge that you have thoroughly read, understood, and agree to be bound by these Terms of Use. We are committed to providing you with an excellent task management experience.",
     // Privacy Policy translations
     privacyTitle: "Privacy Policy",
     privacyLastUpdated: "Last updated:",
     privacyIntroduction: "1. Policy Overview",
     privacyIntroductionText:
-      'ToDo - 待辦清單 ("we," "our company," or "the Service Provider") recognizes the importance of personal privacy and is committed to protecting the security of your personal data. This Privacy Policy provides detailed information about how we collect, use, store, protect, and share your personal information when you use the ToDo - 待辦清單 task management application.\n\nWe are committed to complying with relevant laws and regulations, including data protection laws, to ensure your privacy rights are fully protected.',
+      'TaskCal ("we," "our company," or "the Service Provider") recognizes the importance of personal privacy and is committed to protecting the security of your personal data. This Privacy Policy provides detailed information about how we collect, use, store, protect, and share your personal information when you use the TaskCal task management application.\n\nWe are committed to complying with relevant laws and regulations, including data protection laws, to ensure your privacy rights are fully protected.',
     privacyInformation: "2. Types of Personal Data We Collect",
     privacyAccountInfo: "Account-Related Data:",
     privacyAccountInfoText:
@@ -366,7 +373,7 @@ const translations = {
     privacyContactText:
       "Privacy Inquiries:\n• In-app support feature\n• Email: privacy@todo-app.com\n• We will respond within 7 business days\n• Dedicated privacy officer contact\n\nData Protection Complaints:\n• Submit complaints if you have concerns about data processing\n• We take every complaint seriously\n• Provide clear processing results and explanations\n• Escalation procedures for unresolved issues\n\nRegulatory Authorities:\n• Contact relevant supervisory authorities if dissatisfied with our response\n• Data Protection Authority in your jurisdiction\n• Legal remedies available\n• Independent dispute resolution mechanisms",
     privacyAcknowledgment:
-      "Thank you for trusting ToDo - 待辦清單. We are committed to continuously improving our privacy protection measures to provide you with secure and reliable task management services. If you have any privacy-related questions, please don't hesitate to contact us.",
+      "Thank you for trusting TaskCal. We are committed to continuously improving our privacy protection measures to provide you with secure and reliable task management services. If you have any privacy-related questions, please don't hesitate to contact us.",
     googleAccount: "Google Account",
     signInWithGoogle: "Sign in with Google",
     signInWithApple: "Sign in with Apple",
@@ -388,7 +395,7 @@ const translations = {
     reminder5minBody: "Your task is starting in 5 minutes",
     notificationPermission: "Notification Permission",
     notificationPermissionMessage:
-      "ToDo - 待辦清單 needs notification permission to remind you about your tasks 30 minutes before they're due.",
+      "TaskCal needs notification permission to remind you about your tasks 30 minutes before they're due.",
     enableNotifications: "Enable Notifications",
     notLater: "Not Now",
     theme: "Theme",
@@ -409,6 +416,9 @@ const translations = {
   },
   zh: {
     settings: "設定",
+    checkUpdate: "檢查更新",
+    updateAvailable: "有更新可用",
+    latestVersion: "最新版本",
     userName: "使用者名稱",
     account: "帳號",
     logout: "登出",
@@ -416,6 +426,7 @@ const translations = {
     terms: "使用條款",
     privacy: "隱私政策",
     version: "版本",
+    about: "關於",
     general: "一般",
     support: "支援",
     feedback: "使用回饋",
@@ -449,6 +460,7 @@ const translations = {
     language: "語言",
     english: "English",
     chinese: "繁體中文(台灣)",
+    spanish: "Español",
     months: [
       "一月",
       "二月",
@@ -478,10 +490,10 @@ const translations = {
     termsLastUpdated: "最後更新：",
     termsAcceptance: "1. 條款接受",
     termsAcceptanceText:
-      "歡迎使用 ToDo - 待辦清單（「我們」、「本公司」或「服務提供者」）。當您訪問、下載、安裝或使用本應用程式時，即表示您已閱讀、理解並同意受本使用條款的約束。如果您不同意本條款的任何部分，請立即停止使用本服務。",
+      "歡迎使用 TaskCal（「我們」、「本公司」或「服務提供者」）。當您訪問、下載、安裝或使用本應用程式時，即表示您已閱讀、理解並同意受本使用條款的約束。如果您不同意本條款的任何部分，請立即停止使用本服務。",
     termsDescription: "2. 服務描述",
     termsDescriptionText:
-      "ToDo - 待辦清單 是一款個人任務管理應用程式，旨在幫助用戶有效組織和管理日常任務。本服務提供以下主要功能：\n• 任務創建、編輯和刪除\n• 日曆整合與任務排程\n• Google 單一登入（SSO）認證\n• 跨裝置資料同步\n• 任務提醒通知\n• 個人化設定與偏好管理",
+      "TaskCal 是一款個人任務管理應用程式，旨在幫助用戶有效組織和管理日常任務。本服務提供以下主要功能：\n• 任務創建、編輯和刪除\n• 日曆整合與任務排程\n• Google 單一登入（SSO）認證\n• 跨裝置資料同步\n• 任務提醒通知\n• 個人化設定與偏好管理",
     termsAccounts: "3. 用戶帳號與認證",
     termsAccountsText:
       "帳號創建：\n• 您必須透過 Google 單一登入（SSO）創建帳號\n• 您必須年滿 13 歲才能使用本服務\n• 您同意提供真實、準確且完整的個人資訊\n\n帳號責任：\n• 您有責任維護帳號密碼的機密性\n• 您對帳號下發生的所有活動負完全責任\n• 如發現未經授權使用您的帳號，請立即通知我們\n• 您不得將帳號轉讓給第三方",
@@ -507,13 +519,13 @@ const translations = {
     termsContactText:
       "技術支援：\n• 如遇技術問題，請透過應用程式內支援功能聯繫我們\n• 我們將在合理時間內回應您的詢問\n\n爭議解決：\n• 如發生爭議，我們鼓勵透過友好協商解決\n• 本條款受中華民國法律管轄\n• 任何法律訴訟應向有管轄權的法院提起",
     termsAcknowledgment:
-      "感謝您選擇 ToDo - 待辦清單。透過使用本服務，您確認已充分閱讀、理解並同意受本使用條款的約束。我們承諾為您提供優質的任務管理服務體驗。",
+      "感謝您選擇 TaskCal。透過使用本服務，您確認已充分閱讀、理解並同意受本使用條款的約束。我們承諾為您提供優質的任務管理服務體驗。",
     // Privacy Policy translations
     privacyTitle: "隱私政策",
     privacyLastUpdated: "最後更新：",
     privacyIntroduction: "1. 政策概述",
     privacyIntroductionText:
-      "ToDo - 待辦清單（「我們」、「本公司」或「服務提供者」）深知個人隱私的重要性，並致力於保護您的個人資料安全。本隱私政策詳細說明我們如何收集、使用、儲存、保護和分享您在使用 ToDo - 待辦清單 任務管理應用程式時提供的個人資訊。\n\n我們承諾遵循相關法律法規，包括《個人資料保護法》等，確保您的隱私權得到充分保護。",
+      "TaskCal（「我們」、「本公司」或「服務提供者」）深知個人隱私的重要性，並致力於保護您的個人資料安全。本隱私政策詳細說明我們如何收集、使用、儲存、保護和分享您在使用 TaskCal 任務管理應用程式時提供的個人資訊。\n\n我們承諾遵循相關法律法規，包括《個人資料保護法》等，確保您的隱私權得到充分保護。",
     privacyInformation: "2. 我們收集的個人資料類型",
     privacyAccountInfo: "帳號相關資料：",
     privacyAccountInfoText:
@@ -549,7 +561,7 @@ const translations = {
     privacyContactText:
       "隱私問題諮詢：\n• 應用程式內支援功能\n• 電子郵件：privacy@todo-app.com\n• 我們會在 7 個工作天內回覆\n\n資料保護申訴：\n• 如對資料處理有疑慮，可提出申訴\n• 我們會認真處理每件申訴\n• 提供明確的處理結果和說明\n\n監管機關：\n• 如對處理結果不滿，可向主管機關申訴\n• 台灣個人資料保護委員會\n• 相關法律救濟管道",
     privacyAcknowledgment:
-      "感謝您信任 ToDo - 待辦清單。我們承諾持續改進隱私保護措施，為您提供安全可靠的任務管理服務。如有任何隱私相關問題，請隨時與我們聯繫。",
+      "感謝您信任 TaskCal。我們承諾持續改進隱私保護措施，為您提供安全可靠的任務管理服務。如有任何隱私相關問題，請隨時與我們聯繫。",
     googleAccount: "Google 帳號",
     signInWithGoogle: "使用 Google 登入",
     signInWithApple: "使用 Apple 登入",
@@ -571,7 +583,7 @@ const translations = {
     reminder5minBody: "您的任務將在 5 分鐘後開始",
     notificationPermission: "通知權限",
     notificationPermissionMessage:
-      "ToDo - 待辦清單 需要通知權限才能在任務開始前 30 分鐘提醒您。",
+      "TaskCal 需要通知權限才能在任務開始前 30 分鐘提醒您。",
     enableNotifications: "啟用通知",
     notLater: "暫不啟用",
     theme: "主題",
@@ -588,6 +600,197 @@ const translations = {
     reminderEnabled: "啟用",
     reminderDisabled: "提醒已停用",
     reminderNote: "提醒僅會發送給已設定時間的任務",
+  },
+  es: {
+    settings: "Configuración",
+    userName: "Nombre de usuario",
+    account: "Cuenta",
+    logout: "Cerrar sesión",
+    comingSoon: "Próximamente...",
+    terms: "Términos de uso",
+    privacy: "Política de privacidad",
+    version: "Versión",
+    checkUpdate: "Buscar actualizaciones",
+    updateAvailable: "Actualización disponible",
+    latestVersion: "Última versión",
+    general: "General",
+    support: "Soporte",
+    feedback: "Enviar comentarios",
+    legal: "Legal",
+    about: "Acerca de",
+    calendar: "Calendario",
+    noTasks: "No hay tareas para este día.",
+    addTask: "¿Qué hay que hacer?",
+    createTask: "Crear tarea",
+    editTask: "Editar tarea",
+    taskPlaceholder: "Ingrese su tarea aquí...",
+    timePlaceholder: "Ingrese la hora (HH:MM)",
+    link: "Enlace",
+    linkPlaceholder: "Agregar un enlace",
+    taskLabel: "Tarea",
+    date: "Fecha",
+    datePlaceholder: "Ingrese la fecha (YYYY-MM-DD)",
+    note: "Nota",
+    notePlaceholder: "Agregar una nota",
+    save: "Guardar",
+    update: "Actualizar",
+    cancel: "Cancelar",
+    confirm: "Confirmar",
+    delete: "Eliminar",
+    logoutConfirm: "¿Está seguro de que desea cerrar sesión en la aplicación?",
+    logout: "Cerrar sesión",
+    deleteConfirm: "¿Está seguro de que desea eliminar esta tarea?",
+    done: "Hecho",
+    moveHint: "Toque una fecha para mover",
+    moveTask: "Mover tarea",
+    moveTaskAlert:
+      "Ahora toque una fecha en el calendario para mover esta tarea.",
+    language: "Idioma",
+    english: "English",
+    chinese: "繁體中文(台灣)",
+    spanish: "Español",
+    months: [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Mayo",
+      "Junio",
+      "Julio",
+      "Agosto",
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Diciembre",
+    ],
+    weekDays: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+    logoutSuccess: "¡Sesión cerrada exitosamente!",
+    alreadyLoggedOut: "Ya ha cerrado sesión.",
+    logoutError: "Error al cerrar sesión. Por favor, inténtelo de nuevo.",
+    accountType: "Tipo de cuenta",
+    deleteAccount: "Eliminar cuenta",
+    deleteAccountConfirm:
+      "¿Está seguro de que desea eliminar su cuenta? Esta acción no se puede deshacer. Todas sus tareas y datos se eliminarán permanentemente.",
+    deleteAccountError:
+      "Error al eliminar la cuenta. Por favor, inténtelo de nuevo.",
+    deleteAccountSuccess: "Cuenta eliminada exitosamente",
+    // Terms of Use translations
+    termsTitle: "Términos de uso",
+    termsLastUpdated: "Última actualización:",
+    termsAcceptance: "1. Aceptación de términos",
+    termsAcceptanceText:
+      'Bienvenido a TaskCal ("nosotros", "nuestra empresa" o "el Proveedor del Servicio"). Al acceder, descargar, instalar o usar nuestra aplicación de gestión de tareas, reconoce que ha leído, entendido y acepta estar sujeto a estos Términos de uso. Si no está de acuerdo con alguna parte de estos términos, por favor deje de usar el Servicio de inmediato.',
+    termsDescription: "2. Descripción del servicio",
+    termsDescriptionText:
+      "TaskCal es una aplicación integral de gestión de tareas personales diseñada para ayudar a los usuarios a organizar y gestionar eficazmente sus tareas y horarios diarios. Nuestro Servicio proporciona las siguientes características principales:\n• Creación, edición y eliminación de tareas\n• Integración de calendario y programación de tareas\n• Autenticación con Google Single Sign-On (SSO)\n• Sincronización de datos entre dispositivos\n• Notificaciones de recordatorios de tareas\n• Configuración personalizada y gestión de preferencias\n• Almacenamiento en la nube seguro y copia de seguridad",
+    termsAccounts: "3. Cuentas de usuario y autenticación",
+    termsAccountsText:
+      "Creación de cuenta:\n• Debe crear una cuenta usando Google Single Sign-On (SSO)\n• Debe tener al menos 13 años para usar este Servicio\n• Acepta proporcionar información precisa, completa y veraz\n• Es responsable de mantener la seguridad de su cuenta\n\nResponsabilidades de la cuenta:\n• Es responsable de mantener la confidencialidad de las credenciales de su cuenta\n• Es completamente responsable de todas las actividades que ocurran bajo su cuenta\n• Debe notificarnos inmediatamente de cualquier uso no autorizado de su cuenta\n• No puede transferir su cuenta a ningún tercero\n• Debe cumplir con todas las leyes y regulaciones aplicables",
+    termsContent: "4. Contenido del usuario y propiedad de datos",
+    termsContentText:
+      "Propiedad del contenido:\n• Usted conserva la propiedad completa de todo el contenido que crea dentro de la aplicación\n• Esto incluye, pero no se limita a, títulos de tareas, descripciones, notas, enlaces y archivos adjuntos\n• Mantiene todos los derechos de propiedad intelectual sobre su contenido\n\nUso de datos:\n• Es el único responsable de su contenido y datos\n• No reclamamos la propiedad de sus tareas personales o información\n• Nos otorga los permisos técnicos necesarios para proporcionar el Servicio\n• No usaremos su contenido personal para fines comerciales\n• Respetamos su privacidad y derechos de protección de datos",
+    termsAcceptableUse: "5. Política de uso aceptable",
+    termsAcceptableUseText:
+      "Usted acepta no:\n• Usar el Servicio para cualquier propósito ilegal o en violación de cualquier ley aplicable\n• Intentar obtener acceso no autorizado a la aplicación o sus sistemas relacionados\n• Interferir, interrumpir o dañar el funcionamiento normal del Servicio\n• Crear, cargar o compartir contenido dañino, ofensivo, discriminatorio o que viole derechos\n• Participar en actividades que puedan comprometer la seguridad del Servicio\n• Usar herramientas automatizadas o bots para acceder al Servicio\n• Realizar ingeniería inversa, descompilar o desensamblar la aplicación\n• Violar los derechos de terceros o las leyes de propiedad intelectual",
+    termsPrivacy: "6. Privacidad y protección de datos",
+    termsPrivacyText:
+      "Nos tomamos en serio su privacidad. Nuestras prácticas de procesamiento de datos se rigen por nuestra Política de privacidad, que proporciona información detallada sobre cómo recopilamos, usamos, almacenamos y protegemos su información personal.\n\nPuntos importantes:\n• Por favor, revise cuidadosamente nuestra Política de privacidad\n• Al usar el Servicio, acepta nuestras prácticas de procesamiento de datos\n• Implementamos medidas de seguridad estándar de la industria para proteger sus datos\n• Tiene derecho a controlar su información personal\n• Cumplimos con las leyes y regulaciones de protección de datos aplicables",
+    termsAvailability: "7. Disponibilidad y mantenimiento del servicio",
+    termsAvailabilityText:
+      "Compromiso del servicio:\n• Nos esforzamos por proporcionar una experiencia de servicio estable y confiable\n• Sin embargo, no podemos garantizar un servicio absolutamente ininterrumpido\n• Mantenemos altos estándares de disponibilidad y monitoreamos nuestros sistemas continuamente\n\nMantenimiento y actualizaciones:\n• Podemos realizar mantenimiento programado que afecte temporalmente el servicio\n• Nos reservamos el derecho de modificar, suspender o discontinuar el Servicio en cualquier momento\n• Proporcionaremos aviso previo de cambios significativos cuando sea posible\n• Programamos el mantenimiento durante las horas de menor actividad siempre que sea posible\n• Actualizamos regularmente el Servicio para mejorar la funcionalidad y seguridad",
+    termsLiability: "8. Limitación de responsabilidad y descargos",
+    termsLiabilityText:
+      "Descargos:\n• El Servicio se proporciona 'tal cual' sin garantías de ningún tipo, expresas o implícitas\n• No garantizamos un servicio libre de errores, ininterrumpido o completamente seguro\n• Renunciamos a todas las garantías sobre comerciabilidad, idoneidad para un propósito particular y no infracción\n\nLimitación de responsabilidad:\n• En la máxima medida permitida por la ley, no seremos responsables de:\n  - Daños directos, indirectos, incidentales o consecuentes\n  - Cualquier pérdida resultante del uso o incapacidad de usar el Servicio\n  - Pérdida de datos, interrupción del negocio u otras pérdidas comerciales\n  - Daños que excedan la cantidad pagada por el Servicio en los últimos 12 meses",
+    termsChanges: "9. Modificaciones a los términos",
+    termsChangesText:
+      "Derecho a modificar:\n• Nos reservamos el derecho de modificar estos Términos de uso en cualquier momento\n• Los cambios significativos se comunicarán a través de notificaciones en la aplicación o por correo electrónico\n• Los términos modificados entrarán en vigor inmediatamente después de su publicación\n• Proporcionaremos al menos 30 días de aviso para cambios materiales\n\nAceptación de cambios:\n• Su uso continuado del Servicio constituye la aceptación de los términos modificados\n• Si no está de acuerdo con los cambios, por favor deje de usar y elimine su cuenta\n• Recomendamos revisar estos términos periódicamente para mantenerse informado de las actualizaciones\n• Puede acceder a los términos actuales en cualquier momento a través de la aplicación",
+    termsContact: "10. Información de contacto y resolución de disputas",
+    termsContactText:
+      "Soporte técnico:\n• Para problemas técnicos, por favor contáctenos a través de la función de soporte en la aplicación\n• Responderemos a sus consultas en un plazo razonable\n• El soporte está disponible durante el horario comercial (lunes a viernes, 9 AM - 6 PM)\n\nResolución de disputas:\n• Fomentamos la resolución de disputas mediante negociación amistosa\n• Estos términos se rigen por las leyes de la jurisdicción donde está incorporada nuestra empresa\n• Cualquier procedimiento legal debe presentarse en los tribunales apropiados\n• Estamos comprometidos con procesos de resolución de disputas justos y transparentes",
+    termsAcknowledgment:
+      "Gracias por elegir TaskCal. Al usar nuestro Servicio, reconoce que ha leído, entendido y acepta estar sujeto a estos Términos de uso. Estamos comprometidos a brindarle una excelente experiencia de gestión de tareas.",
+    // Privacy Policy translations
+    privacyTitle: "Política de privacidad",
+    privacyLastUpdated: "Última actualización:",
+    privacyIntroduction: "1. Resumen de la política",
+    privacyIntroductionText:
+      'TaskCal ("nosotros", "nuestra empresa" o "el Proveedor del Servicio") reconoce la importancia de la privacidad personal y se compromete a proteger la seguridad de sus datos personales. Esta Política de privacidad proporciona información detallada sobre cómo recopilamos, usamos, almacenamos, protegemos y compartimos su información personal cuando usa la aplicación de gestión de tareas TaskCal.\n\nEstamos comprometidos a cumplir con las leyes y regulaciones relevantes, incluidas las leyes de protección de datos, para asegurar que sus derechos de privacidad estén completamente protegidos.',
+    privacyInformation: "2. Tipos de datos personales que recopilamos",
+    privacyAccountInfo: "Datos relacionados con la cuenta:",
+    privacyAccountInfoText:
+      "Información básica de la cuenta:\n• Dirección de correo electrónico (obtenida a través de Google SSO)\n• Nombre para mostrar (personalizable)\n• Foto de perfil (si la proporciona la cuenta de Google)\n• Hora de creación de la cuenta y última hora de inicio de sesión\n\nDatos de gestión de tareas:\n• Títulos de tareas, descripciones y contenido detallado\n• Fechas límite de tareas y horas de recordatorio\n• Categorías, prioridades y etiquetas de tareas\n• Enlaces de tareas e información de archivos adjuntos\n• Estado de finalización de tareas e historial\n\nDatos de comportamiento de uso:\n• Frecuencia y patrones de uso de la aplicación\n• Preferencias y configuraciones de uso de funciones\n• Información del dispositivo y versión del sistema operativo\n• Informes de errores y datos de rendimiento (anonimizados)",
+    privacyUse: "3. Propósitos y base legal para el procesamiento de datos",
+    privacyUseText:
+      "Usamos sus datos personales para los siguientes propósitos:\n\nPrestación del servicio:\n• Proporcionar funcionalidad principal de gestión de tareas\n• Sincronizar sus datos de tareas entre dispositivos\n• Enviar notificaciones de recordatorios de tareas\n• Mantener y mejorar la calidad del servicio\n\nSoporte técnico:\n• Diagnosticar y resolver problemas técnicos\n• Proporcionar servicio al cliente y soporte técnico\n• Realizar mantenimiento y actualizaciones del sistema\n\nProtección de seguridad:\n• Prevenir acceso no autorizado\n• Detectar y prevenir actividades fraudulentas\n• Proteger la seguridad del sistema y los datos\n\nBase legal:\n• Basado en su consentimiento explícito\n• Para cumplir con nuestro contrato de servicio con usted\n• Para cumplir con obligaciones legales\n• Para proteger nuestros intereses legítimos",
+    privacyStorage:
+      "4. Almacenamiento de datos y medidas de protección de seguridad",
+    privacyStorageText:
+      "Almacenamiento de datos:\n• Almacenamiento seguro usando infraestructura en la nube de Supabase\n• Datos distribuidos en múltiples ubicaciones geográficas\n• Copias de seguridad regulares y pruebas de recuperación ante desastres\n• Sistemas redundantes para asegurar la disponibilidad de datos\n\nMedidas de seguridad:\n• Tecnología de cifrado estándar de la industria (AES-256)\n• Transmisión de datos cifrada usando TLS 1.3\n• Control de acceso y autenticación multicapa\n• Escaneos regulares de vulnerabilidades de seguridad y pruebas de penetración\n• Sistemas completos de registro y monitoreo de acceso a datos\n• Auditorías de seguridad regulares y evaluaciones de cumplimiento\n\nGestión de personal:\n• Solo el personal autorizado puede acceder a datos personales\n• Todos los empleados firman acuerdos de confidencialidad\n• Capacitación regular en protección de privacidad\n• Procedimientos operativos estándar establecidos para el procesamiento de datos",
+    privacySharing: "5. Compartir datos y divulgación a terceros",
+    privacySharingText:
+      "Nos comprometemos a no vender, alquilar o comercializar sus datos personales. Solo compartimos sus datos en las siguientes circunstancias:\n\nCon su consentimiento:\n• Cuando haya dado consentimiento explícito\n• Puede retirar el consentimiento en cualquier momento\n• Mecanismos claros de opt-in para compartir datos\n\nRequisitos legales:\n• Para cumplir con órdenes judiciales o requisitos legales\n• Para cooperar con investigaciones gubernamentales\n• Para proteger nuestros derechos e intereses legítimos\n• Para responder a solicitudes legales válidas\n\nProveedores de servicios:\n• Colaborar con proveedores de servicios de terceros confiables (como Google, Supabase)\n• Firmar acuerdos estrictos de protección de datos\n• Asegurar que los terceros sigan los mismos estándares de protección de privacidad\n• Revisar regularmente el cumplimiento de terceros\n• Mantener supervisión de las actividades de procesamiento de datos\n\nSituaciones de emergencia:\n• Para proteger su vida o la vida de otros\n• Para prevenir daños significativos\n• Para responder a emergencias de salud pública",
+    privacyThirdParty: "6. Integración de servicios de terceros",
+    privacyThirdPartyText:
+      "Esta aplicación integra los siguientes servicios de terceros:\n\nServicios de Google:\n• Autenticación con Google Single Sign-On (SSO)\n• Utilizado para verificación de identidad y gestión de cuentas\n• Sujeto a la Política de privacidad de Google\n• Compartir datos limitado para fines de autenticación\n\nPlataforma Supabase:\n• Base de datos en la nube y servicios backend\n• Proporciona almacenamiento seguro de datos y servicios API\n• Sujeto a la política de protección de datos de Supabase\n• Transmisión y almacenamiento de datos cifrados\n\nRecordatorios importantes:\n• Estos servicios de terceros tienen sus propias políticas de privacidad\n• Le recomendamos revisar las políticas relevantes\n• Revisamos regularmente el cumplimiento de los servicios de terceros\n• Tomamos medidas apropiadas inmediatas si se descubren problemas de seguridad\n• Mantenemos contratos que requieren estándares de protección de datos",
+    privacyRights: "7. Sus derechos de privacidad",
+    privacyRightsText:
+      "Bajo las leyes y regulaciones aplicables, tiene los siguientes derechos:\n\nDerecho de acceso:\n• Solicitar información sobre los datos personales que tenemos sobre usted\n• Entender los propósitos y métodos de procesamiento de datos\n• Obtener información sobre las actividades de procesamiento de datos\n• Recibir una copia de sus datos personales\n\nDerecho de rectificación:\n• Solicitar corrección de datos personales inexactos\n• Solicitar finalización de datos personales incompletos\n• Modificar algunos datos a través de la configuración de la aplicación\n• Actualizar su información de perfil\n\nDerecho de supresión:\n• Solicitar eliminación de sus datos personales\n• Eliminar su cuenta y datos asociados\n• Solicitar restricción del procesamiento de datos en circunstancias específicas\n• Derecho al olvido\n\nDerecho de portabilidad de datos:\n• Solicitar sus datos en un formato estructurado\n• Transferir datos a otros proveedores de servicios\n• Descargar copia de seguridad de sus datos de tareas\n• Exportar sus datos en formatos comunes\n\nDerecho a retirar el consentimiento:\n• Retirar el consentimiento para el procesamiento de datos en cualquier momento\n• Dejar de recibir ciertos tipos de notificaciones\n• Ajustar las preferencias de configuración de privacidad\n• Optar por no recibir comunicaciones de marketing",
+    privacyRetention: "8. Períodos de retención de datos",
+    privacyRetentionText:
+      "Retenemos sus datos personales según los siguientes principios:\n\nDurante el período activo de la cuenta:\n• Retener datos continuamente mientras su cuenta esté activa\n• Utilizado para la prestación del servicio y soporte técnico\n• Mantener la calidad y seguridad del servicio\n• Apoyar la recuperación de la cuenta si es necesario\n\nDespués de la eliminación de la cuenta:\n• Eliminar inmediatamente los datos de identificación personal\n• Los datos estadísticos anonimizados pueden retenerse para análisis\n• Se aplican excepciones de requisitos legales\n• Eliminación completa de datos dentro de 30 días\n\nCircunstancias especiales:\n• Puede extenderse la retención durante procedimientos legales\n• Puede extenderse la retención durante investigaciones de incidentes de seguridad\n• Retención máxima que no exceda 7 años (límite de requisito legal)\n• Cumplimiento con requisitos regulatorios\n\nDestrucción de datos:\n• Usar tecnología de eliminación segura\n• Asegurar que los datos no se puedan recuperar\n• Verificación regular de la efectividad de la eliminación\n• Certificado de destrucción de datos cuando sea requerido",
+    privacyChildren: "9. Protección de privacidad de menores",
+    privacyChildrenText:
+      "Restricciones de edad:\n• Este servicio no está destinado a niños menores de 13 años\n• No recopilamos intencionalmente datos personales de niños menores de 13 años\n• Eliminamos inmediatamente cualquier dato de este tipo si se descubre\n• Mecanismos de verificación de edad en su lugar\n\nSupervisión parental:\n• Recomendamos la supervisión parental de menores que usan este servicio\n• Por favor contáctenos inmediatamente si descubre uso inapropiado\n• Cooperaremos con los padres para el manejo apropiado\n• Se requiere consentimiento parental para usuarios menores de 16 años\n\nProtección especial:\n• Procesamiento de datos más cauteloso para menores\n• Medidas adicionales de protección de privacidad\n• Revisiones regulares de políticas\n• Seguridad mejorada para cuentas de menores\n• Recursos educativos para padres",
+    privacyInternational: "10. Transferencias internacionales de datos",
+    privacyInternationalText:
+      "Alcance de la transferencia:\n• Sus datos pueden transferirse a regiones fuera de su país\n• Principalmente para servicios en la nube y soporte técnico\n• Seguir estándares internacionales de protección de datos\n• Limitado a operaciones de servicio necesarias\n\nMedidas de protección:\n• Firmar acuerdos de protección de datos con los destinatarios\n• Asegurar medidas técnicas y organizativas apropiadas\n• Evaluación regular de la seguridad de la transferencia\n• Cumplimiento con regulaciones internacionales relevantes\n• Cláusulas contractuales estándar cuando corresponda\n\nSus derechos:\n• Solicitar información sobre detalles de transferencia de datos\n• Solicitar restricciones en transferencias internacionales\n• Retirar el consentimiento para transferencias en cualquier momento\n• Objetar transferencias basadas en intereses legítimos",
+    privacyChanges: "11. Actualizaciones de políticas y notificaciones",
+    privacyChangesText:
+      "Proceso de actualización:\n• Revisamos y actualizamos regularmente esta Política de privacidad\n• Los cambios significativos se anunciarán con 30 días de anticipación\n• Notificar a través de notificaciones en la aplicación o por correo electrónico\n• Fecha de actualización mostrada en la parte superior de la política\n• Control de versiones y seguimiento de cambios\n\nTipos de cambios:\n• Adición de nuevos tipos de recopilación de datos\n• Modificación de propósitos de uso de datos\n• Actualizaciones de medidas de protección de seguridad\n• Ajustes al contenido de sus derechos\n• Cambios en requisitos legales\n\nAceptación de cambios:\n• El uso continuado del servicio constituye la aceptación de la nueva política\n• Si no está de acuerdo con los cambios, puede dejar de usar y eliminar su cuenta\n• Recomendamos revisar regularmente el contenido de la política más reciente\n• Comunicación clara sobre cambios materiales\n• Acceso fácil a versiones anteriores",
+    privacyContact: "12. Contáctenos y canales de quejas",
+    privacyContactText:
+      "Consultas de privacidad:\n• Función de soporte en la aplicación\n• Correo electrónico: privacy@todo-app.com\n• Responderemos dentro de 7 días hábiles\n• Contacto del oficial de privacidad dedicado\n\nQuejas de protección de datos:\n• Enviar quejas si tiene preocupaciones sobre el procesamiento de datos\n• Tomamos cada queja en serio\n• Proporcionar resultados y explicaciones claras del procesamiento\n• Procedimientos de escalamiento para problemas no resueltos\n\nAutoridades regulatorias:\n• Contactar autoridades supervisoras relevantes si no está satisfecho con nuestra respuesta\n• Autoridad de protección de datos en su jurisdicción\n• Recursos legales disponibles\n• Mecanismos independientes de resolución de disputas",
+    privacyAcknowledgment:
+      "Gracias por confiar en TaskCal. Estamos comprometidos a mejorar continuamente nuestras medidas de protección de privacidad para brindarle servicios de gestión de tareas seguros y confiables. Si tiene alguna pregunta relacionada con la privacidad, no dude en contactarnos.",
+    googleAccount: "Cuenta de Google",
+    signInWithGoogle: "Iniciar sesión con Google",
+    signInWithApple: "Iniciar sesión con Apple",
+    appleAccount: "Cuenta de Apple",
+    logout: "Cerrar sesión",
+    selectTime: "Seleccionar hora",
+    hour: "Hora",
+    minute: "Min",
+    done: "Hecho",
+    time: "Hora",
+    today: "Hoy",
+    taskReminder: "Recordatorio de tarea",
+    // 不同时间点的通知文字
+    reminder30minTitle: "Tarea comenzando pronto",
+    reminder30minBody: "Su tarea comenzará en 30 minutos",
+    reminder10minTitle: "Tarea comenzando pronto",
+    reminder10minBody: "Su tarea comenzará en 10 minutos",
+    reminder5minTitle: "Tarea comenzando pronto",
+    reminder5minBody: "Su tarea comenzará en 5 minutos",
+    notificationPermission: "Permiso de notificación",
+    notificationPermissionMessage:
+      "TaskCal necesita permiso de notificación para recordarle sus tareas 30 minutos antes de que venzan.",
+    enableNotifications: "Habilitar notificaciones",
+    notLater: "Ahora no",
+    theme: "Tema",
+    lightMode: "Modo claro",
+    darkMode: "Modo oscuro",
+    appearance: "Apariencia",
+    byContinuing: "Al continuar, acepta nuestros",
+    and: "y",
+    // Reminder settings
+    reminderSettings: "Recordatorio",
+    reminder30min: "30 minutos antes",
+    reminder10min: "10 minutos antes",
+    reminder5min: "5 minutos antes",
+    reminderEnabled: "Habilitar",
+    reminderDisabled: "Deshabilitado",
+    reminderNote:
+      "Los recordatorios solo se enviarán para tareas que tengan una hora programada",
   },
 };
 
@@ -632,7 +835,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const SplashScreen = ({ navigation }) => {
-  const { theme, loadTheme: reloadTheme } = useContext(ThemeContext);
+  const { theme, themeMode, loadTheme: reloadTheme } = useContext(ThemeContext);
   const { t } = useContext(LanguageContext);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -700,7 +903,7 @@ const SplashScreen = ({ navigation }) => {
 
           // Determine the correct URL scheme based on environment/domain
           const envScheme = process.env.NEXT_PUBLIC_APP_SCHEME;
-          let appScheme = envScheme || "too-doo-list";
+          let appScheme = envScheme || "taskcal";
 
           console.log("OAuth callback: Using app scheme:", appScheme);
 
@@ -732,7 +935,7 @@ const SplashScreen = ({ navigation }) => {
               // Show user message after attempting redirect
               setTimeout(() => {
                 alert(
-                  "Please return to the ToDo - 待辦清單 app. The login was successful!"
+                  "Please return to the TaskCal app. The login was successful!"
                 );
               }, 1000);
               return;
@@ -883,9 +1086,7 @@ const SplashScreen = ({ navigation }) => {
                     "Account created but some settings could not be saved. You can continue using the app."
                   );
                 } else {
-                  alert(
-                    "Account created successfully! Welcome to ToDo - 待辦清單!"
-                  );
+                  alert("Account created successfully! Welcome to TaskCal!");
                 }
 
                 // Navigate to main app even if there were some issues
@@ -1229,10 +1430,13 @@ const SplashScreen = ({ navigation }) => {
 
           // Check if session is expired
           const now = Math.floor(Date.now() / 1000);
-          const isSessionExpired = session.expires_at && session.expires_at < now;
+          const isSessionExpired =
+            session.expires_at && session.expires_at < now;
 
           if (isSessionExpired) {
-            console.log("[checkSession] Session expired, attempting refresh...");
+            console.log(
+              "[checkSession] Session expired, attempting refresh..."
+            );
             // Try to refresh the session
             const {
               data: { session: refreshedSession },
@@ -1748,7 +1952,7 @@ const SplashScreen = ({ navigation }) => {
 
           // Get app scheme based on environment
           // Use the same scheme as defined in app.config.js
-          const appScheme = "too-doo-list";
+          const appScheme = "taskcal";
 
           console.log("🔍 DEBUG - Using app scheme:", appScheme);
 
@@ -1971,7 +2175,7 @@ const SplashScreen = ({ navigation }) => {
               "VERBOSE: This might be due to deep link not working properly"
             );
             console.log(
-              "VERBOSE: Check if Supabase redirect URL includes: too-doo-list://auth/callback"
+              "VERBOSE: Check if Supabase redirect URL includes: taskcal://auth/callback"
             );
             setIsSigningIn(false);
             // Don't show alert for cancel - user might have closed browser due to redirect issue
@@ -2558,8 +2762,12 @@ const SplashScreen = ({ navigation }) => {
         }}
       >
         <Image
-          source={require("./assets/logo.png")}
-          style={{ width: 140, height: 140, marginBottom: 16 }}
+          source={
+            themeMode === "dark"
+              ? require("./assets/logo-dark.png")
+              : require("./assets/logo-white.png")
+          }
+          style={{ width: 200, height: 200, marginBottom: 16 }}
           resizeMode="contain"
         />
         <Text
@@ -3449,8 +3657,8 @@ const TaskSkeleton = ({ theme }) => {
 
   useEffect(() => {
     // Web platform doesn't support useNativeDriver
-    const useNativeDriver = Platform.OS !== 'web';
-    
+    const useNativeDriver = Platform.OS !== "web";
+
     Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
@@ -3575,8 +3783,157 @@ function SettingScreen() {
     times: [30, 10, 5], // 預設30分鐘、10分鐘和5分鐘前提醒
   });
   const [reminderDropdownVisible, setReminderDropdownVisible] = useState(false);
+  const [versionInfo, setVersionInfo] = useState(null);
+  const [hasUpdate, setHasUpdate] = useState(false);
+  const [isCheckingVersion, setIsCheckingVersion] = useState(false);
   const navigation = useNavigation();
   const userProfileCache = useRef(null); // Cache user profile to avoid redundant API calls
+
+  // Check for app updates
+  useEffect(() => {
+    const checkVersion = async () => {
+      if (Platform.OS === "web") {
+        return; // Skip version check on web
+      }
+
+      setIsCheckingVersion(true);
+      try {
+        const updateInfo = await versionService.checkForUpdates();
+        const currentVersionInfo = versionService.getCurrentVersionInfo();
+
+        // Combine current version info with update info
+        setVersionInfo({
+          ...currentVersionInfo,
+          latestVersion: updateInfo.latestVersion,
+          updateUrl: updateInfo.updateUrl,
+        });
+        setHasUpdate(updateInfo.hasUpdate);
+
+        if (updateInfo.hasUpdate) {
+          console.log(
+            "🔔 [SettingScreen] Update available:",
+            updateInfo.latestVersion
+          );
+        }
+      } catch (error) {
+        console.error("❌ [SettingScreen] Error checking version:", error);
+        const currentVersionInfo = versionService.getCurrentVersionInfo();
+        setVersionInfo({
+          ...currentVersionInfo,
+          latestVersion: null,
+          updateUrl: getUpdateUrl("production"),
+        });
+        setHasUpdate(false);
+      } finally {
+        setIsCheckingVersion(false);
+      }
+    };
+
+    checkVersion();
+  }, []);
+
+  // Handle version item press - open App Store
+  const handleVersionPress = async () => {
+    if (Platform.OS === "web") {
+      return;
+    }
+
+    try {
+      const httpsUrl = versionInfo?.updateUrl || getUpdateUrl("production");
+      const appId = "6753785239"; // TaskCal App ID
+
+      // Extract app ID from URL if not hardcoded
+      const appIdMatch = httpsUrl.match(/\/id(\d+)/);
+      const finalAppId = appIdMatch ? appIdMatch[1] : appId;
+
+      // Check if running on simulator (simulator typically can't open itms-apps://)
+      // In simulator, use HTTPS URL directly to avoid errors
+      const isSimulator =
+        Constants.deviceName?.includes("Simulator") ||
+        Constants.isDevice === false ||
+        __DEV__;
+
+      if (isSimulator) {
+        // In simulator, use HTTPS URL directly
+        try {
+          await Linking.openURL(httpsUrl);
+          console.log(
+            "🔗 [SettingScreen] Opened App Store (HTTPS - Simulator):",
+            httpsUrl
+          );
+          return;
+        } catch (httpsError) {
+          // Fallback to WebBrowser in simulator
+          try {
+            await WebBrowser.openBrowserAsync(httpsUrl);
+            console.log(
+              "🔗 [SettingScreen] Opened App Store (WebBrowser - Simulator):",
+              httpsUrl
+            );
+            return;
+          } catch (browserError) {
+            console.warn(
+              "⚠️ [SettingScreen] Failed to open App Store in simulator:",
+              browserError
+            );
+          }
+        }
+      }
+
+      // For real devices, try itms-apps:// first, then fallback to HTTPS
+      const itmsUrl = `itms-apps://itunes.apple.com/app/id${finalAppId}`;
+
+      // Check if we can open itms-apps:// URL scheme (silently catch errors)
+      let canOpenItms = false;
+      try {
+        canOpenItms = await Linking.canOpenURL(itmsUrl);
+      } catch (checkError) {
+        // Silently ignore canOpenURL errors, will fallback to HTTPS
+        canOpenItms = false;
+      }
+
+      if (canOpenItms) {
+        // Try itms-apps:// first (best for real devices)
+        try {
+          await Linking.openURL(itmsUrl);
+          console.log(
+            "🔗 [SettingScreen] Opened App Store (itms-apps):",
+            itmsUrl
+          );
+          return;
+        } catch (itmsError) {
+          console.warn(
+            "⚠️ [SettingScreen] itms-apps:// failed, trying HTTPS:",
+            itmsError
+          );
+        }
+      }
+
+      // Fallback to HTTPS URL
+      try {
+        await Linking.openURL(httpsUrl);
+        console.log("🔗 [SettingScreen] Opened App Store (HTTPS):", httpsUrl);
+      } catch (httpsError) {
+        // Last resort: try using WebBrowser
+        try {
+          await WebBrowser.openBrowserAsync(httpsUrl);
+          console.log(
+            "🔗 [SettingScreen] Opened App Store (WebBrowser):",
+            httpsUrl
+          );
+        } catch (browserError) {
+          console.warn(
+            "⚠️ [SettingScreen] All methods failed to open App Store"
+          );
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "⚠️ [SettingScreen] Error opening App Store:",
+        error.message
+      );
+    }
+  };
 
   useEffect(() => {
     const getUserProfile = async () => {
@@ -3926,24 +4283,26 @@ function SettingScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Account Section Title */}
-        <Text
-          style={{
-            color: theme.textSecondary,
-            fontSize: 15,
-            fontWeight: "bold",
-            marginLeft: 28,
-            marginTop: 18,
-            marginBottom: 2,
-            letterSpacing: 0.5,
-          }}
-        >
-          {t.account}
-        </Text>
+        <View style={{ marginTop: 24, marginBottom: 12 }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              fontWeight: "600",
+              marginLeft: 28,
+              marginBottom: 0,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.account}
+          </Text>
+        </View>
         {/* Account Info Card */}
         <View
           style={{
             backgroundColor: theme.card,
-            borderRadius: 14,
+            borderRadius: 16,
             marginHorizontal: 20,
             marginTop: 8,
             marginBottom: 0,
@@ -3952,6 +4311,8 @@ function SettingScreen() {
             shadowOpacity: theme.shadowOpacity,
             shadowRadius: 8,
             elevation: 2,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
           }}
         >
           <View
@@ -4143,25 +4504,181 @@ function SettingScreen() {
             )}
           </View>
         </View>
+
+        {/* Version Check Item */}
+        {Platform.OS !== "web" && (
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 16,
+              marginHorizontal: 20,
+              marginTop: 16,
+              marginBottom: 0,
+              overflow: "hidden",
+              shadowColor: theme.shadow,
+              shadowOpacity: theme.shadowOpacity,
+              shadowRadius: 6,
+              elevation: 1,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleVersionPress}
+              activeOpacity={0.7}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                <MaterialIcons
+                  name={hasUpdate ? "system-update" : "check-circle"}
+                  size={22}
+                  color={hasUpdate ? theme.warning : theme.primary}
+                  style={{ marginRight: 12 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 6,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 14,
+                        fontWeight: "500",
+                        marginRight: 8,
+                      }}
+                    >
+                      {t.version}
+                    </Text>
+                    {hasUpdate ? (
+                      <View
+                        style={{
+                          backgroundColor: theme.warning + "20",
+                          borderRadius: 12,
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          marginLeft: 4,
+                          borderWidth: 1,
+                          borderColor: theme.warning + "60",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: theme.warning,
+                            fontSize: 10,
+                            fontWeight: "700",
+                            letterSpacing: 0.3,
+                          }}
+                        >
+                          {t.updateAvailable || "Update Available"}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View
+                        style={{
+                          backgroundColor: theme.primary + "20",
+                          borderRadius: 12,
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          marginLeft: 4,
+                          borderWidth: 1,
+                          borderColor: theme.primary + "40",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: theme.primary,
+                            fontSize: 10,
+                            fontWeight: "700",
+                            letterSpacing: 0.3,
+                          }}
+                        >
+                          {t.latestVersion || "Latest"}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <View
+                    style={{ flexDirection: "row", alignItems: "baseline" }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 16,
+                        fontWeight: "700",
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      {versionInfo?.version ||
+                        Constants.expoConfig?.version ||
+                        appConfig.expo?.version ||
+                        Application.nativeApplicationVersion ||
+                        "1.2.1"}
+                    </Text>
+                    {hasUpdate && versionInfo && (
+                      <>
+                        <MaterialIcons
+                          name="arrow-forward"
+                          size={16}
+                          color={theme.warning}
+                          style={{ marginHorizontal: 6 }}
+                        />
+                        <Text
+                          style={{
+                            color: theme.warning,
+                            fontSize: 16,
+                            fontWeight: "700",
+                            letterSpacing: 0.5,
+                          }}
+                        >
+                          {versionInfo.latestVersion || "Latest"}
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                </View>
+              </View>
+              <MaterialIcons
+                name="open-in-new"
+                size={20}
+                color={hasUpdate ? theme.warning : theme.textTertiary}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* General Section Title */}
-        <Text
-          style={{
-            color: theme.textSecondary,
-            fontSize: 15,
-            fontWeight: "bold",
-            marginLeft: 28,
-            marginTop: 18,
-            marginBottom: 2,
-            letterSpacing: 0.5,
-          }}
-        >
-          {t.general}
-        </Text>
+        <View style={{ marginTop: 24, marginBottom: 12 }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              fontWeight: "600",
+              marginLeft: 28,
+              marginBottom: 0,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.general}
+          </Text>
+        </View>
         {/* Language selection block */}
         <View
           style={{
             backgroundColor: theme.card,
-            borderRadius: 14,
+            borderRadius: 16,
             marginHorizontal: 20,
             marginTop: 8,
             marginBottom: 0,
@@ -4170,6 +4687,8 @@ function SettingScreen() {
             shadowOpacity: theme.shadowOpacity,
             shadowRadius: 6,
             elevation: 1,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
           }}
         >
           <TouchableOpacity
@@ -4183,12 +4702,22 @@ function SettingScreen() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              paddingVertical: 12,
+              paddingVertical: 14,
               paddingHorizontal: 20,
             }}
           >
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontSize: 16 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <MaterialIcons
+                name="language"
+                size={20}
+                color={theme.primary}
+                style={{ marginRight: 12 }}
+              />
+              <Text
+                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+              >
                 {t.language}
               </Text>
             </View>
@@ -4200,7 +4729,11 @@ function SettingScreen() {
                   marginRight: 8,
                 }}
               >
-                {language === "en" ? t.english : t.chinese}
+                {language === "en"
+                  ? t.english
+                  : language === "zh"
+                  ? t.chinese
+                  : t.spanish}
               </Text>
               <MaterialIcons
                 name={
@@ -4272,6 +4805,30 @@ function SettingScreen() {
                   {t.chinese}
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setLanguage("es");
+                  setLanguageDropdownVisible(false);
+                }}
+                activeOpacity={0.6}
+                style={{
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  backgroundColor:
+                    language === "es" ? theme.calendarSelected : "transparent",
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      language === "es" ? theme.primary : theme.textSecondary,
+                    fontSize: 15,
+                    fontWeight: language === "es" ? "600" : "400",
+                  }}
+                >
+                  {t.spanish}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -4280,15 +4837,17 @@ function SettingScreen() {
         <View
           style={{
             backgroundColor: theme.card,
-            borderRadius: 14,
+            borderRadius: 16,
             marginHorizontal: 20,
-            marginTop: 8,
+            marginTop: 12,
             marginBottom: 0,
             overflow: "hidden",
             shadowColor: theme.shadow,
             shadowOpacity: theme.shadowOpacity,
             shadowRadius: 6,
             elevation: 1,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
           }}
         >
           <TouchableOpacity
@@ -4302,12 +4861,24 @@ function SettingScreen() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              paddingVertical: 12,
+              paddingVertical: 14,
               paddingHorizontal: 20,
             }}
           >
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontSize: 16 }}>{t.theme}</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <MaterialIcons
+                name="palette"
+                size={20}
+                color={theme.primary}
+                style={{ marginRight: 12 }}
+              />
+              <Text
+                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+              >
+                {t.theme}
+              </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
@@ -4405,15 +4976,17 @@ function SettingScreen() {
         <View
           style={{
             backgroundColor: theme.card,
-            borderRadius: 14,
+            borderRadius: 16,
             marginHorizontal: 20,
-            marginTop: 8,
+            marginTop: 12,
             marginBottom: 0,
             overflow: "hidden",
             shadowColor: theme.shadow,
             shadowOpacity: theme.shadowOpacity,
             shadowRadius: 6,
             elevation: 1,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
           }}
         >
           <TouchableOpacity
@@ -4431,11 +5004,13 @@ function SettingScreen() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              paddingVertical: 12,
+              paddingVertical: 14,
               paddingHorizontal: 20,
             }}
           >
-            <View style={{ flex: 1 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
               {isLoadingSettings ? (
                 <Animated.View
                   style={{
@@ -4453,9 +5028,23 @@ function SettingScreen() {
                   }}
                 />
               ) : (
-                <Text style={{ color: theme.text, fontSize: 16 }}>
-                  {t.reminderSettings}
-                </Text>
+                <>
+                  <MaterialIcons
+                    name="notifications"
+                    size={20}
+                    color={theme.primary}
+                    style={{ marginRight: 12 }}
+                  />
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 16,
+                      fontWeight: "500",
+                    }}
+                  >
+                    {t.reminderSettings}
+                  </Text>
+                </>
               )}
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -4643,25 +5232,27 @@ function SettingScreen() {
         </View>
 
         {/* Support Section Title */}
-        <Text
-          style={{
-            color: theme.textSecondary,
-            fontSize: 15,
-            fontWeight: "bold",
-            marginLeft: 28,
-            marginTop: 18,
-            marginBottom: 2,
-            letterSpacing: 0.5,
-          }}
-        >
-          {t.support}
-        </Text>
+        <View style={{ marginTop: 24, marginBottom: 12 }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              fontWeight: "600",
+              marginLeft: 28,
+              marginBottom: 0,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.support}
+          </Text>
+        </View>
 
         {/* Send Feedback */}
         <View
           style={{
             backgroundColor: theme.card,
-            borderRadius: 14,
+            borderRadius: 16,
             marginHorizontal: 20,
             marginTop: 8,
             marginBottom: 0,
@@ -4694,13 +5285,25 @@ function SettingScreen() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              paddingVertical: 12,
+              paddingVertical: 14,
               paddingHorizontal: 20,
             }}
           >
-            <Text style={{ color: theme.text, fontSize: 16 }}>
-              {t.feedback}
-            </Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <MaterialIcons
+                name="feedback"
+                size={20}
+                color={theme.primary}
+                style={{ marginRight: 12 }}
+              />
+              <Text
+                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+              >
+                {t.feedback}
+              </Text>
+            </View>
             <MaterialIcons
               name="open-in-new"
               size={20}
@@ -4710,25 +5313,27 @@ function SettingScreen() {
         </View>
 
         {/* Legal Section Title */}
-        <Text
-          style={{
-            color: theme.textSecondary,
-            fontSize: 15,
-            fontWeight: "bold",
-            marginLeft: 28,
-            marginTop: 18,
-            marginBottom: 2,
-            letterSpacing: 0.5,
-          }}
-        >
-          {t.legal}
-        </Text>
+        <View style={{ marginTop: 24, marginBottom: 12 }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              fontWeight: "600",
+              marginLeft: 28,
+              marginBottom: 0,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.legal}
+          </Text>
+        </View>
 
         {/* Terms of Use */}
         <View
           style={{
             backgroundColor: theme.card,
-            borderRadius: 14,
+            borderRadius: 16,
             marginHorizontal: 20,
             marginTop: 8,
             marginBottom: 0,
@@ -4737,6 +5342,8 @@ function SettingScreen() {
             shadowOpacity: theme.shadowOpacity,
             shadowRadius: 6,
             elevation: 1,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
           }}
         >
           <TouchableOpacity
@@ -4746,11 +5353,25 @@ function SettingScreen() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              paddingVertical: 12,
+              paddingVertical: 14,
               paddingHorizontal: 20,
             }}
           >
-            <Text style={{ color: theme.text, fontSize: 16 }}>{t.terms}</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <MaterialIcons
+                name="description"
+                size={20}
+                color={theme.primary}
+                style={{ marginRight: 12 }}
+              />
+              <Text
+                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+              >
+                {t.terms}
+              </Text>
+            </View>
             <MaterialIcons
               name="keyboard-arrow-right"
               size={20}
@@ -4763,15 +5384,17 @@ function SettingScreen() {
         <View
           style={{
             backgroundColor: theme.card,
-            borderRadius: 14,
+            borderRadius: 16,
             marginHorizontal: 20,
-            marginTop: 8,
+            marginTop: 12,
             marginBottom: 0,
             overflow: "hidden",
             shadowColor: theme.shadow,
             shadowOpacity: theme.shadowOpacity,
             shadowRadius: 6,
             elevation: 1,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
           }}
         >
           <TouchableOpacity
@@ -4781,11 +5404,25 @@ function SettingScreen() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              paddingVertical: 12,
+              paddingVertical: 14,
               paddingHorizontal: 20,
             }}
           >
-            <Text style={{ color: theme.text, fontSize: 16 }}>{t.privacy}</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <MaterialIcons
+                name="privacy-tip"
+                size={20}
+                color={theme.primary}
+                style={{ marginRight: 12 }}
+              />
+              <Text
+                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+              >
+                {t.privacy}
+              </Text>
+            </View>
             <MaterialIcons
               name="keyboard-arrow-right"
               size={20}
@@ -4794,71 +5431,77 @@ function SettingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Log Out, Delete Account and Version Section */}
+        {/* Log Out Button */}
         <View
           style={{
+            backgroundColor: theme.card,
+            borderRadius: 16,
             marginHorizontal: 20,
-            marginTop: 8,
-            marginBottom: 20,
-            padding: 20,
+            marginTop: 24,
+            marginBottom: 0,
+            overflow: "hidden",
+            shadowColor: theme.shadow,
+            shadowOpacity: theme.shadowOpacity,
+            shadowRadius: 6,
+            elevation: 1,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
           }}
         >
           <TouchableOpacity
             onPress={() => {
               setLogoutModalVisible(true);
             }}
+            activeOpacity={0.6}
             style={{
-              backgroundColor: theme.card,
-              paddingVertical: 12,
-              paddingHorizontal: 24,
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: theme.cardBorder,
+              flexDirection: "row",
               alignItems: "center",
-              marginBottom: 12,
-              shadowColor: theme.shadow,
-              shadowOpacity: theme.shadowOpacity,
-              shadowRadius: 4,
-              elevation: 1,
-              width: "100%",
+              justifyContent: "center",
+              paddingVertical: 14,
+              paddingHorizontal: 20,
             }}
           >
+            <MaterialIcons
+              name="logout"
+              size={20}
+              color={theme.error}
+              style={{ marginRight: 8 }}
+            />
             <Text
               style={{ color: theme.error, fontSize: 16, fontWeight: "600" }}
             >
               {t.logout || "Log out"}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setDeleteAccountModalVisible(true);
-            }}
-            style={{
-              alignItems: "center",
-              marginBottom: 16,
-              paddingVertical: 8,
-            }}
-          >
+        </View>
+
+        {/* Delete Account */}
+        <TouchableOpacity
+          onPress={() => {
+            setDeleteAccountModalVisible(true);
+          }}
+          activeOpacity={0.6}
+          style={{
+            alignItems: "center",
+            marginTop: 16,
+            marginBottom: 24,
+            paddingVertical: 12,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <MaterialIcons
+              name="delete-outline"
+              size={18}
+              color={theme.error}
+              style={{ marginRight: 6 }}
+            />
             <Text
-              style={{ color: theme.error, fontSize: 14, fontWeight: "400" }}
+              style={{ color: theme.error, fontSize: 14, fontWeight: "500" }}
             >
               {t.deleteAccount || "Delete Account"}
             </Text>
-          </TouchableOpacity>
-          <Text
-            style={{
-              color: theme.textTertiary,
-              fontSize: 14,
-              textAlign: "center",
-            }}
-          >
-            {t.version}{" "}
-            {Constants.expoConfig?.version ||
-              appConfig.expo?.version ||
-              Application.nativeApplicationVersion ||
-              "1.1.6"}
-          </Text>
-        </View>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
 
       <Modal
@@ -5166,6 +5809,11 @@ function CalendarScreen({ navigation, route }) {
   const scrollViewRef = useRef(null); // 日曆 ScrollView
   const modalScrollViewRef = useRef(null); // Modal ScrollView
   const fetchedRangesRef = useRef(new Set()); // Track fetched date ranges for caching
+  const lastScrollY = useRef(0); // Track last scroll position for month detection
+  const scrollTimeoutRef = useRef(null); // Debounce scroll updates
+  const isScrollingProgrammatically = useRef(false); // Prevent infinite scroll loop
+  const scrollStartY = useRef(0); // Track scroll start position for swipe detection
+  const isScrolling = useRef(false); // Track if user is actively scrolling
 
   // 格式化日期輸入 (YYYY-MM-DD)
   const formatDateInput = (text) => {
@@ -5287,11 +5935,16 @@ function CalendarScreen({ navigation, route }) {
         } = await supabase.auth.getUser();
 
         if (!user) {
-          console.log("No authenticated user found");
+          console.warn("⚠️ [CalendarScreen] No authenticated user found");
           setTasks({});
           setIsLoadingTasks(false);
           return;
         }
+
+        console.log("✅ [CalendarScreen] User authenticated:", {
+          id: user.id,
+          email: user.email,
+        });
 
         // Calculate start and end date of the visible month
         // We fetch previous, current, and next month to ensure smooth scrolling
@@ -5313,9 +5966,49 @@ function CalendarScreen({ navigation, route }) {
 
         setIsLoadingTasks(true);
 
+        // 優先檢查預載入的數據
+        // 如果預載入還在進行中，等待它完成（最多等待 3 秒）
+        let cachedData = dataPreloadService.getCachedData();
+
+        // 如果沒有緩存數據，檢查預載入是否正在進行中
+        if (!cachedData || !cachedData.calendarTasks) {
+          // 檢查預載入是否正在進行中（通過檢查 preloadPromise 或 isPreloading）
+          // 注意：dataPreloadService 是一個類，preloadPromise 是靜態屬性
+          const preloadPromise = dataPreloadService.preloadPromise;
+          if (preloadPromise) {
+            console.log(
+              "⏳ [CalendarScreen] Waiting for preload to complete..."
+            );
+            try {
+              // 等待預載入完成，但設置超時避免無限等待
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Preload timeout")), 3000)
+              );
+              await Promise.race([preloadPromise, timeoutPromise]);
+              // 預載入完成後，重新檢查緩存
+              cachedData = dataPreloadService.getCachedData();
+            } catch (error) {
+              // 超時或錯誤時，繼續執行後續的 API 請求
+              if (error.message === "Preload timeout") {
+                console.log(
+                  "⚠️ [CalendarScreen] Preload timeout after 3s, fetching directly"
+                );
+              } else {
+                console.log(
+                  "⚠️ [CalendarScreen] Preload error, fetching directly:",
+                  error.message
+                );
+              }
+            }
+          }
+        }
+
         // 檢查預載入的數據是否包含當前範圍的任務
-        const cachedData = dataPreloadService.getCachedData();
-        if (cachedData && cachedData.calendarTasks) {
+        if (
+          cachedData &&
+          cachedData.calendarTasks &&
+          Object.keys(cachedData.calendarTasks).length > 0
+        ) {
           // 檢查預載入的任務是否涵蓋當前範圍
           const preloadedTasks = cachedData.calendarTasks;
           const hasTasksInRange = Object.keys(preloadedTasks).some((date) => {
@@ -5324,9 +6017,6 @@ function CalendarScreen({ navigation, route }) {
           });
 
           if (hasTasksInRange) {
-            console.log(
-              `📦 [CalendarScreen] Using preloaded tasks for ${startDateStr} to ${endDateStr}`
-            );
             // 過濾出當前範圍的任務
             const filteredTasks = {};
             Object.keys(preloadedTasks).forEach((date) => {
@@ -5336,24 +6026,38 @@ function CalendarScreen({ navigation, route }) {
               }
             });
 
-            setTasks((prevTasks) => {
-              const updatedTasks = {
-                ...prevTasks,
-                ...filteredTasks,
-              };
+            if (Object.keys(filteredTasks).length > 0) {
+              setTasks((prevTasks) => {
+                const updatedTasks = {
+                  ...prevTasks,
+                  ...filteredTasks,
+                };
 
-              // Sync to widget
-              widgetService.syncTodayTasks(updatedTasks);
+                // Sync to widget
+                widgetService.syncTodayTasks(updatedTasks);
 
-              return updatedTasks;
-            });
+                return updatedTasks;
+              });
 
-            setIsLoadingTasks(false);
+              setIsLoadingTasks(false);
 
-            // Mark this range as fetched
-            fetchedRangesRef.current.add(rangeKey);
-            return;
+              // Mark this range as fetched
+              fetchedRangesRef.current.add(rangeKey);
+              return;
+            } else {
+              console.log(
+                `⚠️ [CalendarScreen] Preloaded tasks exist but none in range ${startDateStr} to ${endDateStr}, fetching from API`
+              );
+            }
+          } else {
+            console.log(
+              `⚠️ [CalendarScreen] Preloaded tasks exist but not in range ${startDateStr} to ${endDateStr}, fetching from API`
+            );
           }
+        } else {
+          console.log(
+            `📥 [CalendarScreen] No cached data available, fetching from API for ${startDateStr} to ${endDateStr}`
+          );
         }
 
         console.log(`Fetching tasks from ${startDateStr} to ${endDateStr}`);
@@ -5380,20 +6084,44 @@ function CalendarScreen({ navigation, route }) {
 
         setIsLoadingTasks(false);
       } catch (error) {
-        console.error("Error loading tasks:", error);
+        console.error("❌ [CalendarScreen] Error loading tasks:", error);
+        console.error("❌ [CalendarScreen] Error details:", {
+          message: error.message,
+          stack: error.stack,
+          code: error.code,
+        });
+        // 即使出錯，也要設置為 false，避免無限載入狀態
         setIsLoadingTasks(false);
+        // 嘗試清除緩存並重新載入
+        if (
+          error.message?.includes("Network") ||
+          error.message?.includes("Failed to fetch")
+        ) {
+          console.warn(
+            "⚠️ [CalendarScreen] Network error detected, will retry on next mount"
+          );
+        }
       }
     };
 
     fetchTasksForVisibleRange();
+
+    // Cleanup scroll timeout on unmount
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, [visibleYear, visibleMonth, isInitialized]);
 
-  // Center calendar to today
+  // Center calendar to today (only called on init, not when month changes)
   const centerToday = useCallback(() => {
     if (!scrollViewRef.current) return;
     const todayDate = new Date(getToday());
     todayDate.setHours(12, 0, 0, 0);
-    const firstDayOfMonth = new Date(visibleYear, visibleMonth, 1);
+    const currentMonth = new Date(getCurrentDate()).getMonth();
+    const currentYear = new Date(getCurrentDate()).getFullYear();
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
     const firstDayOfWeek = firstDayOfMonth.getDay();
     const firstSunday = new Date(firstDayOfMonth);
     firstSunday.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
@@ -5402,31 +6130,38 @@ function CalendarScreen({ navigation, route }) {
     );
     const weekNumber = Math.floor(diffInDays / 7);
     const weekHeight = 50;
-    const visibleWeeks = 4;
-    const scrollPosition =
-      weekNumber * weekHeight - (visibleWeeks * weekHeight) / 2;
+    const scrollPosition = Math.max(0, weekNumber * weekHeight - weekHeight);
     scrollViewRef.current.scrollTo({
-      y: Math.max(0, scrollPosition),
+      y: scrollPosition,
       animated: true,
     });
-  }, [visibleYear, visibleMonth]);
+  }, []); // 移除依賴，只在初始化時調用
 
   // Initialize calendar to today when app loads/reloads
   useEffect(() => {
-    if (isInitialized) return; // 已經初始化過，不再執行
+    if (isInitialized) {
+      console.log("⏭️ Initialization skipped - already initialized");
+      return; // 已經初始化過，不再執行
+    }
 
+    console.log("🚀 Initializing calendar to today");
     const today = getCurrentDate();
     const todayDate = new Date(today);
     const todayMonth = todayDate.getMonth();
     const todayYear = todayDate.getFullYear();
 
+    console.log("📅 Setting initial month/year:", todayMonth, todayYear);
     setSelectedDate(today);
     setVisibleMonth(todayMonth);
     setVisibleYear(todayYear);
 
     // 立即檢查並使用預載入的數據
     const cachedData = dataPreloadService.getCachedData();
-    if (cachedData && cachedData.calendarTasks) {
+    if (
+      cachedData &&
+      cachedData.calendarTasks &&
+      Object.keys(cachedData.calendarTasks).length > 0
+    ) {
       console.log("📦 [CalendarScreen] Using preloaded tasks on mount");
       const preloadedTasks = cachedData.calendarTasks;
 
@@ -5444,6 +6179,11 @@ function CalendarScreen({ navigation, route }) {
       });
 
       if (Object.keys(filteredTasks).length > 0) {
+        console.log(
+          `✅ [CalendarScreen] Loaded ${
+            Object.keys(filteredTasks).length
+          } dates with tasks from cache`
+        );
         setTasks(filteredTasks);
         setIsLoadingTasks(false);
 
@@ -5455,12 +6195,21 @@ function CalendarScreen({ navigation, route }) {
 
         // Sync to widget
         widgetService.syncTodayTasks(filteredTasks);
+      } else {
+        console.log(
+          "⚠️ [CalendarScreen] Preloaded tasks exist but none in current range, will fetch from API"
+        );
+        // 保持 isLoadingTasks 為 true，讓後續的 fetchTasksForVisibleRange 來處理
       }
+    } else {
+      console.log(
+        "📥 [CalendarScreen] No preloaded tasks available, will fetch from API"
+      );
       // 如果沒有預載入數據，保持 isLoadingTasks 為 true，讓後續的 fetchTasksForVisibleRange 來處理
     }
-    // 如果沒有預載入數據，保持 isLoadingTasks 為 true，讓後續的 fetchTasksForVisibleRange 來處理
 
-    // 標記初始化完成
+    // 標記初始化完成（無論是否有預載入數據）
+    console.log("✅ [CalendarScreen] Initialization complete");
     setIsInitialized(true);
 
     // Center calendar to today after state is set
@@ -5480,30 +6229,12 @@ function CalendarScreen({ navigation, route }) {
       // Check if focusToday param is passed (e.g., when session expired)
       const shouldFocusToday = route?.params?.focusToday;
 
-      // Only update if values have changed to avoid unnecessary re-renders and fetches
-      setSelectedDate((prevDate) => {
-        if (shouldFocusToday || prevDate !== today) {
-          return today;
-        }
-        return prevDate;
-      });
-
-      setVisibleMonth((prevMonth) => {
-        if (shouldFocusToday || prevMonth !== todayMonth) {
-          return todayMonth;
-        }
-        return prevMonth;
-      });
-
-      setVisibleYear((prevYear) => {
-        if (shouldFocusToday || prevYear !== todayYear) {
-          return todayYear;
-        }
-        return prevYear;
-      });
-
-      // If focusToday is true, also center the calendar to today
+      // Only update if shouldFocusToday is true (explicit request to focus today)
+      // Don't reset month/year if user has navigated to a different month
       if (shouldFocusToday) {
+        setSelectedDate(today);
+        setVisibleMonth(todayMonth);
+        setVisibleYear(todayYear);
         setTimeout(() => {
           centerToday();
         }, 100);
@@ -5964,19 +6695,16 @@ function CalendarScreen({ navigation, route }) {
 
   const renderCalendar = () => {
     const weeks = []; // For calendar rendering
-    const currentDate = new Date(visibleYear, visibleMonth, 1);
 
-    // Get the first day of the month and the last day of the month
+    // Render only current month with 6 weeks
     const firstDayOfMonth = new Date(visibleYear, visibleMonth, 1);
-    const lastDayOfMonth = new Date(visibleYear, visibleMonth + 1, 0);
-
-    // Find the first Sunday on or before the first day of the month
     const firstDayOfWeek = firstDayOfMonth.getDay();
     const firstSunday = new Date(firstDayOfMonth);
     firstSunday.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
 
-    // We want exactly 5 weeks (35 days)
-    for (let week = 0; week < 5; week++) {
+    // Render exactly 6 weeks
+    const weeksPerMonth = 6;
+    for (let week = 0; week < weeksPerMonth; week++) {
       const weekDates = [];
 
       // Generate all 7 days of the week
@@ -5996,11 +6724,7 @@ function CalendarScreen({ navigation, route }) {
       );
     }
 
-    return (
-      <PanGestureHandler onHandlerStateChange={handleVerticalGesture}>
-        <View>{weeks}</View>
-      </PanGestureHandler>
-    );
+    return <View key={`calendar-${visibleYear}-${visibleMonth}`}>{weeks}</View>;
   };
 
   const renderDate = (date) => {
@@ -7204,15 +7928,51 @@ function CalendarScreen({ navigation, route }) {
     );
   };
 
+  // Handle scroll start to detect swipe direction
+  const handleScrollBeginDrag = (event) => {
+    scrollStartY.current = event.nativeEvent.contentOffset.y;
+    isScrolling.current = true;
+  };
+
+  // Handle scroll end to detect month changes via swipe
+  const handleScrollEnd = (event) => {
+    if (!isScrolling.current) {
+      return;
+    }
+
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const scrollDelta = scrollStartY.current - scrollY;
+    const weekHeight = 50;
+    const swipeThreshold = 30; // Minimum scroll distance to change month (30px)
+
+    // Check if user swiped significantly (not just scrolled within calendar)
+    // 方向已交換：向下滾動（scrollDelta > 0）→ 上一個月，向上滾動（scrollDelta < 0）→ 下一個月
+    if (Math.abs(scrollDelta) > swipeThreshold) {
+      if (scrollDelta > 0) {
+        // Scrolled down (content moved up) - user wants to see previous month
+        goToPrevMonth();
+      } else {
+        // Scrolled up (content moved down) - user wants to see next month
+        goToNextMonth();
+      }
+    }
+
+    isScrolling.current = false;
+    lastScrollY.current = scrollY;
+  };
+
   // Calendar navigation functions
-  // Handles vertical swipe gestures for month navigation
+  // Handles vertical swipe gestures for month navigation (fallback for gesture handler)
   const handleVerticalGesture = ({ nativeEvent }) => {
     const { translationY, state } = nativeEvent;
-    // Only trigger on gesture end (state === 5 for END in react-native-gesture-handler)
-    if (state === 5) {
+    // State.END = 5 in react-native-gesture-handler
+    // Only trigger on gesture end
+    if (state === State.END || state === 5) {
       if (translationY < -50) {
+        console.log("Gesture: Swipe up detected, going to next month");
         goToNextMonth(); // Swipe up
       } else if (translationY > 50) {
+        console.log("Gesture: Swipe down detected, going to previous month");
         goToPrevMonth(); // Swipe down
       }
     }
@@ -7225,8 +7985,34 @@ function CalendarScreen({ navigation, route }) {
       newMonth = 0;
       newYear += 1;
     }
-    setVisibleMonth(newMonth);
-    setVisibleYear(newYear);
+    console.log("goToNextMonth:", {
+      from: { month: visibleMonth, year: visibleYear },
+      to: { month: newMonth, year: newYear },
+    });
+    setVisibleMonth((prevMonth) => {
+      console.log(
+        "🔄 setVisibleMonth called: prevMonth =",
+        prevMonth,
+        ", newMonth =",
+        newMonth
+      );
+      return newMonth;
+    });
+    setVisibleYear((prevYear) => {
+      console.log(
+        "🔄 setVisibleYear called: prevYear =",
+        prevYear,
+        ", newYear =",
+        newYear
+      );
+      return newYear;
+    });
+    console.log(
+      "✅ State update initiated: visibleMonth =",
+      newMonth,
+      ", visibleYear =",
+      newYear
+    );
   };
 
   const goToPrevMonth = () => {
@@ -7236,8 +8022,34 @@ function CalendarScreen({ navigation, route }) {
       newMonth = 11;
       newYear -= 1;
     }
-    setVisibleMonth(newMonth);
-    setVisibleYear(newYear);
+    console.log("goToPrevMonth:", {
+      from: { month: visibleMonth, year: visibleYear },
+      to: { month: newMonth, year: newYear },
+    });
+    setVisibleMonth((prevMonth) => {
+      console.log(
+        "🔄 setVisibleMonth called: prevMonth =",
+        prevMonth,
+        ", newMonth =",
+        newMonth
+      );
+      return newMonth;
+    });
+    setVisibleYear((prevYear) => {
+      console.log(
+        "🔄 setVisibleYear called: prevYear =",
+        prevYear,
+        ", newYear =",
+        newYear
+      );
+      return newYear;
+    });
+    console.log(
+      "✅ State update initiated: visibleMonth =",
+      newMonth,
+      ", visibleYear =",
+      newYear
+    );
   };
 
   // Calendar header UI
@@ -7297,24 +8109,27 @@ function CalendarScreen({ navigation, route }) {
                 { backgroundColor: theme.background },
               ]}
               contentContainerStyle={styles.scrollContent}
+              onScrollBeginDrag={handleScrollBeginDrag}
+              onScrollEndDrag={handleScrollEnd}
+              onMomentumScrollEnd={handleScrollEnd}
             >
               {renderCalendar()}
             </ScrollView>
           ) : (
-            <PanGestureHandler onHandlerStateChange={handleVerticalGesture}>
-              <View>
-                <ScrollView
-                  ref={scrollViewRef}
-                  style={[
-                    styles.calendarScrollView,
-                    { backgroundColor: theme.background },
-                  ]}
-                  contentContainerStyle={styles.scrollContent}
-                >
-                  {renderCalendar()}
-                </ScrollView>
-              </View>
-            </PanGestureHandler>
+            <ScrollView
+              ref={scrollViewRef}
+              style={[
+                styles.calendarScrollView,
+                { backgroundColor: theme.background },
+              ]}
+              contentContainerStyle={styles.scrollContent}
+              scrollEnabled={true}
+              onScrollBeginDrag={handleScrollBeginDrag}
+              onScrollEndDrag={handleScrollEnd}
+              onMomentumScrollEnd={handleScrollEnd}
+            >
+              {renderCalendar()}
+            </ScrollView>
           )}
         </View>
       </View>
@@ -7550,7 +8365,9 @@ export default function App() {
 
         if (
           userSettings.language &&
-          (userSettings.language === "en" || userSettings.language === "zh")
+          (userSettings.language === "en" ||
+            userSettings.language === "zh" ||
+            userSettings.language === "es")
         ) {
           console.log(`✅ Language loaded: ${userSettings.language}`);
           setLanguageState(userSettings.language);
@@ -7561,7 +8378,7 @@ export default function App() {
         console.error("❌ Error loading language settings:", error);
         // Fallback to AsyncStorage if Supabase fails
         AsyncStorage.getItem(LANGUAGE_STORAGE_KEY).then((lang) => {
-          if (lang && (lang === "en" || lang === "zh")) {
+          if (lang && (lang === "en" || lang === "zh" || lang === "es")) {
             console.log(`📱 Language loaded from AsyncStorage: ${lang}`);
             setLanguageState(lang);
           }
@@ -7773,11 +8590,7 @@ export default function App() {
       <LanguageContext.Provider value={{ language, setLanguage, t }}>
         <NavigationContainer
           linking={{
-            prefixes: [
-              getRedirectUrl(),
-              "http://localhost:8081",
-              "too-doo-list://",
-            ],
+            prefixes: [getRedirectUrl(), "http://localhost:8081", "taskcal://"],
             config: {
               screens: {
                 Splash: "",

@@ -16,16 +16,12 @@ serve(async (req: Request) => {
     return new Response("Server Configuration Error", { status: 500 });
   }
 
-  const supabaseAdmin = createClient(
-    SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY
-  );
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   // Update user metadata
-  const { error } = await supabaseAdmin.auth.admin.updateUserById(
-    uid,
-    { user_metadata: { unsubscribed: true } }
-  );
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(uid, {
+    user_metadata: { unsubscribed: true },
+  });
 
   if (error) {
     return new Response(`Error: ${error.message}`, { status: 500 });
@@ -48,7 +44,7 @@ serve(async (req: Request) => {
       <body>
         <div class="card">
           <h1>已取消訂閱</h1>
-          <p>您已成功取消訂閱 ToDo - 待辦清單 的更新通知。</p>
+          <p>您已成功取消訂閱 TaskCal 的更新通知。</p>
           <p>You have been unsubscribed from future updates.</p>
         </div>
       </body>

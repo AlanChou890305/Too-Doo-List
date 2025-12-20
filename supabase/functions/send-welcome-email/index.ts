@@ -11,15 +11,20 @@ serve(async (req: Request) => {
   try {
     // Early return if email is disabled
     if (!EMAIL_ENABLED) {
-      console.log(`📧 Welcome email function called but disabled (email sending temporarily disabled)`);
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: "Email sending temporarily disabled",
-        skipped: true 
-      }), {
-        headers: { "Content-Type": "application/json" },
-        status: 200,
-      });
+      console.log(
+        `📧 Welcome email function called but disabled (email sending temporarily disabled)`
+      );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Email sending temporarily disabled",
+          skipped: true,
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     // 1. Validate Environment Variables
@@ -38,7 +43,8 @@ serve(async (req: Request) => {
     console.log(`📧 Sending welcome email to: ${user.email}`);
 
     // Extract user name from metadata or email
-    const userName = user.user_metadata?.name || user.email?.split('@')[0] || '朋友';
+    const userName =
+      user.user_metadata?.name || user.email?.split("@")[0] || "朋友";
 
     // 4. Welcome Email HTML Template
     const html = `
@@ -63,11 +69,11 @@ serve(async (req: Request) => {
 <body>
     <div class="container">
         <div class="header">
-            <h1>歡迎使用 ToDo - 待辦清單 👋</h1>
+            <h1>歡迎使用 TaskCal 👋</h1>
         </div>
         <div class="content">
             <h2>嗨 ${userName}，</h2>
-            <p>感謝您選擇 ToDo - 待辦清單！我們打造這個 App 是因為相信簡單、直覺的待辦清單能讓生活更有條理。</p>
+            <p>感謝您選擇 TaskCal！我們打造這個 App 是因為相信簡單、直覺的待辦清單能讓生活更有條理。</p>
             
             <div class="feature">
                 <h3>📝 建立您的第一個任務</h3>
@@ -98,7 +104,7 @@ serve(async (req: Request) => {
             </table>
         </div>
         <div class="footer">
-            <p>ToDo - 待辦清單 團隊 敬上</p>
+            <p>TaskCal 團隊 敬上</p>
         </div>
     </div>
 </body>
@@ -110,10 +116,10 @@ serve(async (req: Request) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ToDo - 待辦清單 <onboarding@resend.dev>",
+        from: "TaskCal <onboarding@resend.dev>",
         to: [user.email],
         subject: "歡迎使用 ToDo！",
         html: html,

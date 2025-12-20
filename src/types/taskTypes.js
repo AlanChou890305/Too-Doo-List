@@ -14,24 +14,24 @@ export const TASK_FIELDS = {
   NOTE: "note",
 
   // 擴展欄位
-  PRIORITY: "priority",
-  DESCRIPTION: "description",
+  // PRIORITY: "priority", // 已移除，因為介面上不使用
+  // DESCRIPTION: "description", // 已移除，因為介面上不使用
   IS_COMPLETED: "is_completed",
   COMPLETED_AT: "completed_at",
-  TAGS: "tags",
-  ORDER_INDEX: "order_index",
+  // TAGS: "tags", // 已移除，因為介面上不使用
+  // ORDER_INDEX: "order_index", // 已移除，因為介面上不使用
 
   // 時間戳
   CREATED_AT: "created_at",
   UPDATED_AT: "updated_at",
 };
 
-// 任務優先級常數
-export const TASK_PRIORITIES = {
-  LOW: "low",
-  MEDIUM: "medium",
-  HIGH: "high",
-};
+// 任務優先級常數（已移除，因為介面上不使用）
+// export const TASK_PRIORITIES = {
+//   LOW: "low",
+//   MEDIUM: "medium",
+//   HIGH: "high",
+// };
 
 // 任務狀態常數
 export const TASK_STATUS = {
@@ -65,7 +65,7 @@ export const validateTaskFields = (fields) => {
 export const createTaskObject = (taskData) => {
   // 輔助函數：將空字串轉為 null
   const cleanString = (value) => {
-    if (typeof value === 'string' && value.trim() === '') {
+    if (typeof value === "string" && value.trim() === "") {
       return null;
     }
     return value || null;
@@ -80,13 +80,13 @@ export const createTaskObject = (taskData) => {
     [TASK_FIELDS.NOTE]: cleanString(taskData.note),
     [TASK_FIELDS.DATE]: taskData.date,
     // 移除 CHECKED 欄位，只使用 IS_COMPLETED
-    [TASK_FIELDS.IS_COMPLETED]: taskData.is_completed || taskData.checked || false,
+    [TASK_FIELDS.IS_COMPLETED]:
+      taskData.is_completed || taskData.checked || false,
     [TASK_FIELDS.COMPLETED_AT]: taskData.completed_at || null,
-    [TASK_FIELDS.PRIORITY]: taskData.priority || TASK_PRIORITIES.MEDIUM,
-    [TASK_FIELDS.DESCRIPTION]: cleanString(taskData.description),
-    // 移除 DUE_TIME，改用 TIME（migration 會把 due_time 重新命名為 time）
-    [TASK_FIELDS.TAGS]: taskData.tags || [],
-    [TASK_FIELDS.ORDER_INDEX]: taskData.order_index || 0,
+    // [TASK_FIELDS.PRIORITY]: taskData.priority || TASK_PRIORITIES.MEDIUM, // 已移除 priority 欄位
+    // [TASK_FIELDS.DESCRIPTION]: cleanString(taskData.description), // 已移除 description 欄位
+    // [TASK_FIELDS.TAGS]: taskData.tags || [], // 已移除 tags 欄位
+    // [TASK_FIELDS.ORDER_INDEX]: taskData.order_index || 0, // 已移除 order_index 欄位
   };
 
   return validateTaskFields(safeTask);

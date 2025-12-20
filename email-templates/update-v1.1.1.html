@@ -1,60 +1,178 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans TC', sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #9466EE; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .header h1 { color: white; margin: 0; font-size: 24px; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #eee; }
-        .feature { margin-bottom: 15px; padding: 15px; background: white; border-radius: 6px; border-left: 4px solid #9466EE; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .feature h3 { margin-top: 0; color: #2c3e50; }
-        .button { display: inline-block; background-color: #9466EE; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; transition: background-color 0.2s; width: 200px; text-align: center; }
-        .button:hover { background-color: #8250d6; }
-        .button-secondary { display: inline-block; background-color: transparent; color: #9466EE; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; border: 2px solid #9466EE; transition: background-color 0.2s; width: 200px; text-align: center; box-sizing: border-box; }
-        .button-secondary:hover { background-color: #f3ebff; }
-        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #888; }
-        .footer a { color: #888; text-decoration: underline; }
-        .button-group { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 20px; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background-color: #9466ee;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .header h1 {
+        color: white;
+        margin: 0;
+        font-size: 24px;
+      }
+      .content {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 0 0 8px 8px;
+        border: 1px solid #eee;
+      }
+      .feature {
+        margin-bottom: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 6px;
+        border-left: 4px solid #9466ee;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .feature h3 {
+        margin-top: 0;
+        color: #2c3e50;
+      }
+      .button {
+        display: inline-block;
+        background-color: #9466ee;
+        color: white;
+        padding: 12px 30px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        margin-top: 10px;
+        transition: background-color 0.2s;
+        width: 200px;
+        text-align: center;
+      }
+      .button:hover {
+        background-color: #8250d6;
+      }
+      .button-secondary {
+        display: inline-block;
+        background-color: transparent;
+        color: #9466ee;
+        padding: 12px 30px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        margin-top: 10px;
+        border: 2px solid #9466ee;
+        transition: background-color 0.2s;
+        width: 200px;
+        text-align: center;
+        box-sizing: border-box;
+      }
+      .button-secondary:hover {
+        background-color: #f3ebff;
+      }
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 12px;
+        color: #888;
+      }
+      .footer a {
+        color: #888;
+        text-decoration: underline;
+      }
+      .button-group {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        margin-top: 20px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>ToDo - 待辦清單 1.1.1 更新</h1>
-        </div>
-        <div class="content">
-            <h2>✨ 全新版本登場！</h2>
-            <p>我們很高興向您宣布 1.1.1 版本正式發布。這次更新帶來了大家期待已久的功能，讓您的效率再升級。</p>
-            
-            <div class="feature">
-                <h3>📱 全新桌面小工具 (Widget)</h3>
-                <p>現在您可以直接在 iPhone 主畫面查看今日待辦事項！無需開啟 App，重要任務一目了然，讓您隨時掌握進度。</p>
+      <div class="header">
+        <h1>TaskCal 1.1.1 更新</h1>
+      </div>
+      <div class="content">
+        <h2>✨ 全新版本登場！</h2>
+        <p>
+          我們很高興向您宣布 1.1.1
+          版本正式發布。這次更新帶來了大家期待已久的功能，讓您的效率再升級。
+        </p>
 
-            </div>
-
-            <div class="feature">
-                <h3>⚡️ 極速效能體驗</h3>
-                <p>我們大幅優化了 App 的啟動速度與操作流暢度。現在建立、編輯、刪除任務的速度都變快了！同步更即時，使用體驗更順暢。</p>
-            </div>
-
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px;">
-                <tr>
-                    <td align="center">
-                        <a href="https://apps.apple.com/us/app/todo-%E5%BE%85%E8%BE%A6%E6%B8%85%E5%96%AE/id6753785239" style="display: inline-block; background-color: #9466EE; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 0;">立即更新</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td align="center">
-                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSclqPkboMn_BVtOHojyIsS47ydbZaU7MEjca_Qvkh_eHqpM5w/viewform" style="display: inline-block; background-color: transparent; color: #9466EE !important; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 0; border: 2px solid #9466EE;">提供意見回饋</a>
-                    </td>
-                </tr>
-            </table>
+        <div class="feature">
+          <h3>📱 全新桌面小工具 (Widget)</h3>
+          <p>
+            現在您可以直接在 iPhone 主畫面查看今日待辦事項！無需開啟
+            App，重要任務一目了然，讓您隨時掌握進度。
+          </p>
         </div>
-        <div class="footer">
-            <p>ToDo - 待辦清單 團隊 敬上</p>
-            <p><a href="{unsubscribe_url}">取消訂閱</a></p>
+
+        <div class="feature">
+          <h3>⚡️ 極速效能體驗</h3>
+          <p>
+            我們大幅優化了 App
+            的啟動速度與操作流暢度。現在建立、編輯、刪除任務的速度都變快了！同步更即時，使用體驗更順暢。
+          </p>
         </div>
+
+        <table
+          width="100%"
+          cellpadding="0"
+          cellspacing="0"
+          style="margin-top: 20px"
+        >
+          <tr>
+            <td align="center">
+              <a
+                href="https://apps.apple.com/us/app/todo-%E5%BE%85%E8%BE%A6%E6%B8%85%E5%96%AE/id6753785239"
+                style="
+                  display: inline-block;
+                  background-color: #9466ee;
+                  color: white !important;
+                  padding: 12px 30px;
+                  text-decoration: none;
+                  border-radius: 6px;
+                  font-weight: bold;
+                  margin: 10px 0;
+                "
+                >立即更新</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="center">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSclqPkboMn_BVtOHojyIsS47ydbZaU7MEjca_Qvkh_eHqpM5w/viewform"
+                style="
+                  display: inline-block;
+                  background-color: transparent;
+                  color: #9466ee !important;
+                  padding: 12px 30px;
+                  text-decoration: none;
+                  border-radius: 6px;
+                  font-weight: bold;
+                  margin: 10px 0;
+                  border: 2px solid #9466ee;
+                "
+                >提供意見回饋</a
+              >
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="footer">
+        <p>TaskCal 團隊 敬上</p>
+        <p><a href="{unsubscribe_url}">取消訂閱</a></p>
+      </div>
     </div>
-</body>
+  </body>
 </html>

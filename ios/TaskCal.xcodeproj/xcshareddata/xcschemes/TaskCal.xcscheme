@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "ToDo.app"
-               BlueprintName = "ToDo - &#x5f85;&#x8fa6;&#x6e05;&#x55ae;"
-               ReferencedContainer = "container:ToDo.xcodeproj">
+               BuildableName = "TaskCal.app"
+               BlueprintName = "TaskCal"
+               ReferencedContainer = "container:TaskCal.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "ToDo.app"
-            BlueprintName = "ToDo - &#x5f85;&#x8fa6;&#x6e05;&#x55ae;"
-            ReferencedContainer = "container:ToDo.xcodeproj">
+            BuildableName = "TaskCal.app"
+            BlueprintName = "TaskCal"
+            ReferencedContainer = "container:TaskCal.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>
@@ -84,9 +84,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "ToDo.app"
-            BlueprintName = "ToDo - &#x5f85;&#x8fa6;&#x6e05;&#x55ae;"
-            ReferencedContainer = "container:ToDo.xcodeproj">
+            BuildableName = "TaskCal.app"
+            BlueprintName = "TaskCal"
+            ReferencedContainer = "container:TaskCal.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

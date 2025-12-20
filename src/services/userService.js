@@ -65,9 +65,12 @@ export class UserService {
         };
       }
 
+      // 只選擇需要的欄位，減少數據傳輸量
       const { data, error } = await supabase
         .from("user_settings")
-        .select("*")
+        .select(
+          "language, theme, notifications_enabled, platform, last_active_at, display_name, reminder_settings, email_preferences"
+        )
         .eq("user_id", user.id)
         .single();
 
@@ -127,14 +130,17 @@ export class UserService {
         // 只記錄非 PGRST116 的錯誤（PGRST116 是記錄不存在的正常情況）
         if (error.code !== "PGRST116") {
           // 檢查是否為網絡錯誤
-          const isNetworkError = 
+          const isNetworkError =
             error.message?.includes("Network request failed") ||
             error.message?.includes("Failed to fetch") ||
             error.message?.includes("network") ||
             (!error.code && error.message);
-          
+
           if (isNetworkError) {
-            console.warn("⚠️ Network error fetching user settings:", error.message);
+            console.warn(
+              "⚠️ Network error fetching user settings:",
+              error.message
+            );
           } else {
             console.error("❌ Error fetching user settings:", {
               code: error.code,
@@ -172,12 +178,12 @@ export class UserService {
       };
     } catch (error) {
       // 檢查是否為網絡錯誤
-      const isNetworkError = 
+      const isNetworkError =
         error.message?.includes("Network request failed") ||
         error.message?.includes("Failed to fetch") ||
         error.message?.includes("network") ||
         (!error.code && error.message);
-      
+
       if (isNetworkError) {
         console.warn("⚠️ Network error in getUserSettings:", error.message);
       } else {
@@ -214,7 +220,9 @@ export class UserService {
         console.log("📦 Merged settings with pending request");
       } catch (error) {
         // 如果之前的請求失敗，繼續使用新設定
-        console.warn("⚠️ Previous update request failed, continuing with new settings");
+        console.warn(
+          "⚠️ Previous update request failed, continuing with new settings"
+        );
       }
     }
 
@@ -241,77 +249,83 @@ export class UserService {
           });
         }
 
-      // 從 auth.users 獲取 display_name（如果 settings 中沒有提供）
-      // 這樣可以確保 user_settings 中的 display_name 始終是最新的
-      const authDisplayName =
-        user.user_metadata?.name || user.email?.split("@")[0] || "User";
+        // 從 auth.users 獲取 display_name（如果 settings 中沒有提供）
+        // 這樣可以確保 user_settings 中的 display_name 始終是最新的
+        const authDisplayName =
+          user.user_metadata?.name || user.email?.split("@")[0] || "User";
 
-      // 只更新傳入的欄位，不影響其他欄位（如 theme）
-      const updateData = {
-        ...settings, // 只包含傳入的設定
-        platform: Platform.OS, // 總是更新平台資訊
-        last_active_at: new Date().toISOString(), // 總是更新最後活動時間
-        // 如果 settings 中沒有提供 display_name，則從 auth.users 同步
-        display_name:
-          settings.display_name !== undefined
-            ? settings.display_name
-            : authDisplayName,
-      };
-
-      // 使用 update 而不是 upsert，這樣只會更新指定的欄位，不會覆蓋其他欄位
-      // 但如果記錄不存在，update 會失敗，此時我們需要使用 upsert
-      let { data, error } = await supabase
-        .from("user_settings")
-        .update(updateData)
-        .eq("user_id", user.id)
-        .select()
-        .single();
-
-      // 如果 update 失敗且是因為記錄不存在，嘗試使用 upsert
-      if (error && (error.code === "PGRST116" || error.message?.includes("No rows"))) {
-        console.log("📝 Record not found, creating with upsert...");
-        const upsertData = {
-          user_id: user.id,
-          ...updateData,
+        // 只更新傳入的欄位，不影響其他欄位（如 theme）
+        const updateData = {
+          ...settings, // 只包含傳入的設定
+          platform: Platform.OS, // 總是更新平台資訊
+          last_active_at: new Date().toISOString(), // 總是更新最後活動時間
+          // 如果 settings 中沒有提供 display_name，則從 auth.users 同步
+          display_name:
+            settings.display_name !== undefined
+              ? settings.display_name
+              : authDisplayName,
         };
-        const upsertResult = await supabase
+
+        // 使用 update 而不是 upsert，這樣只會更新指定的欄位，不會覆蓋其他欄位
+        // 但如果記錄不存在，update 會失敗，此時我們需要使用 upsert
+        let { data, error } = await supabase
           .from("user_settings")
-          .upsert(upsertData, { onConflict: "user_id" })
+          .update(updateData)
+          .eq("user_id", user.id)
           .select()
           .single();
-        
-        if (upsertResult.error) {
-          console.error("Error upserting user settings:", {
-            code: upsertResult.error.code,
-            message: upsertResult.error.message,
-            details: upsertResult.error.details,
-            hint: upsertResult.error.hint,
-          });
-          throw upsertResult.error;
+
+        // 如果 update 失敗且是因為記錄不存在，嘗試使用 upsert
+        if (
+          error &&
+          (error.code === "PGRST116" || error.message?.includes("No rows"))
+        ) {
+          console.log("📝 Record not found, creating with upsert...");
+          const upsertData = {
+            user_id: user.id,
+            ...updateData,
+          };
+          const upsertResult = await supabase
+            .from("user_settings")
+            .upsert(upsertData, { onConflict: "user_id" })
+            .select()
+            .single();
+
+          if (upsertResult.error) {
+            console.error("Error upserting user settings:", {
+              code: upsertResult.error.code,
+              message: upsertResult.error.message,
+              details: upsertResult.error.details,
+              hint: upsertResult.error.hint,
+            });
+            throw upsertResult.error;
+          }
+
+          data = upsertResult.data;
+          error = null;
+        } else if (error) {
+          // 檢查是否為網絡錯誤
+          const isNetworkError =
+            error.message?.includes("Network request failed") ||
+            error.message?.includes("Failed to fetch") ||
+            error.message?.includes("network") ||
+            !error.code; // Supabase 錯誤通常有 code，網絡錯誤可能沒有
+
+          if (isNetworkError) {
+            console.warn(
+              "⚠️ Network error updating user settings:",
+              error.message
+            );
+          } else {
+            console.error("❌ Error updating user settings:", {
+              code: error.code,
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+            });
+          }
+          throw error;
         }
-        
-        data = upsertResult.data;
-        error = null;
-      } else if (error) {
-        // 檢查是否為網絡錯誤
-        const isNetworkError = 
-          error.message?.includes("Network request failed") ||
-          error.message?.includes("Failed to fetch") ||
-          error.message?.includes("network") ||
-          !error.code; // Supabase 錯誤通常有 code，網絡錯誤可能沒有
-        
-        if (isNetworkError) {
-          console.warn("⚠️ Network error updating user settings:", error.message);
-        } else {
-          console.error("❌ Error updating user settings:", {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-          });
-        }
-        throw error;
-      }
 
         return {
           language: data.language,
@@ -325,14 +339,17 @@ export class UserService {
         };
       } catch (error) {
         // 檢查是否為網絡錯誤
-        const isNetworkError = 
+        const isNetworkError =
           error.message?.includes("Network request failed") ||
           error.message?.includes("Failed to fetch") ||
           error.message?.includes("network") ||
           (!error.code && error.message);
-        
+
         if (isNetworkError) {
-          console.warn("⚠️ Network error in updateUserSettings:", error.message);
+          console.warn(
+            "⚠️ Network error in updateUserSettings:",
+            error.message
+          );
         } else {
           console.error("❌ Error in updateUserSettings:", {
             code: error.code,
@@ -352,7 +369,7 @@ export class UserService {
 
     // 保存當前請求
     this.pendingUpdateRequest = updatePromise;
-    
+
     return updatePromise;
   }
 
@@ -479,22 +496,28 @@ export class UserService {
         return null;
       }
 
+      // 只選擇需要的欄位，減少數據傳輸量
       const { data, error } = await supabase
         .from("user_settings")
-        .select("*")
+        .select(
+          "id, user_id, language, theme, notifications_enabled, platform, last_active_at, created_at, updated_at, display_name"
+        )
         .eq("user_id", user.id)
         .single();
 
       if (error) {
         // 檢查是否為網絡錯誤
-        const isNetworkError = 
+        const isNetworkError =
           error.message?.includes("Network request failed") ||
           error.message?.includes("Failed to fetch") ||
           error.message?.includes("network") ||
           (!error.code && error.message);
-        
+
         if (isNetworkError) {
-          console.warn("⚠️ Network error fetching user settings with auth:", error.message);
+          console.warn(
+            "⚠️ Network error fetching user settings with auth:",
+            error.message
+          );
         } else {
           console.error("❌ Error fetching user settings with auth:", {
             code: error.code,
@@ -526,14 +549,17 @@ export class UserService {
       };
     } catch (error) {
       // 檢查是否為網絡錯誤
-      const isNetworkError = 
+      const isNetworkError =
         error.message?.includes("Network request failed") ||
         error.message?.includes("Failed to fetch") ||
         error.message?.includes("network") ||
         (!error.code && error.message);
-      
+
       if (isNetworkError) {
-        console.warn("⚠️ Network error in getUserSettingsWithAuth:", error.message);
+        console.warn(
+          "⚠️ Network error in getUserSettingsWithAuth:",
+          error.message
+        );
       } else {
         console.error("❌ Error in getUserSettingsWithAuth:", {
           message: error?.message || "Unknown error",
@@ -573,13 +599,43 @@ export class UserService {
         .eq("user_id", user.id);
 
       if (error) {
-        console.error("Error updating platform info:", error);
+        // 檢查是否為網絡錯誤或權限問題
+        const isNetworkError =
+          error.message?.includes("Network request failed") ||
+          error.message?.includes("Failed to fetch") ||
+          error.message?.includes("network");
+
+        if (isNetworkError) {
+          console.warn(
+            "⚠️ Network error updating platform info:",
+            error.message
+          );
+        } else {
+          console.error("❌ Error updating platform info:", {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+          });
+        }
         return;
       }
 
       console.log(`📱 Platform updated: ${Platform.OS}`);
     } catch (error) {
-      console.error("Error updating platform info:", error);
+      // 檢查是否為網絡錯誤
+      const isNetworkError =
+        error.message?.includes("Network request failed") ||
+        error.message?.includes("Failed to fetch") ||
+        error.message?.includes("network");
+
+      if (isNetworkError) {
+        console.warn("⚠️ Network error updating platform info:", error.message);
+      } else {
+        console.error(
+          "❌ Error updating platform info:",
+          error.message || error
+        );
+      }
     }
   }
 

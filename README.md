@@ -1,4 +1,4 @@
-# ToDo - 待辦清單
+# TaskCal
 
 一個跨平台的 React Native 待辦事項應用程式，整合了日曆視圖、Google SSO 登入、Supabase 後端，並支援多語言介面（英文與繁體中文）。
 
@@ -72,7 +72,7 @@
 ### 設定
 
 - **切換語言：** 在英文與繁體中文之間切換
-- **查看版本：** 確認目前應用程式版本 (v1.1.7)
+- **查看版本：** 確認目前應用程式版本 (v1.2.1)
 - **法律資訊：** 查看使用條款與隱私權政策
 - **登出：** 安全登出並立即返回登入畫面
 
@@ -97,22 +97,14 @@
 
 ### 版本管理
 
-- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.1.7)
+- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.2.1)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 版本資訊
 
-### v1.1.7 (最新版本)
+### v1.2.1 (最新版本)
 
-- ✨ **增強提醒設定：** 啟用提醒通知時，現在預設包含三個時間選項（任務前 30、10 和 5 分鐘）
-- 🎨 **改善載入體驗：** 為帳號資訊和設定頁面添加骨架載入動畫，提升載入時的視覺體驗
-- 🧭 **更好的導航：** 修復了進入設定頁面時意外跳回行事曆的問題
-- 🎨 **介面優化：** 改進使用條款和隱私政策的排版，提升閱讀體驗
-- 🔧 **代碼品質：** 修復了多項效能問題，包括重複初始化和循環依賴
-- 🐛 **錯誤修復：** 修復提醒設定預設值不包含 5 分鐘選項的問題
-- 🐛 **錯誤修復：** 修復數據載入完成後導航重置的問題
-- 🐛 **錯誤修復：** 修復提醒設定在語言切換時的競態條件問題
-- 🌐 **錯誤修復：** 修復 web 版日曆建立按鈕位置問題
+- 🐛 **錯誤修復**：修復 App Store 審核中中文版應用程式名稱顯示問題
 
 ## 🤝 貢獻
 
@@ -124,12 +116,12 @@
 
 ---
 
-**ToDo - 待辦清單** - 專注於直覺任務管理與日曆介面的 MVP。  
+**TaskCal** - 專注於直覺任務管理與日曆介面的 MVP。  
 如有回饋或功能請求，請在 GitHub 上開啟 Issue！
 
 ---
 
-# ToDo - Task List
+# TaskCal
 
 A cross-platform React Native task management application with calendar view, Google SSO authentication, Supabase backend, and multi-language support (English and Traditional Chinese).
 
@@ -203,7 +195,7 @@ A cross-platform React Native task management application with calendar view, Go
 ### Settings
 
 - **Switch Language:** Toggle between English and Traditional Chinese
-- **View Version:** Check current application version (v1.1.7)
+- **View Version:** Check current application version (v1.2.1)
 - **Legal Information:** View terms of use and privacy policy
 - **Sign Out:** Securely sign out and return to login screen
 
@@ -228,22 +220,14 @@ A cross-platform React Native task management application with calendar view, Go
 
 ### Version Management
 
-- **Semantic Versioning** - Major.Minor.Patch (Current: v1.1.7)
+- **Semantic Versioning** - Major.Minor.Patch (Current: v1.2.1)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Version Information
 
-### v1.1.7 (Latest)
+### v1.2.1 (Latest)
 
-- ✨ **Enhanced Reminder Settings:** Reminder notifications now default to all three time options (30, 10, and 5 minutes before tasks) when enabled
-- 🎨 **Improved Loading Experience:** Added skeleton loading animations for account information and settings while data is being loaded
-- 🧭 **Better Navigation:** Fixed issue where navigating to Settings page would unexpectedly redirect back to Calendar
-- 🎨 **UI Refinements:** Improved Terms of Use and Privacy Policy layout for better readability
-- 🔧 **Code Quality:** Fixed various performance issues including duplicate initializations and circular dependencies
-- 🐛 **Bug Fix:** Fixed reminder settings not including 5-minute option by default
-- 🐛 **Bug Fix:** Fixed navigation resetting when data finishes loading
-- 🐛 **Bug Fix:** Fixed reminder settings race condition when switching language
-- 🌐 **Bug Fix:** Fixed web calendar create button position
+- 🐛 **Bug Fix:** Fixed Chinese app name display in App Store review
 
 ## 🤝 Contributing
 
@@ -255,5 +239,122 @@ This project is private and proprietary. All rights reserved. Unauthorized use, 
 
 ---
 
-**ToDo - Task List** - An MVP focused on intuitive task management with calendar interface.  
+**TaskCal** - An MVP focused on intuitive task management with calendar interface.  
 For feedback or feature requests, please open an Issue on GitHub!
+
+---
+
+# TaskCal
+
+Una aplicación multiplataforma de gestión de tareas React Native con vista de calendario, autenticación Google SSO, backend Supabase y soporte multiidioma (Inglés, Chino Tradicional y Español).
+
+## ✨ Características
+
+### Funciones Principales
+
+- **📅 Vista de Calendario:** Haz clic en cualquier fecha para ver, agregar, editar o mover tareas
+- **🎯 Gestión de Tareas:** Agrega, edita, elimina y mueve tareas fácilmente
+- **🔗 Enlaces URL:** Adjunta enlaces a las tareas para acceso rápido a recursos relacionados
+- **⏰ Seguimiento de Tiempo:** Campo de tiempo opcional para programar tareas
+- **✅ Finalización de Tareas:** Marca las tareas como completadas con un toque
+
+### Experiencia de Usuario
+
+- **🎨 UI Moderna:** Diseño limpio con Material Icons y esquinas redondeadas
+- **🌍 Soporte Multiidioma:** Inglés, Chino Tradicional (Taiwán) y Español
+- **🔐 Autenticación Google SSO:** Inicio de sesión seguro con Google OAuth
+- **☁️ Almacenamiento en la Nube:** Tareas y configuraciones de usuario almacenadas en Supabase
+- **👤 Configuraciones Personalizadas:** Experiencia personalizada basada en datos del usuario
+- **⚙️ Opciones de Configuración:** Cambiar idioma, ver versión, términos de uso y política de privacidad
+- **📊 Análisis de Datos:** Google Analytics 4 (Web) + Mixpanel (iOS) análisis de comportamiento del usuario
+- **🚀 Despliegue Web:** Optimizado para despliegue en Vercel
+- **📱 Widget de Pantalla de Inicio iOS:** Ve tus tareas diarias directamente en la pantalla de inicio (se actualiza automáticamente a medianoche)
+- **⚡ Optimización de Rendimiento:** Operaciones de tareas más rápidas y velocidades de actualización del widget
+
+## 📁 Estructura del Proyecto
+
+### Archivos Principales
+
+- `App.js` - Componente principal de la aplicación
+- `src/` - Directorio de código fuente
+  - `components/` - Componentes React
+  - `services/` - API y lógica de negocio
+  - `config/` - Archivos de configuración
+- `supabase_migration_*.sql` - Archivos de migración de base de datos
+- `supabaseClient.js` - Configuración del cliente Supabase
+
+### Documentación
+
+- `README.md` - Este archivo (Chino Tradicional / English / Español)
+- `docs/` - Guías de configuración y documentación técnica
+  - `SUPABASE_*.md` - Configuración de Supabase
+  - `XCODE_*.md` - Configuración de iOS/Xcode
+  - `archive/` - Guías archivadas
+
+## 📱 Instrucciones de Uso
+
+### Gestión de Tareas
+
+- **Agregar Tarea:** Haz clic en el botón "+" o en una fecha del calendario
+- **Editar Tarea:** Haz clic en cualquier tarea para modificar título, enlace o hora
+- **Completar Tarea:** Haz clic en la casilla para marcar como completada
+- **Eliminar Tarea:** Usa el botón de eliminar en modo de edición
+- **Cerrar Ventana:** Usa el botón X o haz clic fuera de la ventana
+
+### Configuración
+
+- **Cambiar Idioma:** Alterna entre Inglés, Chino Tradicional y Español
+- **Ver Versión:** Verifica la versión actual de la aplicación (v1.2.1)
+- **Información Legal:** Ver términos de uso y política de privacidad
+- **Cerrar Sesión:** Cierra sesión de forma segura y regresa a la pantalla de inicio de sesión
+
+## 🛠️ Stack Tecnológico
+
+### Frontend
+
+- **React Native** (Expo) - Framework multiplataforma
+- **React Navigation** - Navegación por pestañas y pila
+- **react-native-calendars** - Componente UI de calendario
+- **react-native-svg** - Renderizado de gráficos SVG
+- **Material Icons** - Biblioteca de iconos
+
+### Backend y Servicios
+
+- **Supabase** - Autenticación y base de datos PostgreSQL
+- **Supabase Edge Functions** - Funciones sin servidor
+- **Google OAuth 2.0** - SSO inicio de sesión único
+- **Google Analytics 4 (react-ga4)** - Análisis de uso web
+- **Mixpanel (mixpanel-react-native)** - Análisis iOS
+- **Vercel** - Plataforma de despliegue web
+
+### Gestión de Versiones
+
+- **Versionado Semántico** - Major.Minor.Patch (Actual: v1.2.1)
+- **npm scripts** - version:patch, version:minor, version:major
+
+## 📝 Información de Versión
+
+### v1.2.1 (Última)
+
+- 🐛 **Corrección de Errores:** Corregido el nombre de la aplicación en chino en la revisión de App Store
+
+### v1.2.0
+
+- ✨ **Actualización de Marca:** La aplicación ha sido renombrada a "TaskCal" con un nuevo diseño de logo moderno
+- 🎨 **Icono de Aplicación Mejorado:** Icono actualizado con fondo transparente para mejor consistencia visual en todos los temas de iOS
+- 📅 **Navegación de Calendario Mejorada:** Umbral de desplazamiento reducido para cambiar de mes de 50px a 30px para una navegación más responsiva
+- 🎯 **Mejor Visualización del Logo:** Se eliminó el fondo y la sombra del logo de la aplicación para evitar el efecto de logo dentro de logo
+- 🐛 Correcciones de errores y mejoras de estabilidad
+
+## 🤝 Contribuir
+
+¡Las contribuciones son bienvenidas! Por favor envía Issues o Pull Requests para reportar errores o sugerir nuevas funciones.
+
+## 📄 Licencia
+
+Este proyecto es privado y propietario. Todos los derechos reservados. El uso, copia o distribución no autorizados están prohibidos.
+
+---
+
+**TaskCal** - Un MVP enfocado en gestión intuitiva de tareas con interfaz de calendario.  
+¡Para comentarios o solicitudes de funciones, por favor abre un Issue en GitHub!

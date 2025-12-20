@@ -7,7 +7,8 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface EmailRequest {
@@ -30,15 +31,20 @@ serve(async (req: Request) => {
   try {
     // Early return if email is disabled
     if (!EMAIL_ENABLED) {
-      console.log(`📧 Update email function called but disabled (email sending temporarily disabled)`);
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: "Email sending temporarily disabled",
-        skipped: true 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      console.log(
+        `📧 Update email function called but disabled (email sending temporarily disabled)`
+      );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Email sending temporarily disabled",
+          skipped: true,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     // 1. Validate Environment Variables
@@ -50,7 +56,12 @@ serve(async (req: Request) => {
     }
 
     // 2. Parse Request Body
-    const { subject, html, testEmail, emailType = "product_updates" }: EmailRequest = await req.json();
+    const {
+      subject,
+      html,
+      testEmail,
+      emailType = "product_updates",
+    }: EmailRequest = await req.json();
 
     if (!subject || !html) {
       throw new Error("Missing 'subject' or 'html' in request body");
@@ -59,10 +70,7 @@ serve(async (req: Request) => {
     console.log(`📧 Email Type: ${emailType}`);
 
     // 3. Initialize Supabase Admin Client
-    const supabaseAdmin = createClient(
-      SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY
-    );
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // 4. Fetch Users
     let recipients: { email: string; id: string }[] = [];
@@ -73,8 +81,11 @@ serve(async (req: Request) => {
       recipients = [{ email: testEmail, id: "test-user-id" }];
     } else {
       // Fetch all users from auth.users
-      const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers({
-        perPage: 1000 // Adjust as needed
+      const {
+        data: { users },
+        error: userError,
+      } = await supabaseAdmin.auth.admin.listUsers({
+        perPage: 1000, // Adjust as needed
       });
 
       if (userError) throw userError;
@@ -121,7 +132,7 @@ serve(async (req: Request) => {
 
           // Check email preferences from user_settings
           const preferences = preferencesMap.get(u.id);
-          
+
           if (!preferences) {
             // If no preferences found, use defaults
             // product_updates: true (default on)
@@ -134,8 +145,13 @@ serve(async (req: Request) => {
           }
 
           // Check specific preference
-          if (emailType === "product_updates" && preferences?.product_updates === false) {
-            console.log(`🚫 Skipping user (product_updates disabled): ${u.email}`);
+          if (
+            emailType === "product_updates" &&
+            preferences?.product_updates === false
+          ) {
+            console.log(
+              `🚫 Skipping user (product_updates disabled): ${u.email}`
+            );
             return false;
           }
 
@@ -147,48 +163,53 @@ serve(async (req: Request) => {
           return true;
         })
         .map((u: any) => ({ email: u.email!, id: u.id }));
-      
-      console.log(`📢 Found ${recipients.length} eligible users for ${emailType} emails.`);
+
+      console.log(
+        `📢 Found ${recipients.length} eligible users for ${emailType} emails.`
+      );
     }
 
     // 5. Send Emails via Resend API
     const results = [];
-    
-    for (const recipient of recipients) {
-        // Generate Unsubscribe Link
-        const unsubscribeUrl = `${SUPABASE_URL}/functions/v1/unsubscribe?uid=${recipient.id}`;
-        
-        // Inject Link into HTML
-        // We replace {unsubscribe_url} with the actual link
-        const personalizedHtml = html.replace(/{unsubscribe_url}/g, unsubscribeUrl);
 
-        const res = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${RESEND_API_KEY}`,
-            },
-            body: JSON.stringify({
-                from: "ToDo - 待辦清單 <onboarding@resend.dev>", 
-                to: [recipient.email],
-                subject: subject,
-                html: personalizedHtml,
-                headers: {
-                  "List-Unsubscribe": `<${unsubscribeUrl}>`
-                }
-            }),
-        });
-        
-        const data = await res.json();
-        results.push({ email: recipient.email, status: res.status, data });
+    for (const recipient of recipients) {
+      // Generate Unsubscribe Link
+      const unsubscribeUrl = `${SUPABASE_URL}/functions/v1/unsubscribe?uid=${recipient.id}`;
+
+      // Inject Link into HTML
+      // We replace {unsubscribe_url} with the actual link
+      const personalizedHtml = html.replace(
+        /{unsubscribe_url}/g,
+        unsubscribeUrl
+      );
+
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "TaskCal <onboarding@resend.dev>",
+          to: [recipient.email],
+          subject: subject,
+          html: personalizedHtml,
+          headers: {
+            "List-Unsubscribe": `<${unsubscribeUrl}>`,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      results.push({ email: recipient.email, status: res.status, data });
     }
 
     return new Response(
-      JSON.stringify({ 
-        message: "Emails processed", 
+      JSON.stringify({
+        message: "Emails processed",
         emailType,
-        count: results.length, 
-        results 
+        count: results.length,
+        results,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

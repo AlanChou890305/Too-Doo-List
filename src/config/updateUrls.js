@@ -5,7 +5,7 @@
  */
 
 export const UPDATE_URLS = {
-  production: "itms-apps://itunes.apple.com/app/id6753785239", // App Store App ID
+  production: "https://apps.apple.com/us/app/taskcal/id6753785239", // App Store URL
 };
 
 /**

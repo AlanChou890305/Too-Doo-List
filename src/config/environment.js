@@ -12,10 +12,14 @@ export const getCurrentEnvironment = () => {
 export const environmentConfig = {
   production: {
     name: "Production",
-    appName: "ToDo - 待辦清單",
+    appName: "TaskCal",
     supabase: {
-      url: process.env.EXPO_PUBLIC_SUPABASE_URL || "https://ajbusqpjsjcuzzxuueij.supabase.co",
-      anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqYnVzcXBqc2pjdXp6eHV1ZWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkxNjY2NTksImV4cCI6MjA0NDc0MjY1OX0.1Aw4OcBWPZTiRbGJDLpMmBPWQcZYMmVvFqMxdKHgAuU",
+      url:
+        process.env.EXPO_PUBLIC_SUPABASE_URL ||
+        "https://ajbusqpjsjcuzzxuueij.supabase.co",
+      anonKey:
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqYnVzcXBqc2pjdXp6eHV1ZWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkxNjY2NTksImV4cCI6MjA0NDc0MjY1OX0.1Aw4OcBWPZTiRbGJDLpMmBPWQcZYMmVvFqMxdKHgAuU",
     },
     api: {
       baseUrl:

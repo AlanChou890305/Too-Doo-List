@@ -30,7 +30,7 @@ export class TaskService {
         .select("*")
         .eq("user_id", user.id)
         .order("date", { ascending: true })
-        .order("order_index", { ascending: true });
+        .order("created_at", { ascending: true });
 
       if (error) {
         console.error("Error fetching tasks:", error);
@@ -78,6 +78,9 @@ export class TaskService {
 
   // Get tasks for a specific date range
   static async getTasksByDateRange(startDate, endDate) {
+    // Store dates in variables accessible in catch block
+    const dateRange = { startDate, endDate };
+
     try {
       const {
         data: { user },
@@ -86,55 +89,91 @@ export class TaskService {
         return {};
       }
 
+      // 只選擇需要的欄位，減少數據傳輸量
+      console.log(
+        `📥 [TaskService] Fetching tasks for range: ${startDate} to ${endDate}`
+      );
+
       const { data, error } = await supabase
         .from("tasks")
-        .select("*")
+        .select("id, title, time, link, note, date, is_completed")
         .eq("user_id", user.id)
         .gte("date", startDate)
         .lte("date", endDate)
         .order("date", { ascending: true })
-        .order("order_index", { ascending: true });
+        .order("created_at", { ascending: true });
+
+      if (data) {
+        console.log(
+          `✅ [TaskService] Received ${data.length} tasks from database`
+        );
+      }
 
       if (error) {
-        console.error("Error fetching tasks for range:", error);
+        console.error(
+          "❌ [TaskService] Error fetching tasks for range:",
+          startDate,
+          "to",
+          endDate
+        );
+        console.error("❌ [TaskService] Error details:", {
+          code: error?.code || "UNKNOWN",
+          message: error?.message || String(error) || "Unknown error",
+          details: error?.details || null,
+          hint: error?.hint || null,
+          errorObject: error,
+          startDate,
+          endDate,
+          userId: user?.id || "unknown",
+        });
         return {};
       }
 
-      // Group tasks by date
+      // 預先提取用戶顯示名稱（只提取一次）
+      const userDisplayName =
+        user.user_metadata?.name ||
+        user.user_metadata?.full_name ||
+        user.email?.split("@")[0] ||
+        "User";
+
+      // Group tasks by date（優化：使用更高效的數據結構）
       const tasksByDate = {};
-      data.forEach((task) => {
-        if (!tasksByDate[task.date]) {
-          tasksByDate[task.date] = [];
-        }
+      if (data && data.length > 0) {
+        data.forEach((task) => {
+          const date = task.date;
+          if (!tasksByDate[date]) {
+            tasksByDate[date] = [];
+          }
 
-        // 提取用戶顯示名稱
-        const userDisplayName =
-          user.user_metadata?.name ||
-          user.user_metadata?.full_name ||
-          user.email?.split("@")[0] ||
-          "User";
-
-        tasksByDate[task.date].push({
-          id: task.id,
-          title: task.title,
-          time: task.time,
-          link: task.link,
-          note: task.note,
-          date: task.date,
-          checked: task.is_completed || task.checked || false, // 支援新舊欄位
-          is_completed: task.is_completed || task.checked || false,
-          user: {
-            id: user.id,
-            email: user.email,
-            displayName: userDisplayName,
-            avatar: user.user_metadata?.avatar_url,
-          },
+          tasksByDate[date].push({
+            id: task.id,
+            title: task.title,
+            time: task.time,
+            link: task.link,
+            note: task.note,
+            date: date,
+            checked: task.is_completed || task.checked || false, // 支援新舊欄位
+            is_completed: task.is_completed || task.checked || false,
+            user: {
+              id: user.id,
+              email: user.email,
+              displayName: userDisplayName,
+              avatar: user.user_metadata?.avatar_url,
+            },
+          });
         });
-      });
+      }
 
       return tasksByDate;
     } catch (error) {
-      console.error("Error in getTasksByDateRange:", error);
+      console.error("❌ [TaskService] Exception in getTasksByDateRange:", {
+        message: error?.message || String(error) || "Unknown error",
+        stack: error?.stack || null,
+        name: error?.name || "Error",
+        errorObject: error,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      });
       return {};
     }
   }
@@ -222,13 +261,7 @@ export class TaskService {
         date: task.date,
         is_completed: task.is_completed || task.checked || false, // 支援舊的 checked 欄位
         completed_at: task.completed_at || null,
-        priority: task.priority || "medium",
-        description:
-          task.description && task.description.trim() !== ""
-            ? task.description
-            : null,
-        tags: task.tags || [],
-        order_index: task.order_index || 0,
+        // priority, description, tags, order_index 欄位已移除，因為介面上不使用
       };
 
       // 驗證任務完整性
@@ -273,7 +306,7 @@ export class TaskService {
           const userSettings = await UserService.getUserSettings();
           // 如果 reminder_settings 不存在或 enabled 為 false，不安排通知
           const reminderSettings = userSettings.reminder_settings;
-          
+
           // 只有在用戶啟用提醒時才安排通知
           if (reminderSettings && reminderSettings.enabled === true) {
             // 這裡不需要手動保存 notificationIds，因為我們現在使用確定性 ID
@@ -284,7 +317,9 @@ export class TaskService {
               reminderSettings
             );
           } else {
-            console.log("Reminder notifications are disabled, skipping notification scheduling");
+            console.log(
+              "Reminder notifications are disabled, skipping notification scheduling"
+            );
           }
         } catch (error) {
           console.error("Error scheduling notification for new task:", error);
@@ -356,7 +391,11 @@ export class TaskService {
 
       // 如果任務時間被更新，重新安排通知
       // 只有在任務有時間時才處理通知（取消舊的並安排新的）
-      if ((updates.time !== undefined || updates.date !== undefined) && data.time && data.date) {
+      if (
+        (updates.time !== undefined || updates.date !== undefined) &&
+        data.time &&
+        data.date
+      ) {
         try {
           const userSettings = await UserService.getUserSettings();
           // 如果 reminder_settings 不存在或 enabled 為 false，不安排通知
@@ -375,7 +414,9 @@ export class TaskService {
               reminderSettings
             );
           } else {
-            console.log("Reminder notifications are disabled, skipping notification scheduling");
+            console.log(
+              "Reminder notifications are disabled, skipping notification scheduling"
+            );
           }
         } catch (error) {
           console.error("Error updating notifications for task:", error);
@@ -421,7 +462,10 @@ export class TaskService {
       try {
         await cancelTaskNotification(null, taskId);
       } catch (error) {
-        console.error("Error cancelling notifications for deleted task:", error);
+        console.error(
+          "Error cancelling notifications for deleted task:",
+          error
+        );
       }
 
       return true;

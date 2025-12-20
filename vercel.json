@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "to-do-production",
+  "name": "taskcal-production",
   "git": {
     "deploymentEnabled": {
       "main": true,

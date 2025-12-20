@@ -11,14 +11,14 @@ const getRedirectUrl = () => {
 // 環境配置
 const getEnvironmentConfig = () => {
   return {
-    name: "ToDo - 待辦清單",
-    slug: "too-doo-list",
-    version: "1.1.7",
+    name: "TaskCal",
+    slug: "taskcal",
+    version: "1.2.1",
     description: "Simple and intuitive task management app with Google SSO",
-    scheme: "too-doo-list",
+    scheme: "taskcal",
     bundleIdentifier: "com.cty0305.too.doo.list",
     package: "com.cty0305.too.doo.list",
-    iosBuildNumber: "7",
+    iosBuildNumber: "9",
   };
 };
 
@@ -64,44 +64,44 @@ module.exports = {
         {
           name: "description",
           content:
-            "ToDo - 待辦清單 - Simple and intuitive task management app with Google SSO. Organize your daily tasks, boost productivity, and achieve your goals with our clean and easy-to-use to-do list app.",
+            "TaskCal - Simple and intuitive task management app with Google SSO. Organize your daily tasks, boost productivity, and achieve your goals with our clean and easy-to-use calendar-based to-do list app.",
         },
         {
           name: "keywords",
           content:
             "task management, to-do list, productivity app, calendar, Google SSO, task organizer, daily planner, goal tracking",
         },
-        { name: "author", content: "ToDo - 待辦清單 Team" },
+        { name: "author", content: "TaskCal Team" },
         { name: "viewport", content: "width=device-width, initial-scale=1.0" },
         {
           property: "og:title",
-          content: "ToDo - 待辦清單 - Simple Task Management App",
+          content: "TaskCal - Simple Task Management App",
         },
         {
           property: "og:description",
           content:
-            "Transform your productivity with ToDo - 待辦清單! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
+            "Transform your productivity with TaskCal! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
         },
         { property: "og:image", content: "./assets/logo.png" },
         { property: "og:type", content: "website" },
         { property: "og:url", content: getRedirectUrl() },
-        { property: "og:site_name", content: "ToDo - 待辦清單" },
+        { property: "og:site_name", content: "TaskCal" },
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: "ToDo - 待辦清單 - Simple Task Management App",
+          content: "TaskCal - Simple Task Management App",
         },
         {
           name: "twitter:description",
           content:
-            "Transform your productivity with ToDo - 待辦清單! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
+            "Transform your productivity with TaskCal! A simple and intuitive task management app featuring Google SSO, calendar integration, and clean organization tools. Stay focused, achieve more, and never miss a deadline again.",
         },
         { name: "twitter:image", content: "./assets/logo.png" },
         { name: "twitter:creator", content: "@TooDooList" },
         { name: "theme-color", content: "#6c63ff" },
         { name: "apple-mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-        { name: "apple-mobile-web-app-title", content: "ToDo - 待辦清單" },
+        { name: "apple-mobile-web-app-title", content: "TaskCal" },
       ],
     },
 
@@ -125,7 +125,7 @@ module.exports = {
 
     // Splash screen configuration
     splash: {
-      image: "./assets/logo.png",
+      image: "./assets/logo-white.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
