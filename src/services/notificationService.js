@@ -31,8 +31,10 @@ function getNotificationText(minutesBefore, translations) {
       };
     default:
       return {
-        title: translations.taskReminder || "Task Reminder",
-        body: `Your task is starting in ${minutesBefore} minutes`,
+        title: translations?.taskReminder || "Task Reminder",
+        body:
+          translations?.taskStartingSoon ||
+          `Your task is starting in ${minutesBefore} minutes`,
       };
   }
 }
@@ -208,11 +210,14 @@ export async function scheduleTaskNotification(
       const taskTitle = task.title;
 
       // 準備通知內容
+      const defaultTitle = translations?.taskReminder || "Task Reminder";
+      const defaultBody =
+        translations?.taskStartingSoon || "Your task is starting soon";
       const notificationContent = {
         identifier: identifier, // 指定 ID，防止重複
         content: {
-          title: notificationText?.title || "Task Reminder",
-          body: `${notificationText?.body || "Your task is starting soon"}: ${taskTitle}`,
+          title: notificationText?.title || defaultTitle,
+          body: `${notificationText?.body || defaultBody}: ${taskTitle}`,
           data: {
             taskId: task.id,
             minutesBefore: minutesBefore,
