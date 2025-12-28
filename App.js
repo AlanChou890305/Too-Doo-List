@@ -5229,6 +5229,7 @@ function CalendarScreen({ navigation, route }) {
   const [taskLink, setTaskLink] = useState("");
   const [taskDate, setTaskDate] = useState(selectedDate);
   const [taskNote, setTaskNote] = useState("");
+  const [noteInputHeight, setNoteInputHeight] = useState(100); // 動態高度，初始 100
   const [linkInputFocused, setLinkInputFocused] = useState(false);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
@@ -5682,6 +5683,7 @@ function CalendarScreen({ navigation, route }) {
     setTaskLink("");
     setTaskDate(date);
     setTaskNote("");
+    setNoteInputHeight(100); // 重置為初始高度
     setLinkInputFocused(false);
     setSelectedDate(date);
     setModalVisible(true);
@@ -5693,7 +5695,16 @@ function CalendarScreen({ navigation, route }) {
     setTaskTime(formatTimeDisplay(task.time) || "");
     setTaskLink(task.link || "");
     setTaskDate(task.date);
-    setTaskNote(task.note || "");
+    const note = task.note || "";
+    setTaskNote(note);
+    // 根據現有 note 內容設置初始高度
+    if (note) {
+      const lineCount = note.split("\n").length;
+      const estimatedHeight = Math.max(100, lineCount * 24 + 24);
+      setNoteInputHeight(Math.min(estimatedHeight, 300));
+    } else {
+      setNoteInputHeight(100);
+    }
     setSelectedDate(task.date);
     setModalVisible(true);
   };
@@ -5776,6 +5787,7 @@ function CalendarScreen({ navigation, route }) {
     setTaskLink("");
     setTaskDate(selectedDate);
     setTaskNote("");
+    setNoteInputHeight(100); // 重置為初始高度
     setLinkInputFocused(false);
 
     try {
@@ -6042,6 +6054,7 @@ function CalendarScreen({ navigation, route }) {
     setTaskLink("");
     setTaskDate(selectedDate);
     setTaskNote("");
+    setNoteInputHeight(100); // 重置為初始高度
     setLinkInputFocused(false);
 
     // Check if it's a temporary task
@@ -6949,17 +6962,28 @@ function CalendarScreen({ navigation, route }) {
                         backgroundColor: theme.input,
                         borderColor: theme.inputBorder,
                         color: theme.text,
+                        height: Math.max(100, Math.min(noteInputHeight, 300)), // 動態高度，最小 100，最大 300
                       },
                     ]}
                     value={taskNote}
-                    onChangeText={setTaskNote}
+                    onChangeText={(text) => {
+                      setTaskNote(text);
+                      // 根據內容動態調整高度
+                      const lineCount = text.split("\n").length;
+                      const estimatedHeight = Math.max(100, lineCount * 24 + 24); // 每行約 24px + padding
+                      setNoteInputHeight(Math.min(estimatedHeight, 300)); // 最大 300px
+                    }}
                     placeholder={t.notePlaceholder}
                     placeholderTextColor={theme.textPlaceholder}
                     multiline={true}
-                    numberOfLines={4}
                     textAlignVertical="top"
                     accessibilityLabel="Task note input"
                     accessibilityHint="Enter additional notes for this task"
+                    onContentSizeChange={(event) => {
+                      // 根據實際內容高度調整
+                      const { height } = event.nativeEvent.contentSize;
+                      setNoteInputHeight(Math.max(100, Math.min(height + 24, 300))); // 加上 padding
+                    }}
                     onFocus={() => {
                       setTimeout(() => {
                         modalScrollViewRef.current?.scrollToEnd({
@@ -7701,10 +7725,54 @@ export default function App() {
   const [loadingTheme, setLoadingTheme] = useState(true);
 
   // Load theme function (定義在外部，可以在登入後重新調用)
+  // 注意：這個函數會在 App 啟動時和登入後調用
+  // 在 App 啟動時，會通過 useEffect 中的 startEarlyPreload 來協調
   const loadTheme = React.useCallback(async () => {
     try {
-      console.log("🎨 Loading theme settings from Supabase...");
-      const userSettings = await UserService.getUserSettings();
+      console.log("🎨 Loading theme settings...");
+      
+      // 檢查預載入是否正在進行中
+      if (dataPreloadService.isPreloading) {
+        console.log("⏳ [Theme] Preload in progress, waiting for userSettings...");
+        try {
+          // 等待預載入的 userSettings 部分完成
+          await new Promise((resolve) => {
+            let checkCount = 0;
+            const maxChecks = 40; // 最多檢查 40 次（2秒）
+            const checkInterval = setInterval(() => {
+              checkCount++;
+              const cachedData = dataPreloadService.getCachedData();
+              if (cachedData?.userSettings) {
+                console.log(`✅ [Theme] UserSettings found after ${checkCount * 50}ms`);
+                clearInterval(checkInterval);
+                resolve();
+                return;
+              }
+              // 最多等待 2 秒
+              if (checkCount >= maxChecks) {
+                console.log(`⏳ [Theme] Timeout after ${maxChecks * 50}ms, proceeding...`);
+                clearInterval(checkInterval);
+                resolve();
+              }
+            }, 50); // 每 50ms 檢查一次
+          });
+        } catch (error) {
+          console.log("⏳ [Theme] Preload wait error:", error);
+        }
+      }
+      
+      // 優先檢查預載入緩存
+      const cachedData = dataPreloadService.getCachedData();
+      let userSettings = cachedData?.userSettings;
+      
+      if (userSettings) {
+        console.log("📦 [Theme] Using preloaded user settings");
+      } else {
+        // 如果還是沒有緩存，才從 API 載入
+        console.log("📥 [Theme] Loading theme settings from Supabase...");
+        userSettings = await UserService.getUserSettings();
+      }
+      
       console.log("📦 Theme settings received:", userSettings);
       console.log(
         "📦 Theme value:",
@@ -7786,11 +7854,82 @@ export default function App() {
     ) {
       ReactGA.send({ hitType: "pageview", page: window.location.pathname });
     }
+
+    // 在 App 層級提前開始預載入（如果有 session）
+    // 這樣可以確保 loadLanguage/loadTheme 能使用預載入緩存
+    const startEarlyPreload = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          console.log("🚀 [App] Starting early preload...");
+          // 開始預載入，但不等待完成
+          dataPreloadService.preloadAllData().catch((preloadError) => {
+            console.error("❌ [App] Error in early preload:", preloadError);
+          });
+          return true; // 返回 true 表示預載入已開始
+        }
+        return false; // 沒有 session，不預載入
+      } catch (error) {
+        console.error("❌ [App] Error checking session for early preload:", error);
+        return false;
+      }
+    };
+    
+    // 先啟動預載入（如果有的話）
+    const preloadStartedPromise = startEarlyPreload();
+
     // Load language from Supabase user settings
     const loadLanguage = async () => {
       try {
-        console.log("🌐 Loading language settings from Supabase...");
-        const userSettings = await UserService.getUserSettings();
+        console.log("🌐 Loading language settings...");
+        
+        // 等待預載入開始（如果有的話）
+        const preloadStarted = await preloadStartedPromise;
+        
+        // 如果預載入已開始，等待 userSettings 載入完成（最多等待 2 秒）
+        if (preloadStarted && dataPreloadService.isPreloading) {
+          console.log("⏳ [Language] Preload in progress, waiting for userSettings...");
+          try {
+            // 等待預載入的 userSettings 部分完成
+            await new Promise((resolve) => {
+              let checkCount = 0;
+              const maxChecks = 40; // 最多檢查 40 次（2秒）
+              const checkInterval = setInterval(() => {
+                checkCount++;
+                const cachedData = dataPreloadService.getCachedData();
+                if (cachedData?.userSettings) {
+                  console.log(`✅ [Language] UserSettings found after ${checkCount * 50}ms`);
+                  clearInterval(checkInterval);
+                  resolve();
+                  return;
+                }
+                // 最多等待 2 秒
+                if (checkCount >= maxChecks) {
+                  console.log(`⏳ [Language] Timeout after ${maxChecks * 50}ms, proceeding...`);
+                  clearInterval(checkInterval);
+                  resolve();
+                }
+              }, 50); // 每 50ms 檢查一次
+            });
+          } catch (error) {
+            console.log("⏳ [Language] Preload wait error:", error);
+          }
+        }
+        
+        // 優先檢查預載入緩存
+        const cachedData = dataPreloadService.getCachedData();
+        let userSettings = cachedData?.userSettings;
+        
+        if (userSettings) {
+          console.log("📦 [Language] Using preloaded user settings");
+        } else {
+          // 如果還是沒有緩存，才從 API 載入
+          console.log("📥 [Language] Loading language settings from Supabase...");
+          userSettings = await UserService.getUserSettings();
+        }
+        
         console.log("📦 User settings received:", userSettings);
 
         if (
@@ -7833,8 +7972,14 @@ export default function App() {
       }
     };
 
-    loadLanguage();
-    loadTheme();
+    // 先等待預載入開始，然後再載入 language 和 theme
+    // 這樣可以確保它們能使用預載入緩存
+    (async () => {
+      await preloadStartedPromise;
+      loadLanguage();
+      loadTheme();
+    })();
+    
     updatePlatformOnStart();
   }, [loadTheme]);
 

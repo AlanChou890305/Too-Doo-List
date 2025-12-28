@@ -9,8 +9,8 @@ import { getUpdateUrl } from "../config/updateUrls";
  */
 class VersionService {
   constructor() {
-    this.currentVersion = Application.nativeApplicationVersion || "1.2.1";
-    this.currentBuildNumber = Application.nativeBuildVersion || "9";
+    this.currentVersion = Application.nativeApplicationVersion || "1.2.2";
+    this.currentBuildNumber = Application.nativeBuildVersion || "10";
     this.latestVersion = null;
     this.updateUrl = null;
   }

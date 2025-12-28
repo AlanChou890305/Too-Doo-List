@@ -71,8 +71,8 @@
 
 ### 設定
 
-- **切換語言：** 在英文與繁體中文之間切換
-- **查看版本：** 確認目前應用程式版本 (v1.2.1)
+- **切換語言：** 在英文、繁體中文與西班牙文之間切換
+- **查看版本：** 確認目前應用程式版本 (v1.2.2)
 - **法律資訊：** 查看使用條款與隱私權政策
 - **登出：** 安全登出並立即返回登入畫面
 
@@ -97,14 +97,17 @@
 
 ### 版本管理
 
-- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.2.1)
+- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.2.2)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 版本資訊
 
-### v1.2.1 (最新版本)
+### v1.2.2 (最新版本)
 
-- 🐛 **錯誤修復**：修復 App Store 審核中中文版應用程式名稱顯示問題
+- ⚡ **性能改進**：優化資料預載入，採用優先載入順序，加快 App 啟動速度
+- 🚀 **並行載入**：用戶設定和任務並行載入，減少等待時間
+- 📝 **智能 Note 輸入**：Note 輸入框動態調整高度，最多顯示 12 行，提供更好的編輯體驗
+- 💾 **立即緩存**：資料載入完成後立即更新緩存，各畫面間重複使用，避免重複 API 請求
 
 ## 🤝 貢獻
 
@@ -194,8 +197,8 @@ A cross-platform React Native task management application with calendar view, Go
 
 ### Settings
 
-- **Switch Language:** Toggle between English and Traditional Chinese
-- **View Version:** Check current application version (v1.2.1)
+- **Switch Language:** Toggle between English, Traditional Chinese, and Spanish
+- **View Version:** Check current application version (v1.2.2)
 - **Legal Information:** View terms of use and privacy policy
 - **Sign Out:** Securely sign out and return to login screen
 
@@ -220,14 +223,17 @@ A cross-platform React Native task management application with calendar view, Go
 
 ### Version Management
 
-- **Semantic Versioning** - Major.Minor.Patch (Current: v1.2.1)
+- **Semantic Versioning** - Major.Minor.Patch (Current: v1.2.2)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Version Information
 
-### v1.2.1 (Latest)
+### v1.2.2 (Latest)
 
-- 🐛 **Bug Fix:** Fixed Chinese app name display in App Store review
+- ⚡ **Performance Improvements**: Optimized data preloading with priority loading for faster app startup
+- 🚀 **Parallel Loading**: User settings and tasks now load in parallel, reducing wait times
+- 📝 **Smart Note Input**: Note input field dynamically adjusts height (up to 12 lines) for better editing experience
+- 💾 **Immediate Caching**: Data is cached immediately as it loads, reused across screens to avoid duplicate API requests
 
 ## 🤝 Contributing
 
@@ -304,7 +310,7 @@ Una aplicación multiplataforma de gestión de tareas React Native con vista de 
 ### Configuración
 
 - **Cambiar Idioma:** Alterna entre Inglés, Chino Tradicional y Español
-- **Ver Versión:** Verifica la versión actual de la aplicación (v1.2.1)
+- **Ver Versión:** Verifica la versión actual de la aplicación (v1.2.2)
 - **Información Legal:** Ver términos de uso y política de privacidad
 - **Cerrar Sesión:** Cierra sesión de forma segura y regresa a la pantalla de inicio de sesión
 
@@ -329,22 +335,17 @@ Una aplicación multiplataforma de gestión de tareas React Native con vista de 
 
 ### Gestión de Versiones
 
-- **Versionado Semántico** - Major.Minor.Patch (Actual: v1.2.1)
+- **Versionado Semántico** - Major.Minor.Patch (Actual: v1.2.2)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Información de Versión
 
-### v1.2.1 (Última)
+### v1.2.2 (Última)
 
-- 🐛 **Corrección de Errores:** Corregido el nombre de la aplicación en chino en la revisión de App Store
-
-### v1.2.0
-
-- ✨ **Actualización de Marca:** La aplicación ha sido renombrada a "TaskCal" con un nuevo diseño de logo moderno
-- 🎨 **Icono de Aplicación Mejorado:** Icono actualizado con fondo transparente para mejor consistencia visual en todos los temas de iOS
-- 📅 **Navegación de Calendario Mejorada:** Umbral de desplazamiento reducido para cambiar de mes de 50px a 30px para una navegación más responsiva
-- 🎯 **Mejor Visualización del Logo:** Se eliminó el fondo y la sombra del logo de la aplicación para evitar el efecto de logo dentro de logo
-- 🐛 Correcciones de errores y mejoras de estabilidad
+- ⚡ **Mejoras de Rendimiento**: Optimización de precarga de datos con carga prioritaria para un inicio más rápido de la app
+- 🚀 **Carga Paralela**: La configuración del usuario y las tareas ahora se cargan en paralelo, reduciendo los tiempos de espera
+- 📝 **Entrada Inteligente de Notas**: El campo de entrada de notas ajusta dinámicamente la altura (hasta 12 líneas) para una mejor experiencia de edición
+- 💾 **Caché Inmediata**: Los datos se almacenan en caché inmediatamente al cargarse, reutilizados entre pantallas para evitar solicitudes API duplicadas
 
 ## 🤝 Contribuir
 

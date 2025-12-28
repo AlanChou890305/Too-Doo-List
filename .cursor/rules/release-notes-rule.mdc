@@ -1,0 +1,68 @@
+# Release Notes 更新規則
+
+## 規則說明
+
+當用戶要求更新 iOS 版本時，必須更新 `RELEASE_NOTES.md` 文件。這個文件包含所有 App Store Connect 提交時需要的內容。
+
+## 文件結構
+
+`RELEASE_NOTES.md` 包含以下部分：
+
+1. **Version Information** - 版本號、Build 號、發布日期
+2. **What's New** - 版本更新說明（英文、繁體中文、西班牙文）
+3. **Promotional Text** - 促銷文字（用於 App Store 頁面）
+4. **Keywords** - 關鍵字
+5. **Marketing Description** - 行銷描述（可選）
+6. **Release Checklist** - 發布檢查清單
+
+## 更新流程
+
+當用戶說「更新一版 iOS」或「準備推一版到 App Store」時：
+
+1. **更新版本號**（參考 version-update-checklist.mdc）
+2. **更新 RELEASE_NOTES.md**：
+   - 更新版本號和 Build 號
+   - 更新 What's New 內容（從 WHATS_NEW.md 同步或重新撰寫）
+   - 更新 Promotional Text（簡短、吸引人的描述）
+   - 更新 Keywords（相關關鍵字）
+   - 更新 Marketing Description（如果需要）
+   - 更新 Release Checklist
+
+3. **注意事項**：
+   - WHATS_NEW.md 已不再使用，所有內容都在 RELEASE_NOTES.md 中
+   - 如果 WHATS_NEW.md 存在，可以刪除（內容已整合到 RELEASE_NOTES.md）
+
+## Promotional Text 撰寫指南
+
+- **長度**：最多 170 個字符
+- **內容**：簡短、吸引人、突出主要改進
+- **語言**：提供英文、繁體中文、西班牙文版本
+- **重點**：強調用戶最關心的改進（性能、新功能、修復等）
+
+## 範例
+
+### Promotional Text 範例
+
+**English:**
+"Experience faster app loading and smoother task management with our latest performance improvements."
+
+**繁體中文:**
+"體驗更快的載入速度和更流暢的任務管理。"
+
+**Español:**
+"Experimenta una carga más rápida de la app y una gestión de tareas más fluida."
+
+## 注意事項
+
+- RELEASE_NOTES.md 只保留最新版本的內容
+- 每次更新版本時，移除舊版本的內容
+- 確保所有語言版本的內容都更新
+- Promotional Text 要簡潔有力，突出重點
+
+## App Store Connect 使用方式
+
+提交到 App Store Connect 時：
+1. **What's New** → 從 RELEASE_NOTES.md 的 What's New 部分複製
+2. **Promotional Text** → 從 RELEASE_NOTES.md 的 Promotional Text 部分複製
+3. **Keywords** → 從 RELEASE_NOTES.md 的 Keywords 部分複製
+4. **Marketing Description** → 如果需要，從 RELEASE_NOTES.md 複製

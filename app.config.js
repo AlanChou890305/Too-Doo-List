@@ -13,12 +13,12 @@ const getEnvironmentConfig = () => {
   return {
     name: "TaskCal",
     slug: "taskcal",
-    version: "1.2.1",
+    version: "1.2.2",
     description: "Simple and intuitive task management app with Google SSO",
     scheme: "taskcal",
     bundleIdentifier: "com.cty0305.too.doo.list",
     package: "com.cty0305.too.doo.list",
-    iosBuildNumber: "9",
+    iosBuildNumber: "10",
   };
 };
 
@@ -43,7 +43,7 @@ module.exports = {
       bundleIdentifier: envConfig.bundleIdentifier,
       buildNumber: envConfig.iosBuildNumber || "1",
       supportsTablet: false,
-      deploymentTarget: "13.0",
+      deploymentTarget: "15.1",
       associatedDomains: getAssociatedDomains(),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,

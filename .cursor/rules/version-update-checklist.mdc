@@ -1,0 +1,54 @@
+# 版本更新完整檢查清單
+
+## 當用戶要求更新版本號或「更新一版 iOS」時，必須檢查並更新以下所有文件
+
+### 1. 核心配置文件 ✅
+
+- [ ] `package.json` → `"version"` 欄位
+- [ ] `app.config.js` → `version` 和 `iosBuildNumber` 欄位
+- [ ] `src/services/versionService.js` → `currentVersion` 和 `currentBuildNumber` 預設值
+
+### 2. iOS 原生文件 ⚠️ 容易遺漏
+
+- [ ] `ios/TaskCal/Info.plist` → `CFBundleShortVersionString` (版本號)
+- [ ] `ios/TaskCal/Info.plist` → `CFBundleVersion` (Build 號碼)
+- [ ] `ios/TaskCalWidget/Info.plist` → `CFBundleShortVersionString` (版本號)
+- [ ] `ios/TaskCalWidget/Info.plist` → `CFBundleVersion` (Build 號碼)
+- [ ] `ios/TaskCal.xcodeproj/project.pbxproj` → `MARKETING_VERSION` (所有出現的地方)
+- [ ] `ios/TaskCal.xcodeproj/project.pbxproj` → `CURRENT_PROJECT_VERSION` (所有出現的地方)
+
+### 3. 文件文件
+
+- [ ] `README.md` → 所有語言版本的版本資訊（繁體中文、English、Español）
+- [ ] `RELEASE_NOTES.md` → **更新完整版本發布文件**（包含 What's New、Promotional Text、Keywords、Marketing Description）
+- [ ] `README.md` → 使用說明中的版本號引用
+
+## 檢查命令
+
+更新完成後，使用以下命令驗證：
+
+```bash
+# 檢查版本號是否一致
+grep -r "1\.2\.[0-9]" package.json app.config.js ios/TaskCal/Info.plist ios/TaskCalWidget/Info.plist
+
+# 檢查 Build 號碼是否一致
+grep -r "CURRENT_PROJECT_VERSION\|CFBundleVersion" ios/
+```
+
+## 常見錯誤
+
+❌ **錯誤**：只更新 `package.json` 和 `app.config.js`，忘記更新 `Info.plist` 和 `project.pbxproj`
+✅ **正確**：更新所有 9 個位置的文件
+
+## 為什麼會漏掉？
+
+1. **Info.plist 和 project.pbxproj** 是原生 iOS 文件，Expo 不會自動更新
+2. 這些文件在 `ios/` 目錄下，容易被忽略
+3. 需要手動搜尋並替換多個位置
+
+## 解決方案
+
+每次更新版本時：
+1. 使用此檢查清單逐項檢查
+2. 使用 grep 命令驗證所有文件
+3. 特別注意 `ios/` 目錄下的文件

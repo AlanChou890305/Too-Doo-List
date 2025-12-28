@@ -173,32 +173,44 @@ Files to check:
 - `README.md` - Check both Traditional Chinese and English sections
 - `package.json` - Verify "version" field
 
-### Before Xcode Archive
+### Before Xcode Archive / App Store Submission
 
-**When preparing to create an Xcode archive, you MUST:**
+**When preparing to update version for App Store submission, you MUST update ALL of these files:**
 
-1. **Update Version and Build Number:**
+1. **Core Configuration Files (ALWAYS CHECK):**
 
-   - Update `CFBundleShortVersionString` in `ios/ToDo/Info.plist` (version number, e.g., "1.1.3")
-   - Update `CFBundleVersion` in `ios/ToDo/Info.plist` (build number, increment by 1)
-   - Update `CFBundleShortVersionString` and `CFBundleVersion` in `ios/ToDoWidget/Info.plist` (must match main app)
-   - Update `package.json` "version" field to match the new version
+   - ✅ `package.json` → `"version": "{latest_version}"` (e.g., "1.2.2")
+   - ✅ `app.config.js` → `version: "{latest_version}"` and `iosBuildNumber: "{build_number}"` (e.g., "10")
+   - ✅ `src/services/versionService.js` → `currentVersion` and `currentBuildNumber` fallback values
 
-2. **Update README.md Version Information:**
+2. **iOS Native Files (CRITICAL - EASY TO MISS):**
 
-   - Update the version number in Traditional Chinese section under "## 📝 版本資訊"
-   - Update the version number in English section under "## 📝 Version Information"
-   - **Remove all old version history** - Only keep the latest version (e.g., v1.1.7) in the changelog
-   - Add changelog entries for the new version with key changes/fixes
-   - Update version references in usage instructions (e.g., "確認目前應用程式版本 (v1.1.7)")
+   - ✅ `ios/TaskCal/Info.plist` → `CFBundleShortVersionString` = "{latest_version}" (e.g., "1.2.2")
+   - ✅ `ios/TaskCal/Info.plist` → `CFBundleVersion` = "{build_number}" (e.g., "10")
+   - ✅ `ios/TaskCalWidget/Info.plist` → `CFBundleShortVersionString` = "{latest_version}" (must match main app)
+   - ✅ `ios/TaskCalWidget/Info.plist` → `CFBundleVersion` = "{build_number}" (must match main app)
+   - ✅ `ios/TaskCal.xcodeproj/project.pbxproj` → `MARKETING_VERSION` = "{latest_version}" (all occurrences)
+   - ✅ `ios/TaskCal.xcodeproj/project.pbxproj` → `CURRENT_PROJECT_VERSION` = "{build_number}" (all occurrences)
 
-3. **Version Synchronization:**
-   All these must match (use the latest version from `package.json`):
-   - `package.json` → `"version": "{latest_version}"` (e.g., "1.1.7")
-   - `ios/ToDo/Info.plist` → `CFBundleShortVersionString` = "{latest_version}"
-   - `ios/ToDo/Info.plist` → `CFBundleVersion` = incremented build number
-   - `ios/ToDoWidget/Info.plist` → `CFBundleShortVersionString` and `CFBundleVersion` (match main app)
-   - `README.md` → Version information in both Traditional Chinese and English sections (use latest version)
+3. **Documentation Files:**
+
+   - ✅ `README.md` → Version information in Traditional Chinese, English, and Spanish sections
+   - ✅ `WHATS_NEW.md` → Add new version entry, remove old versions
+   - ✅ Update version references in usage instructions (e.g., "確認目前應用程式版本 (v1.2.2)")
+
+4. **Version Synchronization Checklist:**
+   
+   **ALL of these must match (use the latest version from `package.json`):**
+   - [ ] `package.json` → `"version": "{latest_version}"`
+   - [ ] `app.config.js` → `version: "{latest_version}"` and `iosBuildNumber: "{build_number}"`
+   - [ ] `src/services/versionService.js` → fallback version values
+   - [ ] `ios/TaskCal/Info.plist` → `CFBundleShortVersionString` and `CFBundleVersion`
+   - [ ] `ios/TaskCalWidget/Info.plist` → `CFBundleShortVersionString` and `CFBundleVersion`
+   - [ ] `ios/TaskCal.xcodeproj/project.pbxproj` → `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` (all occurrences)
+   - [ ] `README.md` → Version information in all language sections
+   - [ ] `WHATS_NEW.md` → Latest version only
+
+**⚠️ IMPORTANT:** The iOS native files (`Info.plist` and `project.pbxproj`) are often missed because they're not automatically updated by Expo. Always manually check and update these files!
 
 ### Version Numbering Convention
 
