@@ -1,0 +1,3 @@
+# Don't ignore these important files
+!public/app-ads.txt
+!dist/app-ads.txt
