@@ -204,9 +204,13 @@ import * as Updates from "expo-updates";
 // Theme Config
 import { getTheme, lightTheme, darkTheme } from "./src/config/theme";
 
-// Ad Components
-import AdBanner from "./src/components/AdBanner";
-import AdService from "./src/services/adService";
+// Ad Components (conditionally imported for native only)
+let AdBanner = null;
+let AdService = null;
+if (Platform.OS !== "web") {
+  AdBanner = require("./src/components/AdBanner").default;
+  AdService = require("./src/services/adService").default;
+}
 
 // Storage
 import AsyncStorage from "@react-native-async-storage/async-storage";
