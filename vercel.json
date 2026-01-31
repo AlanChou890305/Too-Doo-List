@@ -14,6 +14,10 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "app-ads.txt",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
