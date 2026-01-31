@@ -12,13 +12,13 @@ const getRedirectUrl = () => {
 const getEnvironmentConfig = () => {
   return {
     name: "TaskCal",
-    slug: "taskcal",
-    version: "1.2.2",
+    slug: "too-doo-list",
+    version: "1.2.4",
     description: "Simple and intuitive task management app with Google SSO",
     scheme: "taskcal",
     bundleIdentifier: "com.cty0305.too.doo.list",
     package: "com.cty0305.too.doo.list",
-    iosBuildNumber: "10",
+    iosBuildNumber: "12",
   };
 };
 
@@ -105,11 +105,12 @@ module.exports = {
       ],
     },
 
-    // Updates configuration
+    // EAS OTA Updates（僅更新 JS，不改 native 時用 eas update 即可）
     runtimeVersion: "1.5.0",
     updates: {
       url: "https://u.expo.dev/a86169e7-6d37-4bee-be43-d1e709615ef9",
       channel: "production",
+      checkAutomatically: "ON_LOAD",
     },
 
     // EAS project configuration
@@ -153,6 +154,13 @@ module.exports = {
         },
       ],
       "expo-apple-authentication",
+      [
+        "react-native-google-mobile-ads",
+        {
+          iosAppId: "ca-app-pub-6912116995419220~3944964842",
+          // androidAppId: "ca-app-pub-6912116995419220~XXXXXXXX", // 建立 Android App 後填入
+        },
+      ],
     ],
   },
 };

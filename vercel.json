@@ -16,13 +16,24 @@
       }
     }
   ],
+  "headers": [
+    {
+      "source": "/app-ads.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/auth/callback",
       "destination": "/auth/callback.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!app-ads\\.txt$).*)",
       "destination": "/index.html"
     }
   ]

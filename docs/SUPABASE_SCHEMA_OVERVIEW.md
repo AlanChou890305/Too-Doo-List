@@ -8,8 +8,8 @@
 ## 📊 專案資訊
 
 - **專案名稱**: To Do
-- **專案 ID**: qerosiozltqrbehctxdn
-- **區域**: ap-southeast-1 (Singapore)
+- **專案 ID**: ajbusqpjsjcuzzxuueij
+- **區域**: ap-south-1 (Mumbai)
 - **狀態**: ACTIVE_HEALTHY
 - **資料庫版本**: PostgreSQL 17.6.1.011
 
@@ -17,50 +17,90 @@
 
 ## 📋 資料表總覽
 
-### 1. `public.tasks` (任務表)
+### 1. `public.app_versions` (應用程式版本表)
+
+**用途**: 管理應用程式的版本資訊和更新
+
+**基本資訊**:
+
+- RLS 啟用: ⚠️ 需確認
+- 主鍵: `id`
+
+#### 欄位結構
+
+| 欄位名稱        | 資料類型    | 預設值              | 限制            | 說明                    |
+| --------------- | ----------- | ------------------- | --------------- | ----------------------- |
+| `id`            | uuid        | `gen_random_uuid()` | PRIMARY KEY     | 版本記錄唯一識別碼      |
+| `version`       | varchar     | -                   | NOT NULL        | 版本號（如：1.2.2）     |
+| `build_number`  | varchar     | -                   | NOT NULL        | 建置編號                |
+| `platform`      | varchar     | -                   | NOT NULL, CHECK | 平台（ios/android/web） |
+| `update_url`    | text        | NULL                | NULLABLE        | 更新下載連結            |
+| `force_update`  | boolean     | false               | -               | 是否強制更新            |
+| `release_notes` | text        | NULL                | NULLABLE        | 版本更新說明            |
+| `is_active`     | boolean     | true                | -               | 是否為啟用版本          |
+| `created_at`    | timestamptz | `now()`             | -               | 創建時間                |
+| `updated_at`    | timestamptz | `now()`             | -               | 更新時間                |
+
+#### 限制條件
+
+- **Primary Key**: `id`
+- **Check Constraint**: `platform IN ('ios', 'android', 'web')`
+
+#### 使用場景
+
+- 版本更新檢查（`versionService.js`）
+- 強制更新機制
+- 多平台版本管理
+
+---
+
+### 2. `public.tasks` (任務表)
 
 **用途**: 儲存用戶的待辦事項
 
 **基本資訊**:
+
 - 總記錄數: 63 筆
 - RLS 啟用: ✅ 是
 - 主鍵: `id`
 
 #### 欄位結構
 
-| 欄位名稱 | 資料類型 | 預設值 | 限制 | 說明 |
-|---------|---------|--------|------|------|
-| `id` | uuid | `gen_random_uuid()` | PRIMARY KEY | 任務唯一識別碼 |
-| `user_id` | uuid | - | FOREIGN KEY → auth.users.id | 用戶 ID |
-| `title` | text | - | NOT NULL | 任務標題 |
-| `date` | date | - | NOT NULL | 任務日期 |
-| `time` | text | NULL | NULLABLE | 任務時間（文字格式） |
-| `due_time` | time | NULL | NULLABLE | 任務時間（時間格式） |
-| `checked` | boolean | false | - | 是否已勾選（舊欄位） |
-| `is_completed` | boolean | false | - | 是否已完成 |
-| `completed_at` | timestamptz | NULL | NULLABLE | 完成時間 |
-| `priority` | varchar | 'medium' | CHECK: low/medium/high | 優先級 |
-| `description` | text | NULL | NULLABLE | 任務描述 |
-| `note` | text | NULL | NULLABLE | 用戶備註 |
-| `link` | text | NULL | NULLABLE | 相關連結 |
-| `tags` | text[] | NULL | NULLABLE | 標籤陣列 |
-| `order_index` | integer | 0 | - | 排序索引 |
-| `user_display_name` | varchar | NULL | NULLABLE | 用戶顯示名稱（Dashboard 用） |
-| `created_at` | timestamptz | `now()` | - | 創建時間 |
-| `updated_at` | timestamptz | `now()` | - | 更新時間 |
+| 欄位名稱            | 資料類型    | 預設值              | 限制                        | 說明                         |
+| ------------------- | ----------- | ------------------- | --------------------------- | ---------------------------- |
+| `id`                | uuid        | `gen_random_uuid()` | PRIMARY KEY                 | 任務唯一識別碼               |
+| `user_id`           | uuid        | -                   | FOREIGN KEY → auth.users.id | 用戶 ID                      |
+| `title`             | text        | -                   | NOT NULL                    | 任務標題                     |
+| `date`              | date        | -                   | NOT NULL                    | 任務日期                     |
+| `time`              | text        | NULL                | NULLABLE                    | 任務時間（文字格式）         |
+| `due_time`          | time        | NULL                | NULLABLE                    | 任務時間（時間格式）         |
+| `checked`           | boolean     | false               | -                           | 是否已勾選（舊欄位）         |
+| `is_completed`      | boolean     | false               | -                           | 是否已完成                   |
+| `completed_at`      | timestamptz | NULL                | NULLABLE                    | 完成時間                     |
+| `priority`          | varchar     | 'medium'            | CHECK: low/medium/high      | 優先級                       |
+| `description`       | text        | NULL                | NULLABLE                    | 任務描述                     |
+| `note`              | text        | NULL                | NULLABLE                    | 用戶備註                     |
+| `link`              | text        | NULL                | NULLABLE                    | 相關連結                     |
+| `tags`              | text[]      | NULL                | NULLABLE                    | 標籤陣列                     |
+| `order_index`       | integer     | 0                   | -                           | 排序索引                     |
+| `user_display_name` | varchar     | NULL                | NULLABLE                    | 用戶顯示名稱（Dashboard 用） |
+| `created_at`        | timestamptz | `now()`             | -                           | 創建時間                     |
+| `updated_at`        | timestamptz | `now()`             | -                           | 更新時間                     |
 
 #### 限制條件
+
 - **Primary Key**: `id`
 - **Foreign Key**: `user_id` → `auth.users.id` (CASCADE DELETE)
 - **Check Constraint**: `priority IN ('low', 'medium', 'high')`
 
 ---
 
-### 2. `public.user_settings` (用戶設定表)
+### 3. `public.user_settings` (用戶設定表)
 
 **用途**: 儲存用戶的個人偏好設定
 
 **基本資訊**:
+
 - 總記錄數: 12 筆（12 位用戶）
 - RLS 啟用: ✅ 是
 - 主鍵: `id`
@@ -68,32 +108,35 @@
 
 #### 欄位結構
 
-| 欄位名稱 | 資料類型 | 預設值 | 限制 | 說明 |
-|---------|---------|--------|------|------|
-| `id` | uuid | `gen_random_uuid()` | PRIMARY KEY | 設定記錄 ID |
-| `user_id` | uuid | - | UNIQUE, FOREIGN KEY | 用戶 ID（唯一） |
-| `language` | text | 'en' | CHECK: en/zh | 語言設定 |
-| `theme` | text | 'light' | CHECK: light/dark | 主題設定 |
-| `platform` | varchar | 'web' | CHECK: web/ios/android | 使用平台 |
-| `notifications_enabled` | boolean | true | - | 通知開關 |
-| `display_name` | varchar | NULL | NULLABLE | 顯示名稱（從 auth.users 同步） |
-| `user_agent` | text | NULL | NULLABLE | 用戶代理字串 |
-| `last_active_at` | timestamptz | `now()` | - | 最後活動時間 |
-| `timezone` | varchar | 'UTC' | - | 時區設定 |
-| `date_format` | varchar | 'YYYY-MM-DD' | - | 日期格式 |
-| `time_format` | varchar | '24h' | CHECK: 12h/24h | 時間格式 |
-| `week_start` | integer | 1 | CHECK: 0/1 | 週起始日（0=週日，1=週一） |
-| `reminder_settings` | jsonb | `{"sms": false, "push": true, "email": true}` | - | 提醒設定 |
-| `privacy_settings` | jsonb | `{"data_sharing": false, "profile_visible": false}` | - | 隱私設定 |
-| `created_at` | timestamptz | `now()` | - | 創建時間 |
-| `updated_at` | timestamptz | `now()` | - | 更新時間 |
+| 欄位名稱                | 資料類型    | 預設值                                              | 限制                   | 說明                           |
+| ----------------------- | ----------- | --------------------------------------------------- | ---------------------- | ------------------------------ |
+| `id`                    | uuid        | `gen_random_uuid()`                                 | PRIMARY KEY            | 設定記錄 ID                    |
+| `user_id`               | uuid        | -                                                   | UNIQUE, FOREIGN KEY    | 用戶 ID（唯一）                |
+| `language`              | text        | 'en'                                                | CHECK: en/zh           | 語言設定                       |
+| `theme`                 | text        | 'light'                                             | CHECK: light/dark      | 主題設定                       |
+| `platform`              | varchar     | 'web'                                               | CHECK: web/ios/android | 使用平台                       |
+| `notifications_enabled` | boolean     | true                                                | -                      | 通知開關                       |
+| `display_name`          | varchar     | NULL                                                | NULLABLE               | 顯示名稱（從 auth.users 同步） |
+| `user_agent`            | text        | NULL                                                | NULLABLE               | 用戶代理字串                   |
+| `user_type`             | varchar     | 'general'                                           | -                      | 用戶類型 (general/member)      |
+| `last_active_at`        | timestamptz | `now()`                                             | -                      | 最後活動時間                   |
+| `timezone`              | varchar     | 'UTC'                                               | -                      | 時區設定                       |
+| `date_format`           | varchar     | 'YYYY-MM-DD'                                        | -                      | 日期格式                       |
+| `time_format`           | varchar     | '24h'                                               | CHECK: 12h/24h         | 時間格式                       |
+| `week_start`            | integer     | 1                                                   | CHECK: 0/1             | 週起始日（0=週日，1=週一）     |
+| `reminder_settings`     | jsonb       | `{"sms": false, "push": true, "email": true}`       | -                      | 提醒設定                       |
+| `privacy_settings`      | jsonb       | `{"data_sharing": false, "profile_visible": false}` | -                      | 隱私設定                       |
+| `email_preferences`     | jsonb       | `{"marketing": false, "product_updates": true}`     | -                      | 郵件偏好設定                   |
+| `created_at`            | timestamptz | `now()`                                             | -                      | 創建時間                       |
+| `updated_at`            | timestamptz | `now()`                                             | -                      | 更新時間                       |
 
 #### 限制條件
+
 - **Primary Key**: `id`
 - **Unique Key**: `user_id` ⚠️ **每個用戶只能有一筆記錄**
 - **Foreign Key**: `user_id` → `auth.users.id` (CASCADE DELETE)
 - **Check Constraints**:
-  - `language IN ('en', 'zh')`
+  - `language IN ('en', 'zh', 'es')` ⚠️ **注意：支援西班牙文**
   - `theme IN ('light', 'dark')`
   - `platform IN ('web', 'ios', 'android')`
   - `time_format IN ('12h', '24h')`
@@ -109,20 +152,21 @@
 
 **用戶列表** (依更新時間排序):
 
-| 顯示名稱 | 語言 | 主題 | 平台 | 最後活動 |
-|---------|------|------|------|---------|
-| Santa South | en | light | web | 2025-10-16 07:58:30 |
-| Alan Chou | en | light | web | 2025-10-16 07:58:30 |
-| 周庭毅（Ting Yi Chou） | en | light | web | 2025-10-16 07:58:30 |
-| Tony Chen | en | light | web | 2025-10-16 07:58:30 |
-| 林星舟 | en | light | web | 2025-10-16 07:58:30 |
-| Chloe Chen | en | light | web | 2025-10-16 07:58:30 |
-| ゆう（.ˬ.） | en | light | web | 2025-10-16 07:58:30 |
-| Ruby Chen | en | light | web | 2025-10-16 07:58:30 |
-| Penny Liao | en | light | web | 2025-10-16 07:58:30 |
-| Peggy Kuo | en | light | web | 2025-10-16 07:58:30 |
+| 顯示名稱               | 語言 | 主題  | 平台 | 最後活動            |
+| ---------------------- | ---- | ----- | ---- | ------------------- |
+| Santa South            | en   | light | web  | 2025-10-16 07:58:30 |
+| Alan Chou              | en   | light | web  | 2025-10-16 07:58:30 |
+| 周庭毅（Ting Yi Chou） | en   | light | web  | 2025-10-16 07:58:30 |
+| Tony Chen              | en   | light | web  | 2025-10-16 07:58:30 |
+| 林星舟                 | en   | light | web  | 2025-10-16 07:58:30 |
+| Chloe Chen             | en   | light | web  | 2025-10-16 07:58:30 |
+| ゆう（.ˬ.）            | en   | light | web  | 2025-10-16 07:58:30 |
+| Ruby Chen              | en   | light | web  | 2025-10-16 07:58:30 |
+| Penny Liao             | en   | light | web  | 2025-10-16 07:58:30 |
+| Peggy Kuo              | en   | light | web  | 2025-10-16 07:58:30 |
 
 **統計**:
+
 - 全部使用英文 (en): 100%
 - 全部使用淺色主題 (light): 100%
 - 全部使用 Web 平台: 100% ⚠️ **需要測試 iOS App**
@@ -132,39 +176,56 @@
 ## ✅ 資料完整性檢查
 
 ### 1. 重複記錄檢查
+
 ```sql
 -- 檢查結果：無重複記錄 ✅
-SELECT user_id, COUNT(*) 
-FROM public.user_settings 
-GROUP BY user_id 
+SELECT user_id, COUNT(*)
+FROM public.user_settings
+GROUP BY user_id
 HAVING COUNT(*) > 1;
 -- 結果: 0 筆（無重複）
 ```
 
 ### 2. Unique Constraint 檢查
+
 ```
 ✅ user_settings_user_id_key: UNIQUE (user_id)
 ```
+
 - 已正確設置
 - 防止同一用戶創建多筆記錄
 - 配合 `upsert({ onConflict: 'user_id' })` 使用
 
 ### 3. Foreign Key 檢查
+
 ```
 ✅ tasks.user_id → auth.users.id (CASCADE DELETE)
 ✅ user_settings.user_id → auth.users.id (CASCADE DELETE)
 ```
+
 - 當用戶被刪除時，相關記錄會自動刪除
+- ⚠️ **注意**: `app_versions` 表沒有外鍵約束（正常，因為是系統級資料）
 
 ---
 
 ## 🔐 Row Level Security (RLS)
 
+### app_versions 表
+
+- **RLS 狀態**: ✅ 啟用
+- **政策**:
+  - 公開讀取 (SELECT): 僅限 `is_active = true` (適用於匿名用戶)
+  - 驗證用戶 (SELECT/INSERT/UPDATE): 允許完整存取（以便應用程式自動登記版本）
+  - Service Role: ALL (完整存取)
+- **備註**: 已修正原本缺少 INSERT/UPDATE 權限的問題，現在應用程式可以自動在 `app_versions` 登記新版本。
+
 ### tasks 表
+
 - **RLS 狀態**: ✅ 啟用
 - **政策**: 用戶只能存取自己的任務
 
 ### user_settings 表
+
 - **RLS 狀態**: ✅ 啟用
 - **政策**: 用戶只能存取自己的設定
 
@@ -173,6 +234,7 @@ HAVING COUNT(*) > 1;
 ## 🎯 關鍵發現與建議
 
 ### ✅ 優點
+
 1. **資料完整性良好**
    - 無重複記錄
    - Constraints 設置正確
@@ -204,6 +266,7 @@ HAVING COUNT(*) > 1;
 ### 🚀 下一步測試建議
 
 1. **iOS App 測試** (最重要)
+
    ```
    - 在 TestFlight 中登入
    - 確認 platform 更新為 'ios'
@@ -211,6 +274,7 @@ HAVING COUNT(*) > 1;
    ```
 
 2. **語言切換測試**
+
    ```
    - 切換到繁體中文
    - 確認 language 更新為 'zh'
@@ -229,8 +293,9 @@ HAVING COUNT(*) > 1;
 ## 📝 SQL 查詢範例
 
 ### 檢查用戶設定
+
 ```sql
-SELECT 
+SELECT
   user_id,
   display_name,
   language,
@@ -238,27 +303,50 @@ SELECT
   platform,
   user_agent,
   last_active_at
-FROM public.user_settings 
+FROM public.user_settings
 WHERE user_id = 'YOUR_USER_ID';
 ```
 
-### 檢查用戶任務
+### 檢查最新版本資訊
+
 ```sql
-SELECT 
+SELECT
+  version,
+  build_number,
+  platform,
+  update_url,
+  force_update,
+  release_notes,
+  is_active,
+  created_at
+FROM public.app_versions
+WHERE platform = 'ios'  -- 或 'android', 'web'
+  AND is_active = true
+ORDER BY created_at DESC
+LIMIT 1;
+```
+
+### 檢查用戶任務
+
+```sql
+SELECT
   id,
   title,
   date,
   time,
-  priority,
-  is_completed
-FROM public.tasks 
+  is_completed,
+  completed_at,
+  link,
+  note
+FROM public.tasks
 WHERE user_id = 'YOUR_USER_ID'
-ORDER BY date DESC, order_index ASC;
+ORDER BY date DESC, created_at DESC;
 ```
 
 ### 統計每位用戶的任務數
+
 ```sql
-SELECT 
+SELECT
   us.display_name,
   COUNT(t.id) as task_count,
   COUNT(CASE WHEN t.is_completed THEN 1 END) as completed_count
@@ -273,23 +361,24 @@ ORDER BY task_count DESC;
 ## 🔧 維護建議
 
 ### 定期檢查
+
 ```sql
 -- 1. 檢查孤兒記錄（不應該存在）
-SELECT * FROM public.tasks 
+SELECT * FROM public.tasks
 WHERE user_id NOT IN (SELECT id FROM auth.users);
 
-SELECT * FROM public.user_settings 
+SELECT * FROM public.user_settings
 WHERE user_id NOT IN (SELECT id FROM auth.users);
 
 -- 2. 檢查資料一致性
-SELECT 
+SELECT
   COUNT(DISTINCT user_id) as unique_users,
   COUNT(*) as total_records
 FROM public.user_settings;
 -- 應該相等
 
 -- 3. 檢查活動用戶
-SELECT 
+SELECT
   display_name,
   last_active_at,
   AGE(NOW(), last_active_at) as inactive_duration
@@ -302,13 +391,13 @@ ORDER BY last_active_at ASC;
 
 ## 📊 資料庫健康度
 
-| 項目 | 狀態 | 分數 |
-|------|------|------|
-| 資料完整性 | ✅ 優秀 | 10/10 |
+| 項目             | 狀態    | 分數  |
+| ---------------- | ------- | ----- |
+| 資料完整性       | ✅ 優秀 | 10/10 |
 | Constraints 設置 | ✅ 優秀 | 10/10 |
-| RLS 安全性 | ✅ 優秀 | 10/10 |
-| 索引優化 | ✅ 良好 | 8/10 |
-| 資料一致性 | ✅ 優秀 | 10/10 |
+| RLS 安全性       | ✅ 優秀 | 10/10 |
+| 索引優化         | ✅ 良好 | 8/10  |
+| 資料一致性       | ✅ 優秀 | 10/10 |
 
 **總評**: 🌟 **優秀** (48/50)
 
@@ -333,7 +422,41 @@ ORDER BY last_active_at ASC;
 
 ---
 
-**文檔生成時間**: 2025-10-16 18:14 (UTC+8)  
-**資料來源**: Supabase MCP API  
-**專案**: To Do (qerosiozltqrbehctxdn)
+---
 
+## 📝 Schema Visualizer 對照
+
+根據 Schema Visualizer 顯示的完整結構：
+
+### 表結構總覽
+
+1. ✅ `app_versions` - 應用程式版本管理
+2. ✅ `tasks` - 用戶任務資料
+3. ✅ `user_settings` - 用戶偏好設定
+
+### 關鍵差異說明
+
+- **tasks 表**: Schema Visualizer 顯示的欄位較簡化，實際資料庫可能包含更多欄位（如 `priority`, `tags`, `order_index` 等）
+- **user_settings 表**: 已確認包含 `email_preferences` 欄位
+- **語言支援**: Schema 顯示支援 `es` (西班牙文)，但需確認應用程式是否已實作
+
+---
+
+---
+
+## 可選：新增 user_type 欄位
+
+若 `user_settings` 表尚無 `user_type` 欄位，可在 Supabase SQL Editor 執行：
+
+```sql
+ALTER TABLE public.user_settings
+ADD COLUMN IF NOT EXISTS user_type varchar DEFAULT 'general';
+COMMENT ON COLUMN public.user_settings.user_type IS '用戶類型: general | member（會員不顯示廣告）';
+```
+
+---
+
+**文檔生成時間**: 2025-10-16 18:14 (UTC+8)  
+**最後更新**: 根據 Schema Visualizer 更新  
+**資料來源**: Supabase MCP API + Schema Visualizer  
+**專案**: To Do (qerosiozltqrbehctxdn)

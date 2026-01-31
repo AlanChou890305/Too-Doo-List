@@ -72,7 +72,7 @@
 ### 設定
 
 - **切換語言：** 在英文、繁體中文與西班牙文之間切換
-- **查看版本：** 確認目前應用程式版本 (v1.2.2)
+- **查看版本：** 確認目前應用程式版本 (v1.2.4)
 - **法律資訊：** 查看使用條款與隱私權政策
 - **登出：** 安全登出並立即返回登入畫面
 
@@ -97,17 +97,25 @@
 
 ### 版本管理
 
-- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.2.2)
+- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.2.4)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 版本資訊
 
-### v1.2.2 (最新版本)
+### v1.2.4 (最新版本)
 
-- ⚡ **性能改進**：優化資料預載入，採用優先載入順序，加快 App 啟動速度
-- 🚀 **並行載入**：用戶設定和任務並行載入，減少等待時間
-- 📝 **智能 Note 輸入**：Note 輸入框動態調整高度，最多顯示 12 行，提供更好的編輯體驗
-- 💾 **立即緩存**：資料載入完成後立即更新緩存，各畫面間重複使用，避免重複 API 請求
+**本版新增**
+
+- 📲 **應用程式內版本更新**：App 會檢查是否有新版本，並提示您前往 App Store 更新
+- 🗺️ **任務地圖預覽**：當任務連結為 Google 地圖網址時，可在 App 內開啟地圖預覽
+- 📢 **廣告支援**：為持續維護與開發，日曆與設定畫面底部加入輕量廣告，不影響主要操作
+
+**效能與改進**
+
+- ⚡ **更快的載入**：優化資料預載順序（今日任務 → 當月 → 前後月）
+- 🚀 **並行載入**：用戶設定與任務並行載入，啟動更快速
+- 📝 **智能 Note 輸入**：Note 欄位隨輸入自動擴展（最多 12 行），編輯更順手
+- 💾 **立即緩存**：預載資料在畫面間重複使用，減少重複請求
 
 ## 🤝 貢獻
 
@@ -198,7 +206,7 @@ A cross-platform React Native task management application with calendar view, Go
 ### Settings
 
 - **Switch Language:** Toggle between English, Traditional Chinese, and Spanish
-- **View Version:** Check current application version (v1.2.2)
+- **View Version:** Check current application version (v1.2.4)
 - **Legal Information:** View terms of use and privacy policy
 - **Sign Out:** Securely sign out and return to login screen
 
@@ -223,17 +231,25 @@ A cross-platform React Native task management application with calendar view, Go
 
 ### Version Management
 
-- **Semantic Versioning** - Major.Minor.Patch (Current: v1.2.2)
+- **Semantic Versioning** - Major.Minor.Patch (Current: v1.2.4)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Version Information
 
-### v1.2.2 (Latest)
+### v1.2.4 (Latest)
 
-- ⚡ **Performance Improvements**: Optimized data preloading with priority loading for faster app startup
-- 🚀 **Parallel Loading**: User settings and tasks now load in parallel, reducing wait times
-- 📝 **Smart Note Input**: Note input field dynamically adjusts height (up to 12 lines) for better editing experience
-- 💾 **Immediate Caching**: Data is cached immediately as it loads, reused across screens to avoid duplicate API requests
+**New in This Version**
+
+- 📲 **In-App Version Update**: The app now checks for new versions and prompts you to update with a direct link to the App Store
+- 🗺️ **Map Preview for Tasks**: When a task link is a Google Maps URL, you can open an in-app map preview
+- 📢 **Ad Support**: Light ads have been added to support continued development; they appear at the bottom of the calendar and settings screens and do not block core features
+
+**Performance & Improvements**
+
+- ⚡ **Faster Loading**: Optimized data preloading with priority loading order (today's tasks → current month → adjacent months)
+- 🚀 **Parallel Loading**: User settings and tasks load in parallel for quicker startup
+- 📝 **Smart Note Input**: Note field expands as you type (up to 12 lines) for easier editing
+- 💾 **Immediate Caching**: Preloaded data is reused across screens to reduce duplicate requests
 
 ## 🤝 Contributing
 
@@ -310,7 +326,7 @@ Una aplicación multiplataforma de gestión de tareas React Native con vista de 
 ### Configuración
 
 - **Cambiar Idioma:** Alterna entre Inglés, Chino Tradicional y Español
-- **Ver Versión:** Verifica la versión actual de la aplicación (v1.2.2)
+- **Ver Versión:** Verifica la versión actual de la aplicación (v1.2.4)
 - **Información Legal:** Ver términos de uso y política de privacidad
 - **Cerrar Sesión:** Cierra sesión de forma segura y regresa a la pantalla de inicio de sesión
 
@@ -335,17 +351,25 @@ Una aplicación multiplataforma de gestión de tareas React Native con vista de 
 
 ### Gestión de Versiones
 
-- **Versionado Semántico** - Major.Minor.Patch (Actual: v1.2.2)
+- **Versionado Semántico** - Major.Minor.Patch (Actual: v1.2.4)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Información de Versión
 
-### v1.2.2 (Última)
+### v1.2.4 (Última)
 
-- ⚡ **Mejoras de Rendimiento**: Optimización de precarga de datos con carga prioritaria para un inicio más rápido de la app
-- 🚀 **Carga Paralela**: La configuración del usuario y las tareas ahora se cargan en paralelo, reduciendo los tiempos de espera
-- 📝 **Entrada Inteligente de Notas**: El campo de entrada de notas ajusta dinámicamente la altura (hasta 12 líneas) para una mejor experiencia de edición
-- 💾 **Caché Inmediata**: Los datos se almacenan en caché inmediatamente al cargarse, reutilizados entre pantallas para evitar solicitudes API duplicadas
+**Novedades de esta versión**
+
+- 📲 **Actualización dentro de la app**: La app comprueba si hay nueva versión y te avisa con enlace directo a App Store
+- 🗺️ **Vista previa de mapa en tareas**: Si el enlace de una tarea es de Google Maps, puedes abrir una vista previa del mapa dentro de la app
+- 📢 **Soporte de anuncios**: Se han añadido anuncios ligeros para mantener el desarrollo; aparecen al pie del calendario y de Ajustes sin bloquear las funciones principales
+
+**Rendimiento y mejoras**
+
+- ⚡ **Carga más rápida**: Precarga optimizada con orden de prioridad (tareas de hoy → mes actual → meses adyacentes)
+- 🚀 **Carga paralela**: Ajustes y tareas se cargan en paralelo para un arranque más rápido
+- 📝 **Entrada inteligente de notas**: El campo de notas se expande al escribir (hasta 12 líneas) para editar con más comodidad
+- 💾 **Caché inmediata**: Los datos precargados se reutilizan entre pantallas para reducir solicitudes duplicadas
 
 ## 🤝 Contribuir
 

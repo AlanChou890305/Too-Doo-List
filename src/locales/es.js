@@ -9,11 +9,12 @@ export default {
   privacy: "Política de privacidad",
   version: "Versión",
   checkUpdate: "Buscar actualizaciones",
-  updateAvailable: "Actualización disponible",
+  updateAvailable: "Descargar última versión",
   latestVersion: "Última versión",
   general: "General",
   support: "Soporte",
   feedback: "Enviar comentarios",
+  rateUs: "Califícanos",
   legal: "Legal",
   about: "Acerca de",
   calendar: "Calendario",
@@ -65,6 +66,13 @@ export default {
   alreadyLoggedOut: "Ya ha cerrado sesión.",
   logoutError: "Error al cerrar sesión. Por favor, inténtelo de nuevo.",
   accountType: "Tipo de cuenta",
+  loginMethod: "Método de inicio de sesión",
+  generalUser: "Usuario general",
+  memberUser: "Miembro",
+  devTools: "Herramientas de desarrollador",
+  switchToMember: "Cambiar a Miembro (Sin anuncios)",
+  switchToGeneral: "Cambiar a General (Con anuncios)",
+  userTypeUpdated: "Tipo de usuario actualizado",
   deleteAccount: "Eliminar cuenta",
   deleteAccountConfirm:
     "¿Está seguro de que desea eliminar su cuenta? Esta acción no se puede deshacer. Todas sus tareas y datos se eliminarán permanentemente.",
@@ -184,13 +192,25 @@ export default {
   reminderDisabled: "Deshabilitado",
   reminderNote:
     "Los recordatorios solo se enviarán para tareas que tengan una hora programada",
+  dayView: "Día",
+  weekView: "Semana",
+  monthView: "Mes",
+  feedbackType: "Tipo de comentario",
+  feedbackDetails: "Detalles",
+  bugReport: "Informe de error",
+  improvementSuggestion: "Sugerencia de mejora",
+  featureRequest: "Solicitud de función",
+  feedbackOther: "Otro",
+  feedbackPlaceholder: "Cuéntanos lo que piensas...",
+  submitFeedback: "Enviar comentarios",
+  feedbackMotivation:
+    "¡Gracias por sus comentarios y sugerencias, \nson la mayor motivación para seguir optimizando TaskCal!",
+  submitSuccess: "Enviado con éxito",
+  thanksFeedback: "¡Gracias por sus valiosos comentarios!",
+  pleaseEnterFeedback: "Por favor, ingrese el contenido del comentario",
+  submitting: "Enviando...",
+  pleaseLoginFirst:
+    "Por favor, inicie sesión primero antes de enviar comentarios",
+  submitFailed: "Error al enviar",
+  pleaseTryAgainLater: "Por favor, inténtelo de nuevo más tarde",
 };
-
-
-
-
-
-
-
-
-

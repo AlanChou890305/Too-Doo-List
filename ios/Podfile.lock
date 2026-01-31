@@ -245,6 +245,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - ExpoStoreReview (7.0.2):
+    - ExpoModulesCore
   - ExpoWebBrowser (15.0.9):
     - ExpoModulesCore
   - EXStructuredHeaders (5.0.0)
@@ -279,6 +281,9 @@ PODS:
   - EXUpdatesInterface (2.0.0):
     - ExpoModulesCore
   - FBLazyVector (0.81.5)
+  - Google-Mobile-Ads-SDK (12.2.0):
+    - GoogleUserMessagingPlatform (>= 1.1)
+  - GoogleUserMessagingPlatform (2.7.0)
   - hermes-engine (0.81.5):
     - hermes-engine/Pre-built (= 0.81.5)
   - hermes-engine/Pre-built (0.81.5)
@@ -1639,6 +1644,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-webview (13.15.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - React-NativeModulesApple (0.81.5):
     - hermes-engine
     - React-callinvoker
@@ -2055,6 +2082,30 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNGoogleMobileAds (14.11.0):
+    - Google-Mobile-Ads-SDK (= 12.2.0)
+    - GoogleUserMessagingPlatform (= 2.7.0)
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNReactNativeSharedGroupPreferences (1.1.24):
     - React
   - RNReanimated (4.1.5):
@@ -2317,6 +2368,7 @@ DEPENDENCIES:
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
   - ExpoLocalization (from `../node_modules/expo-localization/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
@@ -2360,6 +2412,7 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-webview (from `../node_modules/react-native-webview`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-oscompat (from `../node_modules/react-native/ReactCommon/oscompat`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -2394,6 +2447,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNGoogleMobileAds (from `../node_modules/react-native-google-mobile-ads`)
   - RNReactNativeSharedGroupPreferences (from `../node_modules/react-native-shared-group-preferences`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2403,6 +2457,8 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - Google-Mobile-Ads-SDK
+    - GoogleUserMessagingPlatform
     - Mixpanel-swift
     - ReachabilitySwift
 
@@ -2447,6 +2503,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-localization/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoStoreReview:
+    :path: "../node_modules/expo-store-review/ios"
   ExpoWebBrowser:
     :path: "../node_modules/expo-web-browser/ios"
   EXStructuredHeaders:
@@ -2532,6 +2590,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-get-random-values"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-webview:
+    :path: "../node_modules/react-native-webview"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-oscompat:
@@ -2600,6 +2660,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/datetimepicker"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNGoogleMobileAds:
+    :path: "../node_modules/react-native-google-mobile-ads"
   RNReactNativeSharedGroupPreferences:
     :path: "../node_modules/react-native-shared-group-preferences"
   RNReanimated:
@@ -2634,11 +2696,14 @@ SPEC CHECKSUMS:
   ExpoLinking: 77455aa013e9b6a3601de03ecfab09858ee1b031
   ExpoLocalization: b852a5d8ec14c5349c1593eca87896b5b3ebfcca
   ExpoModulesCore: e8ec7f8727caf51a49d495598303dd420ca994bf
+  ExpoStoreReview: 5ce23b11d7cdcba23fa26b8cd9dd83765e2ac7bf
   ExpoWebBrowser: b973e1351fdcf5fec0c400997b1851f5a8219ec3
   EXStructuredHeaders: c951e77f2d936f88637421e9588c976da5827368
   EXUpdates: ef83273afc231a627b170358c90689ac30a4429d
   EXUpdatesInterface: 5adf50cb41e079c861da6d9b4b954c3db9a50734
   FBLazyVector: e95a291ad2dadb88e42b06e0c5fb8262de53ec12
+  Google-Mobile-Ads-SDK: 1dfb0c3cb46c7e2b00b0f4de74a1e06d9ea25d67
+  GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
   hermes-engine: 9f4dfe93326146a1c99eb535b1cb0b857a3cd172
   Mixpanel-swift: 7b26468fc0e2e521104e51d65c4bbf7cab8162f8
   MixpanelReactNative: cdcfe933b8ce89aadd183f17aad3c8529daccb94
@@ -2678,6 +2743,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: f775db9e991c6f3b8ccbc02bfcde22770f96e23b
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-safe-area-context: 42a1b4f8774b577d03b53de7326e3d5757fe9513
+  react-native-webview: b29007f4723bca10872028067b07abacfa1cb35a
   React-NativeModulesApple: 8969913947d5b576de4ed371a939455a8daf28aa
   React-oscompat: ce47230ed20185e91de62d8c6d139ae61763d09c
   React-perflogger: 02b010e665772c7dcb859d85d44c1bfc5ac7c0e4
@@ -2712,6 +2778,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   RNDateTimePicker: be0e44bcb9ed0607c7c5f47dbedd88cf091f6791
   RNGestureHandler: 2914750df066d89bf9d8f48a10ad5f0051108ac3
+  RNGoogleMobileAds: 99720d30d7c7378946a69ca7784433ccf8da52a4
   RNReactNativeSharedGroupPreferences: d4869af3c7757405b6b5ac633d0ef5f9886a9be7
   RNReanimated: 1442a577e066e662f0ce1cd1864a65c8e547aee0
   RNScreens: d8d6f1792f6e7ac12b0190d33d8d390efc0c1845

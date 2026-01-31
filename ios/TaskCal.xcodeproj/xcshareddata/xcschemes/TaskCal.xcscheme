@@ -28,6 +28,16 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "00E356ED1AD99517003FC87E"
+               BuildableName = "TaskCalTests.xctest"
+               BlueprintName = "TaskCalTests"
+               ReferencedContainer = "container:TaskCal.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
@@ -50,28 +60,6 @@
             ReferencedContainer = "container:TaskCal.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "EXPO_PUBLIC_SUPABASE_URL"
-            value = "https://ajbusqpjsjcuzzxuueij.supabase.co"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "EXPO_PUBLIC_SUPABASE_ANON_KEY"
-            value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqYnVzcXBqc2pjdXp6eHV1ZWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkxNjY2NTksImV4cCI6MjA0NDc0MjY1OX0.1Aw4OcBWPZTiRbGJDLpMmBPWQcZYMmVvFqMxdKHgAuU"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "EXPO_PUBLIC_APP_ENV"
-            value = "production"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "EXPO_PUBLIC_MIXPANEL_TOKEN"
-            value = "15c42bccd8cec7c78d1816a2d5b6ec51&#10;EXPO_PUBLIC_GA_WEB_ID=G-EW2TBM5EML"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

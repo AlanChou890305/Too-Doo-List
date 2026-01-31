@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "plugins": [
+      [
+        "react-native-google-mobile-ads",
+        {
+          "iosAppId": "ca-app-pub-6912116995419220~3944964842"
+        }
+      ]
+    ]
+  },
+  "react-native-google-mobile-ads": {
+    "ios_app_id": "ca-app-pub-6912116995419220~3944964842"
+  }
+}

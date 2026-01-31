@@ -11,17 +11,20 @@ import {
   Linking,
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
+import * as Application from "expo-application";
 import {
   getUpdateUrl,
   getUpdateButtonText,
   getUpdateErrorMessage,
 } from "../config/updateUrls";
+import { mixpanelService } from "../services/mixpanelService";
 
 const VersionUpdateModal = ({
   visible,
   onClose,
   updateInfo,
   forceUpdate = false,
+  theme,
 }) => {
   // Web 版本會自動更新，不需要顯示版本更新 modal
   if (Platform.OS === "web") {
@@ -33,7 +36,27 @@ const VersionUpdateModal = ({
     return null;
   }
 
+  const isDarkMode = theme?.mode === "dark";
+
+  // Mixpanel: 追蹤版本更新提示顯示
+  React.useEffect(() => {
+    if (visible && updateInfo) {
+      mixpanelService.track("Version Update Prompted", {
+        current_version: Application.nativeApplicationVersion || "unknown",
+        latest_version: updateInfo.latestVersion || "unknown",
+        force_update: forceUpdate,
+        has_release_notes: !!updateInfo.releaseNotes,
+      });
+    }
+  }, [visible, updateInfo, forceUpdate]);
+
   const handleUpdate = async () => {
+    // Mixpanel: 追蹤用戶點擊更新
+    mixpanelService.track("Version Update Clicked", {
+      current_version: Application.nativeApplicationVersion || "unknown",
+      latest_version: updateInfo?.latestVersion || "unknown",
+    });
+
     try {
       let urlToOpen;
 
@@ -73,6 +96,11 @@ const VersionUpdateModal = ({
 
   const handleLater = () => {
     if (!forceUpdate) {
+      // Mixpanel: 追蹤用戶點擊稍後更新
+      mixpanelService.track("Version Update Dismissed", {
+        current_version: Application.nativeApplicationVersion || "unknown",
+        latest_version: updateInfo?.latestVersion || "unknown",
+      });
       onClose();
     }
   };
@@ -85,56 +113,90 @@ const VersionUpdateModal = ({
       onRequestClose={forceUpdate ? undefined : onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.header}>
-            <Text style={styles.title}>版本更新可用</Text>
+        <View
+          style={[
+            styles.modalContainer,
+            { backgroundColor: isDarkMode ? "#1E1E1E" : "#F8F8F8" },
+          ]}
+        >
+          <View style={styles.contentContainer}>
+            <Text
+              style={[styles.title, { color: isDarkMode ? "#FFF" : "#000" }]}
+            >
+              版本更新可用
+            </Text>
             {forceUpdate && (
               <Text style={styles.forceUpdateText}>此更新為必要更新</Text>
             )}
-          </View>
 
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.versionInfo}>
-              <Text style={styles.currentVersion}>當前版本: 1.2.1</Text>
-              <Text style={styles.latestVersion}>
-                最新版本: {updateInfo?.latestVersion || "1.2.1"}
+            <View
+              style={[
+                styles.versionBadge,
+                { backgroundColor: isDarkMode ? "#3A3A3C" : "#E5E5EA" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.versionText,
+                  { color: isDarkMode ? "#AEAEB2" : "#8E8E93" },
+                ]}
+              >
+                {updateInfo?.latestVersion || "1.0.0"}
               </Text>
             </View>
 
-            {updateInfo?.releaseNotes && (
-              <View style={styles.releaseNotesContainer}>
-                <Text style={styles.releaseNotesTitle}>更新內容</Text>
-                <Text style={styles.releaseNotes}>
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {updateInfo?.releaseNotes ? (
+                <Text
+                  style={[
+                    styles.message,
+                    { color: isDarkMode ? "#FFF" : "#000" },
+                  ]}
+                >
                   {updateInfo.releaseNotes}
                 </Text>
-              </View>
-            )}
+              ) : (
+                <Text
+                  style={[
+                    styles.message,
+                    { color: isDarkMode ? "#FFF" : "#000" },
+                  ]}
+                >
+                  我們推出了新版本，包含效能優化與錯誤修正，建議您立即更新以獲得最佳體驗。
+                </Text>
+              )}
+            </ScrollView>
+          </View>
 
-            <View style={styles.benefitsContainer}>
-              <Text style={styles.benefitsTitle}>更新好處</Text>
-              <Text style={styles.benefitItem}>• 錯誤修正和穩定性改善</Text>
-              <Text style={styles.benefitItem}>• 新功能和改進</Text>
-              <Text style={styles.benefitItem}>• 安全性更新</Text>
-              <Text style={styles.benefitItem}>• 性能優化</Text>
-            </View>
-          </ScrollView>
-
-          <View style={styles.buttonContainer}>
+          <View
+            style={[
+              styles.buttonContainer,
+              !forceUpdate && styles.buttonContainerHorizontal,
+              { borderTopColor: isDarkMode ? "#3F3F3F" : "#A9A9A9" },
+            ]}
+          >
             {!forceUpdate && (
               <TouchableOpacity
-                style={[styles.button, styles.laterButton]}
+                style={[
+                  styles.button,
+                  styles.borderRight,
+                  { borderRightColor: isDarkMode ? "#3F3F3F" : "#A9A9A9" },
+                ]}
                 onPress={handleLater}
+                activeOpacity={0.7}
               >
                 <Text style={styles.laterButtonText}>稍後更新</Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
-              style={[styles.button, styles.updateButton]}
+              style={styles.button}
               onPress={handleUpdate}
+              activeOpacity={0.7}
             >
               <Text style={styles.updateButtonText}>
                 {(() => {
@@ -154,136 +216,80 @@ const VersionUpdateModal = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
   },
   modalContainer: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    width: "100%",
-    maxWidth: 400,
-    maxHeight: "90%",
-    minHeight: 500,
-    // Web platform uses boxShadow instead of shadow* props
-    ...(Platform.OS === "web"
-      ? {
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.25)",
-        }
-      : {
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 4,
-          },
-          shadowOpacity: 0.25,
-          shadowRadius: 8,
-          elevation: 8,
-        }),
+    borderRadius: 14,
+    width: 270,
+    maxHeight: "80%",
+    overflow: "hidden",
   },
-  header: {
-    padding: 24,
+  contentContainer: {
+    paddingTop: 20,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingHorizontal: 16,
+    alignItems: "center",
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  forceUpdateText: {
-    fontSize: 14,
-    color: "#ff6b6b",
-    textAlign: "center",
+    fontSize: 17,
     fontWeight: "600",
-  },
-  content: {
-    flex: 1,
-    padding: 24,
-    paddingBottom: 0,
-  },
-  versionInfo: {
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 8,
-  },
-  currentVersion: {
-    fontSize: 16,
-    color: "#666",
+    textAlign: "center",
     marginBottom: 4,
   },
-  latestVersion: {
-    fontSize: 16,
-    color: "#6c63ff",
-    fontWeight: "600",
-  },
-  releaseNotesContainer: {
-    marginBottom: 20,
-  },
-  releaseNotesTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
+  forceUpdateText: {
+    fontSize: 12,
+    color: "#FF3B30",
+    textAlign: "center",
     marginBottom: 8,
+    fontWeight: "500",
   },
-  releaseNotes: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 22,
-    paddingBottom: 10,
-  },
-  benefitsContainer: {
-    marginBottom: 10,
-  },
-  benefitsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
+  versionBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
     marginBottom: 12,
   },
-  benefitItem: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 6,
-    lineHeight: 20,
+  versionText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  scrollView: {
+    maxHeight: 150,
+    width: "100%",
+  },
+  scrollContent: {
+    paddingBottom: 4,
+  },
+  message: {
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 18,
   },
   buttonContainer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  buttonContainerHorizontal: {
     flexDirection: "row",
-    padding: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-    gap: 12,
-    backgroundColor: "white",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
   },
   button: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
+    height: 44,
+    justifyContent: "center",
     alignItems: "center",
   },
-  laterButton: {
-    backgroundColor: "#f8f9fa",
-    borderWidth: 1,
-    borderColor: "#e9ecef",
+  borderRight: {
+    borderRightWidth: StyleSheet.hairlineWidth,
   },
   laterButtonText: {
-    fontSize: 16,
-    color: "#6c757d",
-    fontWeight: "600",
-  },
-  updateButton: {
-    backgroundColor: "#6c63ff",
+    fontSize: 17,
+    color: "#007AFF",
+    fontWeight: "400",
   },
   updateButtonText: {
-    fontSize: 16,
-    color: "white",
+    fontSize: 17,
+    color: "#007AFF",
     fontWeight: "600",
   },
 });

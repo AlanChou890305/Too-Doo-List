@@ -127,13 +127,20 @@ class WidgetService {
             console.warn(
               `⚠️ [Widget] WidgetReloader available: ${!!WidgetReloader}`
             );
-            await SharedGroupPreferences.setItem(
-              "widgetTasksByDate", // Use correct key to match Swift code
-              tasksJson,
-              this.appGroupIdentifier
-            );
-            if (WidgetReloader) {
-              WidgetReloader.reloadAllWidgets();
+            // Check if SharedGroupPreferences is available (not available in Expo Go)
+            if (SharedGroupPreferences && SharedGroupPreferences.setItem) {
+              await SharedGroupPreferences.setItem(
+                "widgetTasksByDate", // Use correct key to match Swift code
+                tasksJson,
+                this.appGroupIdentifier
+              );
+              if (WidgetReloader) {
+                WidgetReloader.reloadAllWidgets();
+              }
+            } else {
+              console.warn(
+                "⚠️ [Widget] SharedGroupPreferences not available (Expo Go environment)"
+              );
             }
           }
         } catch (error) {
@@ -159,12 +166,19 @@ class WidgetService {
     }
 
     try {
-      await SharedGroupPreferences.setItem(
-        this.widgetDataKey,
-        JSON.stringify([]),
-        this.appGroupIdentifier
-      );
-      console.log("✅ [Widget] Cleared widget data");
+      // Check if SharedGroupPreferences is available (not available in Expo Go)
+      if (SharedGroupPreferences && SharedGroupPreferences.setItem) {
+        await SharedGroupPreferences.setItem(
+          this.widgetDataKey,
+          JSON.stringify([]),
+          this.appGroupIdentifier
+        );
+        console.log("✅ [Widget] Cleared widget data");
+      } else {
+        console.warn(
+          "⚠️ [Widget] SharedGroupPreferences not available (Expo Go environment)"
+        );
+      }
     } catch (error) {
       console.error("❌ [Widget] Failed to clear data:", error);
     }

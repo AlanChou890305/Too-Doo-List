@@ -1,9 +1,9 @@
 import WidgetKit
 import SwiftUI
 
-// @main // Removed @main from here because TaskCalWidget.swift has it
+@main
 struct TaskCalWidgetBundle: WidgetBundle {
-    var body: some Widget {
-        TaskCalWidget()
-    }
+  var body: some Widget {
+    TaskCalWidget()
+  }
 }

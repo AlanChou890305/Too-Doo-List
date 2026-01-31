@@ -2,7 +2,7 @@
 export default {
   settings: "設定",
   checkUpdate: "檢查更新",
-  updateAvailable: "有更新可用",
+  updateAvailable: "下載最新版本",
   latestVersion: "最新版本",
   userName: "使用者名稱",
   account: "帳號",
@@ -15,6 +15,7 @@ export default {
   general: "一般",
   support: "支援",
   feedback: "使用回饋",
+  rateUs: "給我們評分",
   legal: "法律",
   calendar: "行事曆",
   noTasks: "這天沒有任務。",
@@ -64,6 +65,13 @@ export default {
   alreadyLoggedOut: "您已經登出。",
   logoutError: "登出失敗。請再試一次。",
   accountType: "帳號類型",
+  loginMethod: "登入方式",
+  generalUser: "標準版",
+  memberUser: "會員版",
+  devTools: "開發者測試工具",
+  switchToMember: "切換為會員版 (無廣告)",
+  switchToGeneral: "切換為標準版 (有廣告)",
+  userTypeUpdated: "使用者類型已更新",
   deleteAccount: "刪除帳號",
   deleteAccountConfirm:
     "您確定要刪除帳號嗎？此操作無法復原。您的所有任務和資料將被永久刪除。",
@@ -180,13 +188,24 @@ export default {
   reminderEnabled: "啟用",
   reminderDisabled: "提醒已停用",
   reminderNote: "提醒僅會發送給已設定時間的任務",
+  dayView: "日",
+  weekView: "週",
+  monthView: "月",
+  feedbackType: "回饋類型",
+  feedbackDetails: "詳細內容",
+  bugReport: "Bug 回報",
+  improvementSuggestion: "優化建議",
+  featureRequest: "新功能許願",
+  feedbackOther: "其他",
+  feedbackPlaceholder: "請告訴我們您的想法...",
+  submitFeedback: "提交回饋",
+  feedbackMotivation:
+    "感謝您的回報與建議，\n這都是我持續優化 TaskCal 的最強動力！",
+  submitSuccess: "提交成功",
+  thanksFeedback: "感謝您的寶貴意見！",
+  pleaseEnterFeedback: "請輸入回饋內容",
+  submitting: "提交中...",
+  pleaseLoginFirst: "請先登入後再提交回饋",
+  submitFailed: "提交失敗",
+  pleaseTryAgainLater: "請稍後再試",
 };
-
-
-
-
-
-
-
-
-

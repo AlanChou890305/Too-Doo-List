@@ -32,7 +32,6 @@ npx expo prebuild --platform ios --clean
 
 1. **開啟 Xcode 專案**：`ios/ToDo.xcodeproj`
 2. **建立 Scheme**：
-
    - `ToDo` - 使用 production 環境變數
 
 3. **在 Scheme 中設定環境變數**：
@@ -122,16 +121,13 @@ export EXPO_PUBLIC_APP_ENV=production
 
 ```markdown
 - [ ] 是否有程式碼變更？
-
   - 否 → 不需更新版本
   - 是 → 繼續評估
 
 - [ ] 是否為錯誤修正或小型調整？
-
   - 是 → PATCH +1
 
 - [ ] 是否新增功能或改善現有功能（向後相容）？
-
   - 是 → MINOR +1, PATCH 歸零
 
 - [ ] 是否有破壞性變更或重大架構調整？
@@ -178,28 +174,25 @@ Files to check:
 **When preparing to update version for App Store submission, you MUST update ALL of these files:**
 
 1. **Core Configuration Files (ALWAYS CHECK):**
-
-   - ✅ `package.json` → `"version": "{latest_version}"` (e.g., "1.2.2")
-   - ✅ `app.config.js` → `version: "{latest_version}"` and `iosBuildNumber: "{build_number}"` (e.g., "10")
+   - ✅ `package.json` → `"version": "{latest_version}"` (e.g., "1.2.3")
+   - ✅ `app.config.js` → `version: "{latest_version}"` and `iosBuildNumber: "{build_number}"` (e.g., "11")
    - ✅ `src/services/versionService.js` → `currentVersion` and `currentBuildNumber` fallback values
 
 2. **iOS Native Files (CRITICAL - EASY TO MISS):**
-
-   - ✅ `ios/TaskCal/Info.plist` → `CFBundleShortVersionString` = "{latest_version}" (e.g., "1.2.2")
-   - ✅ `ios/TaskCal/Info.plist` → `CFBundleVersion` = "{build_number}" (e.g., "10")
+   - ✅ `ios/TaskCal/Info.plist` → `CFBundleShortVersionString` = "{latest_version}" (e.g., "1.2.3")
+   - ✅ `ios/TaskCal/Info.plist` → `CFBundleVersion` = "{build_number}" (e.g., "11")
    - ✅ `ios/TaskCalWidget/Info.plist` → `CFBundleShortVersionString` = "{latest_version}" (must match main app)
    - ✅ `ios/TaskCalWidget/Info.plist` → `CFBundleVersion` = "{build_number}" (must match main app)
    - ✅ `ios/TaskCal.xcodeproj/project.pbxproj` → `MARKETING_VERSION` = "{latest_version}" (all occurrences)
    - ✅ `ios/TaskCal.xcodeproj/project.pbxproj` → `CURRENT_PROJECT_VERSION` = "{build_number}" (all occurrences)
 
 3. **Documentation Files:**
-
    - ✅ `README.md` → Version information in Traditional Chinese, English, and Spanish sections
    - ✅ `WHATS_NEW.md` → Add new version entry, remove old versions
-   - ✅ Update version references in usage instructions (e.g., "確認目前應用程式版本 (v1.2.2)")
+   - ✅ Update version references in usage instructions (e.g., "確認目前應用程式版本 (v1.2.3)")
 
 4. **Version Synchronization Checklist:**
-   
+
    **ALL of these must match (use the latest version from `package.json`):**
    - [ ] `package.json` → `"version": "{latest_version}"`
    - [ ] `app.config.js` → `version: "{latest_version}"` and `iosBuildNumber: "{build_number}"`
@@ -318,7 +311,6 @@ datePlaceholder: "Enter date..." / "輸入日期..."
 
 ```markdown
 - [ ] 是否有新增或修改前端顯示文字？
-
   - [ ] 英文翻譯已添加到 translations_en
   - [ ] 繁體中文翻譯已添加到 translations_zh
   - [ ] 使用 {t.keyName} 而非硬編碼文字
@@ -437,7 +429,6 @@ Type 類型：
 
 ```markdown
 - [ ] 檢查是否有新的敏感文件或目錄需要忽略
-
   - [ ] 環境變量文件 (.env, .env.local, .env.\*)
   - [ ] API 金鑰、密碼、憑證文件
   - [ ] 資料庫連接字串
@@ -468,13 +459,11 @@ Type 類型：
 
 ```markdown
 - [ ] 評估本次變更的類型
-
   - [ ] MAJOR (x.0.0)：破壞性變更或重大架構調整
   - [ ] MINOR (1.x.0)：新增功能（向後相容）
   - [ ] PATCH (1.0.x)：錯誤修正或小型調整
 
 - [ ] 更新版本號於以下位置：
-
   - [ ] app.config.js (version)
   - [ ] package.json (version)
   - [ ] eas.json (buildNumber, versionCode - 如果有設定)

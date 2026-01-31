@@ -1,10 +1,10 @@
-# Release Notes - Version 1.2.2
+# Release Notes - Version 1.2.4
 
 ## Version Information
 
-- **Version**: 1.2.2
-- **Build**: 10
-- **Release Date**: TBD
+- **Version**: 1.2.4
+- **Build**: 12
+- **Release Date**: 2026-02-01
 - **Platform**: iOS
 
 ---
@@ -36,20 +36,18 @@ Key Features:
 
 Give it a try and see if it helps you stay on top of things!
 
-### 3. What's New in This Version (版本更新說明)
+### 3. What's New in Version 1.2.4 (版本更新說明)
 
-Performance Improvements
+Bug Fixes & Improvements
 
-- Faster App Loading: Optimized data preloading with priority loading (today's tasks → current month → adjacent months)
-- Parallel Data Loading: User settings and tasks now load in parallel for faster startup
-- Immediate Cache Updates: Data is cached immediately as it loads, reducing wait times
-- Smart Note Input: Note input field now dynamically adjusts height based on content (up to 12 lines) for better visibility
+- Fixed Calendar Navigation: Switching between months no longer resets your selected date to the 1st
+- Enhanced Today Indicator: The purple circle marking today's date is now slightly larger for better visibility
+- Improved Analytics: Better event tracking to help us understand how you use the app and improve your experience
 
-Improvements
+Backend Enhancements
 
-- Better Loading Experience: App now shows UI faster while data loads in the background
-- Reduced API Calls: Preloaded data is reused across screens to avoid duplicate requests
-- Enhanced Note Editing: Note field expands automatically as you type, making it easier to view and edit longer notes
+- User version tracking for better support and diagnostics
+- Automatic timezone detection for accurate scheduling
 
 ### 4. Keywords (關鍵字)
 
@@ -78,102 +76,137 @@ TaskCal - 日曆型的待辦任務清單 iOS App
 - 簡單管理：快速新增、編輯和整理任務
 - 自動同步：所有裝置自動同步，隨時都能查看
 - Widget 小工具：不用打開 App，就能在主畫面看到今天的任務
-- 多語言支援：英文、繁體中文和西班牙文
-- 深色模式：晚上使用也不傷眼
-- 快速登入：支援 Google 和 Apple 帳號登入
+- 多語言支援：繁體中文、英文、西班牙文
+- 深色模式：晚上用起來也不刺眼
+- 快速登入：Google 或 Apple 帳號登入
 
-試試看，說不定能幫你更好地掌握每天的任務！
+試試看吧，希望對你有幫助！
 
-### 3. What's New in This Version (版本更新說明)
+### 3. What's New in Version 1.2.4 (版本更新說明)
 
-性能改進
+錯誤修正與改進
 
-- 更快的 App 載入速度：優化資料預載入，採用優先載入順序（今天的任務 → 當月 → 前後月）
-- 並行資料載入：用戶設定和任務現在並行載入，加快啟動速度
-- 立即緩存更新：資料載入完成後立即更新緩存，減少等待時間
-- 智能 Note 輸入：Note 輸入框現在會根據內容動態調整高度（最多 12 行），提供更好的可讀性
+- 修正日曆導覽問題：切換月份時，選定的日期不再自動跳回 1 號
+- 強化今日指示器：標記今日的紫色圓圈變得稍微大一點，更容易看見
+- 改進分析追蹤：更好的事件追蹤機制，幫助我們了解你如何使用 App，進而改善體驗
 
-改進項目
+後端優化
 
-- 更好的載入體驗：App 現在可以更快顯示 UI，同時在背景載入資料
-- 減少 API 請求：預載入的資料在各個畫面間重複使用，避免重複請求
-- 增強的 Note 編輯：Note 欄位會隨著輸入自動擴展，讓查看和編輯較長的備註更容易
+- 使用者版本追蹤，提供更好的支援與診斷
+- 自動偵測時區，確保排程準確
 
 ### 4. Keywords (關鍵字)
 
-任務,日曆,待辦,提醒,生產力,規劃,行程,備註,清單,管理,Google,多語言,深色模式,小工具,同步,免費,效率
+任務,日曆,待辦,提醒,生產力,規劃,行程,筆記,清單,管理,同步,免費,多語言,深色模式,小工具
 
 ---
 
-## Español (西班牙)
+## Español (España)
 
 ### 1. Promotional Text (促銷文字)
 
-Gestor de tareas ultrarrápido con calendario. Organiza por fecha, recordatorios inteligentes, sincroniza entre dispositivos. Widget y carga más rápida. Descarga gratis!
+¡Gestor de tareas ultrarrápido con vista de calendario! Organiza por fecha, configura recordatorios inteligentes, sincroniza entre dispositivos. Nuevo: Widget de pantalla de inicio y carga más rápida. ¡Descarga gratis ahora!
 
 ### 2. Description (描述)
 
-TaskCal - Una app iOS de lista de tareas basada en calendario
+TaskCal - Una aplicación iOS de lista de tareas basada en calendario
 
-Tenía demasiadas cosas que quería hacer pero era demasiado perezoso para hacerlas, así que simplemente hice una app yo mismo para registrar lo que necesito completar cada día.
+Tenía demasiadas cosas que quería hacer pero era demasiado perezoso para hacerlas, así que simplemente creé una aplicación para rastrear lo que necesito completar cada día.
 
-Si eres como yo y necesitas una forma simple de llevar un registro de tus tareas, TaskCal podría ayudarte. Es un gestor de tareas basado en calendario que muestra todo en una vista de calendario clara, para que puedas ver qué viene de un vistazo.
+Si eres como yo y necesitas una forma sencilla de hacer un seguimiento de tus tareas, TaskCal podría ayudarte. Es un gestor de tareas basado en calendario que muestra todo en una vista de calendario clara, para que puedas ver lo que viene de un vistazo.
 
 Características Principales:
 
 - Vista de Calendario: Ve todas tus tareas organizadas por fecha
-- Recordatorios Inteligentes: Nunca olvides fechas importantes
+- Recordatorios Inteligentes: Nunca olvides fechas límite importantes
 - Gestión Fácil de Tareas: Añade, edita y organiza tareas rápidamente
-- Sincronización en Todas Partes: Tus tareas se sincronizan automáticamente en todos tus dispositivos
-- Widget de Pantalla de Inicio: Revisa las tareas de hoy sin abrir la app
-- Múltiples Idiomas: Inglés, chino tradicional y español
-- Modo Oscuro: Cómodo para los ojos cuando planificas tarde en la noche
+- Sincronización Universal: Tus tareas se sincronizan automáticamente en todos los dispositivos
+- Widget de Pantalla de Inicio: Consulta las tareas de hoy sin abrir la aplicación
+- Múltiples Idiomas: Inglés, Chino Tradicional y Español
+- Modo Oscuro: Fácil para la vista para planificar de noche
 - Inicio de Sesión Rápido: Inicia sesión con Google o Apple
 
-¡Pruébalo y ve si te ayuda a mantenerte al día con tus tareas!
+¡Pruébalo y ve si te ayuda a mantener todo bajo control!
 
-### 3. What's New in This Version (版本更新說明)
+### 3. What's New in Version 1.2.4 (版本更新說明)
 
-Mejoras de Rendimiento
+Correcciones de Errores y Mejoras
 
-- Carga Más Rápida de la App: Optimización de precarga de datos con carga prioritaria (tareas de hoy → mes actual → meses adyacentes)
-- Carga Paralela de Datos: La configuración del usuario y las tareas ahora se cargan en paralelo para un inicio más rápido
-- Actualización Inmediata de Caché: Los datos se almacenan en caché inmediatamente al cargarse, reduciendo los tiempos de espera
-- Entrada Inteligente de Notas: El campo de entrada de notas ahora ajusta dinámicamente la altura según el contenido (hasta 12 líneas) para mejor visibilidad
+- Navegación de Calendario Corregida: Cambiar entre meses ya no restablece tu fecha seleccionada al día 1
+- Indicador de Hoy Mejorado: El círculo morado que marca la fecha de hoy ahora es ligeramente más grande para mejor visibilidad
+- Análisis Mejorados: Mejor seguimiento de eventos para ayudarnos a entender cómo usas la aplicación y mejorar tu experiencia
 
-Mejoras
+Mejoras del Sistema
 
-- Mejor Experiencia de Carga: La app ahora muestra la UI más rápido mientras los datos se cargan en segundo plano
-- Menos Llamadas API: Los datos precargados se reutilizan entre pantallas para evitar solicitudes duplicadas
-- Edición Mejorada de Notas: El campo de notas se expande automáticamente mientras escribes, facilitando la visualización y edición de notas más largas
+- Seguimiento de versión de usuario para mejor soporte y diagnósticos
+- Detección automática de zona horaria para una programación precisa
 
 ### 4. Keywords (關鍵字)
 
-tarea,calendario,todo,recordatorio,productividad,organizador,planificador,horario,nota,lista,gestor,google,multilingüe,modooscuro,widget,sincronizar,gratis
+tarea,calendario,pendiente,recordatorio,productividad,organizador,planificador,horario,nota,lista,gestor,sincronizar,gratis,multilingüe,modo oscuro,widget
 
 ---
 
-## Release Checklist
+## 📝 Release Checklist
 
-- [ ] Version number updated in all files
-- [ ] Build number incremented
-- [ ] Promotional Text prepared (English, 繁體中文, Español)
-- [ ] Description prepared (English, 繁體中文, Español)
-- [ ] What's New content prepared (English, 繁體中文, Español)
-- [ ] Keywords updated
-- [ ] App Store Connect submission ready
-- [ ] TestFlight testing completed
+### Pre-Release
+
+- [x] Update version number in all files (1.2.4)
+- [x] Update build number in all files (12)
+- [x] Update RELEASE_NOTES.md
+- [ ] Update README.md
+- [ ] Test on physical device
+- [ ] Verify calendar navigation fix
+- [ ] Verify today indicator size
+- [ ] Test Mixpanel events in production
+
+### Xcode Build
+
+- [ ] Clean Build Folder
+- [ ] Archive for App Store
+- [ ] Upload to App Store Connect
+
+### Supabase Setup
+
+- [ ] Register new version in app_versions table
+- [ ] Copy release notes from this file (Traditional Chinese section)
+- [ ] Verify version is active
+
+### App Store Connect
+
+- [ ] Select build 12
+- [ ] Copy "What's New" from this file
+- [ ] Submit for review
+
+### Post-Release
+
+- [ ] Monitor crash reports
+- [ ] Check Mixpanel events
+- [ ] Verify version update prompt works for older versions
+- [ ] Git commit and push
 
 ---
 
-## Notes
+## 🔄 Version History
 
-- This file should be updated every time a new version is released
-- Copy the relevant sections to App Store Connect when submitting
-- Keep only the latest version in this file (remove old versions)
-- Each language section contains all fields needed for App Store Connect submission
-- Field order matches App Store Connect submission form order for easy copy-paste:
-  1. Promotional Text
-  2. Description
-  3. What's New in This Version
-  4. Keywords
+### v1.2.4 (Build 12) - 2026-02-01
+- Fixed calendar navigation bug
+- Enhanced today indicator visibility
+- Improved analytics tracking
+- Backend optimizations
+
+### v1.2.3 (Build 11)
+- In-app version update checking
+- Google Maps preview for task links
+- AdMob integration
+- Performance improvements
+
+### v1.2.2
+- Widget functionality
+- Data preloading optimization
+- Note field auto-expansion
+
+---
+
+**文檔版本**: 1.2.4
+**最後更新**: 2026-02-01

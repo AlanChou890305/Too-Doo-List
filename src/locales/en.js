@@ -8,11 +8,12 @@ export default {
   privacy: "Privacy Policy",
   version: "Version",
   checkUpdate: "Check for Updates",
-  updateAvailable: "Update Available",
+  updateAvailable: "Download Latest",
   latestVersion: "Latest",
   general: "General",
   support: "Support",
   feedback: "Send Feedback",
+  rateUs: "Rate Us",
   legal: "Legal",
   about: "About",
   calendar: "Calendar",
@@ -63,6 +64,13 @@ export default {
   alreadyLoggedOut: "You are already logged out.",
   logoutError: "Failed to log out. Please try again.",
   accountType: "Account Type",
+  loginMethod: "Login Method",
+  generalUser: "General User",
+  memberUser: "Member",
+  devTools: "Developer Tools",
+  switchToMember: "Switch to Member (No Ads)",
+  switchToGeneral: "Switch to General (Show Ads)",
+  userTypeUpdated: "User type updated",
   deleteAccount: "Delete Account",
   deleteAccountConfirm:
     "Are you sure you want to delete your account? This action cannot be undone. All your tasks and data will be permanently deleted.",
@@ -180,14 +188,24 @@ export default {
   reminderDisabled: "Reminders disabled",
   reminderNote:
     "Reminders will only be sent for tasks that have a scheduled time",
+  dayView: "Day",
+  weekView: "Week",
+  monthView: "Month",
+  feedbackType: "Feedback Type",
+  feedbackDetails: "Details",
+  bugReport: "Bug Report",
+  improvementSuggestion: "Improvement Suggestion",
+  featureRequest: "Feature Request",
+  feedbackOther: "Other",
+  feedbackPlaceholder: "Please tell us your thoughts...",
+  submitFeedback: "Submit Feedback",
+  feedbackMotivation:
+    "Thanks for your feedback and suggestions, \nthey are the strongest motivation for me to keep optimizing TaskCal!",
+  submitSuccess: "Submitted Successfully",
+  thanksFeedback: "Thank you for your valuable feedback!",
+  pleaseEnterFeedback: "Please enter feedback content",
+  submitting: "Submitting...",
+  pleaseLoginFirst: "Please log in first before submitting feedback",
+  submitFailed: "Submission Failed",
+  pleaseTryAgainLater: "Please try again later",
 };
-
-
-
-
-
-
-
-
-
-

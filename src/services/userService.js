@@ -1,6 +1,8 @@
 import { supabase } from "../../supabaseClient";
 import { Platform } from "react-native";
 import { getSupabaseConfig } from "../config/environment";
+import { versionService } from "./versionService";
+import * as Localization from "expo-localization";
 
 export class UserService {
   static cachedAuthUser = null;
@@ -69,7 +71,7 @@ export class UserService {
       const { data, error } = await supabase
         .from("user_settings")
         .select(
-          "language, theme, notifications_enabled, platform, last_active_at, display_name, reminder_settings, email_preferences"
+          "language, theme, notifications_enabled, platform, last_active_at, display_name, reminder_settings, email_preferences, user_type, app_version, app_build_number",
         )
         .eq("user_id", user.id)
         .single();
@@ -113,6 +115,7 @@ export class UserService {
               theme: newThemeValue,
               notifications_enabled: newData.notifications_enabled !== false,
               platform: newData.platform,
+              user_type: newData.user_type || "general",
               last_active_at: newData.last_active_at,
               display_name: newData.display_name,
               reminder_settings: newData.reminder_settings,
@@ -139,7 +142,7 @@ export class UserService {
           if (isNetworkError) {
             console.warn(
               "⚠️ Network error fetching user settings:",
-              error.message
+              error.message,
             );
           } else {
             console.error("❌ Error fetching user settings:", {
@@ -168,6 +171,7 @@ export class UserService {
         theme: themeValue,
         notifications_enabled: data.notifications_enabled !== false,
         platform: data.platform,
+        user_type: data.user_type || "general",
         last_active_at: data.last_active_at,
         display_name: data.display_name,
         reminder_settings: data.reminder_settings,
@@ -175,6 +179,8 @@ export class UserService {
           product_updates: true,
           marketing: false,
         },
+        app_version: data.app_version,
+        app_build_number: data.app_build_number,
       };
     } catch (error) {
       // 檢查是否為網絡錯誤
@@ -221,7 +227,7 @@ export class UserService {
       } catch (error) {
         // 如果之前的請求失敗，繼續使用新設定
         console.warn(
-          "⚠️ Previous update request failed, continuing with new settings"
+          "⚠️ Previous update request failed, continuing with new settings",
         );
       }
     }
@@ -314,7 +320,7 @@ export class UserService {
           if (isNetworkError) {
             console.warn(
               "⚠️ Network error updating user settings:",
-              error.message
+              error.message,
             );
           } else {
             console.error("❌ Error updating user settings:", {
@@ -332,6 +338,7 @@ export class UserService {
           theme: data.theme,
           notifications_enabled: data.notifications_enabled,
           platform: data.platform,
+          user_type: data.user_type || "general",
           last_active_at: data.last_active_at,
           display_name: data.display_name,
           reminder_settings: data.reminder_settings,
@@ -348,7 +355,7 @@ export class UserService {
         if (isNetworkError) {
           console.warn(
             "⚠️ Network error in updateUserSettings:",
-            error.message
+            error.message,
           );
         } else {
           console.error("❌ Error in updateUserSettings:", {
@@ -377,13 +384,13 @@ export class UserService {
   static async fetchAuthUserWithRetry(
     maxRetries = 3,
     delayMs = 500,
-    timeoutMs = 2500
+    timeoutMs = 2500,
   ) {
     const cachedUser = UserService.getCachedAuthUser();
     if (cachedUser) {
       console.log(
         "[fetchAuthUserWithRetry] Returning cached auth user:",
-        cachedUser.email
+        cachedUser.email,
       );
       return cachedUser;
     }
@@ -391,7 +398,7 @@ export class UserService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `[fetchAuthUserWithRetry] Calling getUser() (attempt ${attempt}/${maxRetries})`
+          `[fetchAuthUserWithRetry] Calling getUser() (attempt ${attempt}/${maxRetries})`,
         );
 
         const getUserPromise = supabase.auth.getUser();
@@ -400,11 +407,11 @@ export class UserService {
             () =>
               reject(
                 new Error(
-                  `[fetchAuthUserWithRetry] getUser() timeout after ${timeoutMs}ms`
-                )
+                  `[fetchAuthUserWithRetry] getUser() timeout after ${timeoutMs}ms`,
+                ),
               ),
-            timeoutMs
-          )
+            timeoutMs,
+          ),
         );
 
         const { data, error } = await Promise.race([
@@ -417,16 +424,16 @@ export class UserService {
         if (error) {
           console.warn(
             `[fetchAuthUserWithRetry] getUser() error (attempt ${attempt}/${maxRetries}):`,
-            error
+            error,
           );
         } else if (!user) {
           console.warn(
-            `[fetchAuthUserWithRetry] getUser() returned no user (attempt ${attempt}/${maxRetries})`
+            `[fetchAuthUserWithRetry] getUser() returned no user (attempt ${attempt}/${maxRetries})`,
           );
         } else if (user?.email && user?.id) {
           UserService.setCachedAuthUser(user);
           console.log(
-            `[fetchAuthUserWithRetry] ✅ Success with user ${user.email} (attempt ${attempt}/${maxRetries})`
+            `[fetchAuthUserWithRetry] ✅ Success with user ${user.email} (attempt ${attempt}/${maxRetries})`,
           );
           return UserService.getCachedAuthUser();
         } else {
@@ -436,13 +443,13 @@ export class UserService {
               hasUser: !!user,
               hasEmail: !!user?.email,
               hasId: !!user?.id,
-            }
+            },
           );
         }
       } catch (error) {
         console.warn(
           `[fetchAuthUserWithRetry] Exception in getUser() (attempt ${attempt}/${maxRetries}):`,
-          error
+          error,
         );
       }
 
@@ -500,7 +507,7 @@ export class UserService {
       const { data, error } = await supabase
         .from("user_settings")
         .select(
-          "id, user_id, language, theme, notifications_enabled, platform, last_active_at, created_at, updated_at, display_name"
+          "id, user_id, language, theme, notifications_enabled, platform, last_active_at, created_at, updated_at, display_name, user_type, app_version, app_build_number",
         )
         .eq("user_id", user.id)
         .single();
@@ -516,7 +523,7 @@ export class UserService {
         if (isNetworkError) {
           console.warn(
             "⚠️ Network error fetching user settings with auth:",
-            error.message
+            error.message,
           );
         } else {
           console.error("❌ Error fetching user settings with auth:", {
@@ -537,9 +544,12 @@ export class UserService {
         theme: data.theme || "light",
         notifications_enabled: data.notifications_enabled !== false,
         platform: data.platform,
+        user_type: data.user_type || "general",
         last_active_at: data.last_active_at,
         created_at: data.created_at,
         updated_at: data.updated_at,
+        app_version: data.app_version,
+        app_build_number: data.app_build_number,
 
         // Auth info (from current user)
         display_name: data.display_name, // 從 user_settings 返回（已同步自 auth.users）
@@ -558,7 +568,7 @@ export class UserService {
       if (isNetworkError) {
         console.warn(
           "⚠️ Network error in getUserSettingsWithAuth:",
-          error.message
+          error.message,
         );
       } else {
         console.error("❌ Error in getUserSettingsWithAuth:", {
@@ -588,11 +598,20 @@ export class UserService {
       const authDisplayName =
         user.user_metadata?.name || user.email?.split("@")[0] || "User";
 
-      // 更新平台資訊、最後活動時間，以及同步 display_name（方便在 table editor 查看）
+      // 獲取當前版本資訊
+      const versionInfo = versionService.getCurrentVersionInfo();
+
+      // 獲取用戶實際時區（自動偵測）
+      const userTimezone = Localization.getCalendars()[0]?.timeZone || Localization.timezone || "UTC";
+
+      // 更新平台資訊、版本號、時區、最後活動時間，以及同步 display_name（方便在 table editor 查看）
       const { error } = await supabase
         .from("user_settings")
         .update({
           platform: Platform.OS,
+          app_version: versionInfo.version,
+          app_build_number: versionInfo.buildNumber,
+          timezone: userTimezone, // 自動更新用戶時區
           last_active_at: new Date().toISOString(),
           display_name: authDisplayName, // 同步 display_name 以便在 table editor 中查看
         })
@@ -608,7 +627,7 @@ export class UserService {
         if (isNetworkError) {
           console.warn(
             "⚠️ Network error updating platform info:",
-            error.message
+            error.message,
           );
         } else {
           console.error("❌ Error updating platform info:", {
@@ -620,7 +639,9 @@ export class UserService {
         return;
       }
 
-      console.log(`📱 Platform updated: ${Platform.OS}`);
+      console.log(
+        `📱 Platform updated: ${Platform.OS}, Version: ${versionInfo.version} (Build ${versionInfo.buildNumber}), Timezone: ${userTimezone}`,
+      );
     } catch (error) {
       // 檢查是否為網絡錯誤
       const isNetworkError =
@@ -633,7 +654,7 @@ export class UserService {
       } else {
         console.error(
           "❌ Error updating platform info:",
-          error.message || error
+          error.message || error,
         );
       }
     }

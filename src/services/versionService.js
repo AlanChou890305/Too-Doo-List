@@ -9,17 +9,46 @@ import { getUpdateUrl } from "../config/updateUrls";
  */
 class VersionService {
   constructor() {
-    this.currentVersion = Application.nativeApplicationVersion || "1.2.2";
-    this.currentBuildNumber = Application.nativeBuildVersion || "10";
+    this.currentVersion = Application.nativeApplicationVersion || "1.2.4";
+    this.currentBuildNumber = Application.nativeBuildVersion || "12";
     this.latestVersion = null;
     this.updateUrl = null;
+    // 快取機制：快取版本檢查結果 5 分鐘
+    this.cache = {
+      data: null,
+      timestamp: null,
+      ttl: 5 * 60 * 1000, // 5 分鐘
+    };
+    // 追蹤版本登記狀態，避免重複查詢
+    this.versionRegistrationChecked = false;
+  }
+
+  /**
+   * 檢查快取是否有效
+   * @returns {boolean} 快取是否有效
+   */
+  isCacheValid() {
+    if (!this.cache.data || !this.cache.timestamp) {
+      return false;
+    }
+    const now = Date.now();
+    return now - this.cache.timestamp < this.cache.ttl;
+  }
+
+  /**
+   * 清除快取
+   */
+  clearCache() {
+    this.cache.data = null;
+    this.cache.timestamp = null;
   }
 
   /**
    * 檢查版本更新
+   * @param {boolean} forceRefresh - 強制重新檢查，忽略快取
    * @returns {Promise<{hasUpdate: boolean, latestVersion: string, updateUrl: string}>}
    */
-  async checkForUpdates() {
+  async checkForUpdates(forceRefresh = false) {
     try {
       console.log("🔍 [VersionCheck] 開始檢查版本更新...");
       console.log("🔍 [VersionCheck] 當前版本:", this.currentVersion);
@@ -38,16 +67,25 @@ class VersionService {
         };
       }
 
-      // 確保當前版本已登記（非阻塞，在背景執行）
-      this.ensureVersionRegistered().catch((err) => {
-        console.warn("⚠️ [VersionCheck] 自動登記版本時出錯:", err);
-      });
+      // 檢查快取
+      if (!forceRefresh && this.isCacheValid()) {
+        console.log("📦 [VersionCheck] 使用快取結果");
+        return this.cache.data;
+      }
+
+      // 確保當前版本已登記（僅在首次檢查時執行，避免重複查詢）
+      if (!this.versionRegistrationChecked) {
+        this.versionRegistrationChecked = true;
+        this.ensureVersionRegistered().catch((err) => {
+          console.warn("⚠️ [VersionCheck] 自動登記版本時出錯:", err);
+        });
+      }
 
       // 從 Supabase 獲取最新版本資訊
       const { data, error } = await supabase
         .from("app_versions")
         .select(
-          "version, build_number, update_url, force_update, release_notes"
+          "version, build_number, update_url, force_update, release_notes",
         )
         .eq("platform", Platform.OS)
         .eq("is_active", true)
@@ -59,13 +97,18 @@ class VersionService {
         console.log("⚠️ [VersionCheck] 無法獲取版本資訊:", error.message);
         // 如果無法獲取版本資訊，根據環境使用預設值
         const defaultUpdateUrl = this.getDefaultUpdateUrl();
-        return {
+        const result = {
           hasUpdate: false,
           latestVersion: this.currentVersion,
           updateUrl: defaultUpdateUrl,
           releaseNotes: null,
           forceUpdate: false,
+          buildNumber: this.currentBuildNumber,
         };
+        // 即使錯誤也快取結果，避免頻繁查詢
+        this.cache.data = result;
+        this.cache.timestamp = Date.now();
+        return result;
       }
 
       this.latestVersion = data.version;
@@ -75,13 +118,24 @@ class VersionService {
       console.log("🔍 [VersionCheck] 最新版本:", this.latestVersion);
       console.log("🔍 [VersionCheck] 最新 Build:", data.build_number);
 
-      // 比較版本號
+      // 比較版本號和 build number
+      const versionComparison = this.compareVersions(
+        this.currentVersion,
+        this.latestVersion,
+      );
+      const buildComparison = this.compareBuildNumbers(
+        this.currentBuildNumber,
+        data.build_number,
+      );
+
+      // 如果版本號相同，則比較 build number
       const hasUpdate =
-        this.compareVersions(this.currentVersion, this.latestVersion) < 0;
+        versionComparison < 0 ||
+        (versionComparison === 0 && buildComparison < 0);
 
       console.log("🔍 [VersionCheck] 需要更新:", hasUpdate);
 
-      return {
+      const result = {
         hasUpdate,
         latestVersion: this.latestVersion,
         updateUrl: this.updateUrl,
@@ -89,15 +143,26 @@ class VersionService {
         forceUpdate: data.force_update,
         buildNumber: data.build_number,
       };
+
+      // 快取結果
+      this.cache.data = result;
+      this.cache.timestamp = Date.now();
+
+      return result;
     } catch (error) {
       console.error("❌ [VersionCheck] 版本檢查失敗:", error);
-      return {
+      const result = {
         hasUpdate: false,
         latestVersion: this.currentVersion,
         updateUrl: null,
         releaseNotes: null,
         forceUpdate: false,
+        buildNumber: this.currentBuildNumber,
       };
+      // 錯誤時也快取結果，避免頻繁查詢
+      this.cache.data = result;
+      this.cache.timestamp = Date.now();
+      return result;
     }
   }
 
@@ -116,6 +181,8 @@ class VersionService {
    * @returns {number} -1: 需要更新, 0: 相同, 1: 當前版本較新
    */
   compareVersions(current, latest) {
+    if (!current || !latest) return 0;
+
     const currentParts = current.split(".").map(Number);
     const latestParts = latest.split(".").map(Number);
 
@@ -130,6 +197,27 @@ class VersionService {
       if (currentPart > latestPart) return 1;
     }
 
+    return 0;
+  }
+
+  /**
+   * 比較 Build Number
+   * @param {string|number} current - 當前 Build Number
+   * @param {string|number} latest - 最新 Build Number
+   * @returns {number} -1: 需要更新, 0: 相同, 1: 當前版本較新
+   */
+  compareBuildNumbers(current, latest) {
+    if (!current || !latest) return 0;
+
+    const currentBuild =
+      typeof current === "string" ? parseInt(current, 10) : current;
+    const latestBuild =
+      typeof latest === "string" ? parseInt(latest, 10) : latest;
+
+    if (isNaN(currentBuild) || isNaN(latestBuild)) return 0;
+
+    if (currentBuild < latestBuild) return -1;
+    if (currentBuild > latestBuild) return 1;
     return 0;
   }
 
@@ -234,7 +322,7 @@ class VersionService {
         if (updateError) {
           console.warn(
             "⚠️ [VersionRegister] 更新舊版本狀態時出錯:",
-            updateError
+            updateError,
           );
           // 繼續執行，不中斷流程
         } else {
@@ -307,7 +395,7 @@ class VersionService {
       if (!data) {
         console.log(
           "📝 [VersionRegister] 當前版本未登記，自動登記中...",
-          this.currentVersion
+          this.currentVersion,
         );
         const result = await this.registerVersion({
           setAsActive: true, // 自動設為活躍版本

@@ -15,6 +15,7 @@ import { mixpanelService } from "./src/services/mixpanelService";
 import { widgetService } from "./src/services/widgetService";
 import { useResponsive } from "./src/hooks/useResponsive";
 import { ResponsiveContainer } from "./src/components/ResponsiveContainer";
+import { MapPreview } from "./src/components/MapPreview";
 import { format } from "date-fns";
 import {
   formatTimestamp,
@@ -36,6 +37,15 @@ import Svg, { Path, Circle, Rect, Line, Ellipse } from "react-native-svg";
 import ReactGA from "react-ga4";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
+// expo-store-review is a native module, may not be available in Expo Go
+let StoreReview = null;
+try {
+  StoreReview = require("expo-store-review");
+} catch (e) {
+  console.warn(
+    "expo-store-review not available, will use web browser fallback",
+  );
+}
 import {
   View,
   Text,
@@ -102,7 +112,7 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
     // Only redirect to native app if we're confident it came from native app
     if (mightBeFromNativeApp) {
       console.log(
-        "🚨 [IMMEDIATE] OAuth callback might be from native app, preparing redirect..."
+        "🚨 [IMMEDIATE] OAuth callback might be from native app, preparing redirect...",
       );
       console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
       console.log("🚨 [IMMEDIATE] Using app scheme:", appScheme);
@@ -136,14 +146,14 @@ if (Platform.OS === "web" && typeof window !== "undefined") {
         } catch (e) {
           console.log(
             "🚨 [IMMEDIATE] Redirect failed, treating as web OAuth:",
-            e
+            e,
           );
           // If redirect fails, it's probably pure web OAuth, let normal flow handle it
         }
       }
     } else {
       console.log(
-        "🚨 [IMMEDIATE] OAuth callback detected on web (pure web OAuth), letting normal flow handle it..."
+        "🚨 [IMMEDIATE] OAuth callback detected on web (pure web OAuth), letting normal flow handle it...",
       );
       console.log("🚨 [IMMEDIATE] Current URL:", currentUrl);
       // Pure web OAuth - let the normal OAuth callback handler process it
@@ -188,9 +198,15 @@ import * as Notifications from "expo-notifications";
 import { getActiveReminderMinutes } from "./src/config/notificationConfig";
 import { versionService } from "./src/services/versionService";
 import { getUpdateUrl } from "./src/config/updateUrls";
+import VersionUpdateModal from "./src/components/VersionUpdateModal";
+import * as Updates from "expo-updates";
 
 // Theme Config
 import { getTheme, lightTheme, darkTheme } from "./src/config/theme";
+
+// Ad Components
+import AdBanner from "./src/components/AdBanner";
+import AdService from "./src/services/adService";
 
 // Storage
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -205,7 +221,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 
 // UI Components
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -249,6 +265,18 @@ const ThemeContext = createContext({
   loadTheme: () => {},
 });
 
+// User context
+const UserContext = createContext({
+  userType: "general",
+  loadingUserType: true,
+  setUserType: () => {},
+  loadUserType: () => {},
+  setUpdateInfo: () => {},
+  setIsUpdateModalVisible: () => {},
+  isSimulatingUpdate: false,
+  setIsSimulatingUpdate: () => {},
+});
+
 function getToday() {
   const today = new Date();
   const year = today.getFullYear();
@@ -267,6 +295,7 @@ const Stack = createStackNavigator();
 const SplashScreen = ({ navigation }) => {
   const { theme, themeMode, loadTheme: reloadTheme } = useContext(ThemeContext);
   const { t } = useContext(LanguageContext);
+  const { loadUserType } = useContext(UserContext);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isAppleSigningIn, setIsAppleSigningIn] = useState(false);
@@ -283,7 +312,7 @@ const SplashScreen = ({ navigation }) => {
         } catch (error) {
           console.error(
             "Error checking Apple Authentication availability:",
-            error
+            error,
           );
           setIsAppleAvailable(false);
         }
@@ -301,7 +330,7 @@ const SplashScreen = ({ navigation }) => {
         // Only handle OAuth callback on web platform
         if (Platform.OS !== "web" || typeof window === "undefined") {
           console.log(
-            "OAuth callback: Not on web platform, skipping callback handling"
+            "OAuth callback: Not on web platform, skipping callback handling",
           );
           return;
         }
@@ -328,7 +357,7 @@ const SplashScreen = ({ navigation }) => {
 
         if (hasOAuthParams && isFromNativeApp) {
           console.log(
-            "OAuth callback: Detected native app OAuth flow, preparing redirect..."
+            "OAuth callback: Detected native app OAuth flow, preparing redirect...",
           );
 
           // Determine the correct URL scheme based on environment/domain
@@ -358,28 +387,28 @@ const SplashScreen = ({ navigation }) => {
           if (redirectUrl) {
             console.log(
               "OAuth callback: Redirecting to native app:",
-              redirectUrl
+              redirectUrl,
             );
             try {
               window.location.href = redirectUrl;
               // Show user message after attempting redirect
               setTimeout(() => {
                 alert(
-                  "Please return to the TaskCal app. The login was successful!"
+                  "Please return to the TaskCal app. The login was successful!",
                 );
               }, 1000);
               return;
             } catch (redirectError) {
               console.error(
                 "OAuth callback: Failed to redirect to native app:",
-                redirectError
+                redirectError,
               );
             }
           }
         } else if (hasOAuthParams) {
           // This is a pure web OAuth callback - process it directly
           console.log(
-            "OAuth callback: Pure web OAuth detected, processing directly..."
+            "OAuth callback: Pure web OAuth detected, processing directly...",
           );
 
           // Process the OAuth callback for web
@@ -395,17 +424,17 @@ const SplashScreen = ({ navigation }) => {
               if (exchangeError) {
                 console.error(
                   "OAuth callback: Code exchange failed:",
-                  exchangeError
+                  exchangeError,
                 );
               } else if (sessionData?.session) {
                 console.log(
-                  "OAuth callback: ✅ Session established successfully!"
+                  "OAuth callback: ✅ Session established successfully!",
                 );
                 // Clear URL params and navigate
                 window.history.replaceState(
                   {},
                   document.title,
-                  window.location.pathname
+                  window.location.pathname,
                 );
                 // Navigation will be handled by auth state listener
               }
@@ -428,7 +457,7 @@ const SplashScreen = ({ navigation }) => {
                   window.history.replaceState(
                     {},
                     document.title,
-                    window.location.pathname
+                    window.location.pathname,
                   );
                   // Navigation will be handled by auth state listener
                 }
@@ -457,7 +486,7 @@ const SplashScreen = ({ navigation }) => {
             errorDescription?.includes("Database error saving new user")
           ) {
             console.error(
-              "OAuth callback: Database error - new user cannot be saved"
+              "OAuth callback: Database error - new user cannot be saved",
             );
             console.error("Full OAuth error details:", {
               error: oauthError,
@@ -491,7 +520,7 @@ const SplashScreen = ({ navigation }) => {
                 if (settingsError) {
                   console.error(
                     "Failed to create user settings:",
-                    settingsError
+                    settingsError,
                   );
                   console.error("Settings error details:", {
                     message: settingsError.message,
@@ -503,7 +532,7 @@ const SplashScreen = ({ navigation }) => {
                   // Try to get more detailed error information
                   console.error(
                     "Full settings error object:",
-                    JSON.stringify(settingsError, null, 2)
+                    JSON.stringify(settingsError, null, 2),
                   );
 
                   // Check if user_settings table exists and is accessible
@@ -513,7 +542,7 @@ const SplashScreen = ({ navigation }) => {
                     .limit(1);
 
                   alert(
-                    "Account created but some settings could not be saved. You can continue using the app."
+                    "Account created but some settings could not be saved. You can continue using the app.",
                   );
                 } else {
                   alert("Account created successfully! Welcome to TaskCal!");
@@ -528,7 +557,7 @@ const SplashScreen = ({ navigation }) => {
             }
 
             alert(
-              "Unable to create new user account. Please contact support or try with a different Google account."
+              "Unable to create new user account. Please contact support or try with a different Google account.",
             );
             return;
           }
@@ -536,8 +565,8 @@ const SplashScreen = ({ navigation }) => {
           // Handle other OAuth errors
           alert(
             `Authentication error: ${decodeURIComponent(
-              errorDescription || oauthError
-            )}`
+              errorDescription || oauthError,
+            )}`,
           );
           return;
         }
@@ -563,7 +592,7 @@ const SplashScreen = ({ navigation }) => {
           if (userError || !user) {
             console.error(
               "OAuth callback: Failed to get user after OAuth:",
-              userError
+              userError,
             );
             return;
           }
@@ -631,7 +660,7 @@ const SplashScreen = ({ navigation }) => {
 
       if (!navigation) {
         console.error(
-          "📍 [navigateToMainApp] ❌ Navigation object is not available"
+          "📍 [navigateToMainApp] ❌ Navigation object is not available",
         );
         return;
       }
@@ -641,14 +670,14 @@ const SplashScreen = ({ navigation }) => {
         navigation.getState?.()?.routes?.[navigation.getState?.()?.index];
       if (currentRoute?.name === "MainTabs" && !options.focusToday) {
         console.log(
-          "📍 [navigateToMainApp] ⚠️ Already in MainTabs, skipping reset to preserve current tab"
+          "📍 [navigateToMainApp] ⚠️ Already in MainTabs, skipping reset to preserve current tab",
         );
         setHasNavigated(true);
         return;
       }
 
       console.log(
-        "📍 [navigateToMainApp] Navigation object exists, attempting reset..."
+        "📍 [navigateToMainApp] Navigation object exists, attempting reset...",
       );
 
       try {
@@ -745,10 +774,6 @@ const SplashScreen = ({ navigation }) => {
               platform: Platform.OS,
             });
 
-            // 重置登入狀態
-            setIsSigningIn(false);
-            setIsAppleSigningIn(false);
-
             // 更新用戶平台資訊（不阻止登入流程）
             UserService.updatePlatformInfo()
               .then(() => {
@@ -757,7 +782,7 @@ const SplashScreen = ({ navigation }) => {
               .catch((platformError) => {
                 console.error(
                   "❌ Error updating platform info:",
-                  platformError
+                  platformError,
                 );
               });
 
@@ -766,25 +791,35 @@ const SplashScreen = ({ navigation }) => {
               console.error("❌ Error preloading data:", preloadError);
             });
 
-            // 注意：不需要在登入後重新載入 theme，因為：
-            // 1. App 啟動時已經載入過 theme（如果用戶已登入）
-            // 2. INITIAL_SESSION 事件表示用戶已經有 session，theme 應該已經正確載入
-            // 3. 只有在 SIGNED_IN（新登入）時才需要重新載入 theme
+            // 新登入時在背景載入 theme，不阻塞導向（避免 getUserSettings 卡住時整頁卡 5 秒）
             if (event === "SIGNED_IN" && reloadTheme) {
-              // 只有在新登入時才重新載入 theme
               reloadTheme().catch((themeError) => {
                 console.error(
                   "❌ Error reloading theme after login:",
-                  themeError
+                  themeError,
                 );
               });
             }
 
+            // 登入／session 建立後立即更新 UserContext 的 user_type，讓廣告依身份正確顯示（無需先進設定頁）
+            if (loadUserType) {
+              loadUserType().catch((userTypeError) => {
+                console.error(
+                  "❌ Error loading user type after auth:",
+                  userTypeError,
+                );
+              });
+            }
+
+            // 導向主畫面後才關閉 Signing in，避免按鈕已還原但畫面還卡住
             console.log("🚀 Navigating to main app...");
-            // Check if already navigated to prevent double navigation
             if (!hasNavigated) {
+              setIsSigningIn(false);
+              setIsAppleSigningIn(false);
               navigateToMainApp({ focusToday: true });
             } else {
+              setIsSigningIn(false);
+              setIsAppleSigningIn(false);
               console.log("⚠️ Navigation skipped - already navigated");
             }
           } catch (error) {
@@ -831,7 +866,7 @@ const SplashScreen = ({ navigation }) => {
       ) {
         window.removeEventListener(
           "supabase-auth-success",
-          handleCustomAuthSuccess
+          handleCustomAuthSuccess,
         );
       }
     };
@@ -855,7 +890,7 @@ const SplashScreen = ({ navigation }) => {
           console.log("[checkSession] Session user ID:", session.user?.id);
           console.log(
             "[checkSession] Session expires at:",
-            new Date(session.expires_at * 1000).toISOString()
+            new Date(session.expires_at * 1000).toISOString(),
           );
 
           // Check if session is expired
@@ -865,7 +900,7 @@ const SplashScreen = ({ navigation }) => {
 
           if (isSessionExpired) {
             console.log(
-              "[checkSession] Session expired, attempting refresh..."
+              "[checkSession] Session expired, attempting refresh...",
             );
             // Try to refresh the session
             const {
@@ -876,10 +911,10 @@ const SplashScreen = ({ navigation }) => {
             if (refreshError || !refreshedSession) {
               console.error(
                 "[checkSession] Failed to refresh expired session:",
-                refreshError
+                refreshError,
               );
               console.log(
-                "[checkSession] Session expired, navigating to today page..."
+                "[checkSession] Session expired, navigating to today page...",
               );
               // Session expired, navigate to MainTabs with today focus
               if (!hasNavigated) {
@@ -901,10 +936,10 @@ const SplashScreen = ({ navigation }) => {
           if (userError || !user) {
             console.error(
               "[checkSession] Session invalid or user not found:",
-              userError
+              userError,
             );
             console.error(
-              "[checkSession] Attempting to clear invalid session..."
+              "[checkSession] Attempting to clear invalid session...",
             );
             try {
               await supabase.auth.signOut();
@@ -931,12 +966,12 @@ const SplashScreen = ({ navigation }) => {
             navigateToMainApp({ focusToday: true });
           } else {
             console.log(
-              "⚠️ [checkSession] Navigation skipped - already navigated"
+              "⚠️ [checkSession] Navigation skipped - already navigated",
             );
           }
         } else {
           console.log(
-            "[checkSession] No existing session found, showing login screen"
+            "[checkSession] No existing session found, showing login screen",
           );
         }
       } catch (error) {
@@ -975,7 +1010,7 @@ const SplashScreen = ({ navigation }) => {
               console.log("🔗🔗🔗 [App.js Deep Link] Parsing from query");
             } else {
               console.error(
-                "🔗🔗🔗 [App.js Deep Link] No parameters found in URL"
+                "🔗🔗🔗 [App.js Deep Link] No parameters found in URL",
               );
               return;
             }
@@ -996,7 +1031,7 @@ const SplashScreen = ({ navigation }) => {
               console.error("🔗🔗🔗 [App.js Deep Link] OAuth error:", error);
               Alert.alert(
                 "Authentication Error",
-                params.get("error_description") || error
+                params.get("error_description") || error,
               );
               return;
             }
@@ -1004,7 +1039,7 @@ const SplashScreen = ({ navigation }) => {
             if (code) {
               // PKCE flow - exchange code for session
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] Exchanging code for session..."
+                "🔗🔗🔗 [App.js Deep Link] Exchanging code for session...",
               );
 
               const { data, error: exchangeError } =
@@ -1013,30 +1048,30 @@ const SplashScreen = ({ navigation }) => {
               if (exchangeError) {
                 console.error(
                   "🔗🔗🔗 [App.js Deep Link] ❌ Code exchange failed:",
-                  exchangeError
+                  exchangeError,
                 );
                 Alert.alert(
                   "Authentication Error",
-                  "Failed to complete sign in. Please try again."
+                  "Failed to complete sign in. Please try again.",
                 );
                 return;
               }
 
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] ✅ Code exchanged successfully!"
+                "🔗🔗🔗 [App.js Deep Link] ✅ Code exchanged successfully!",
               );
               console.log(
                 "🔗🔗🔗 [App.js Deep Link] Session user:",
-                data?.session?.user?.email
+                data?.session?.user?.email,
               );
 
               // Wait for session to be fully established and onAuthStateChange to trigger
               // Don't navigate here - let auth state listener handle it
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] ⏳ Waiting for auth state listener to navigate..."
+                "🔗🔗🔗 [App.js Deep Link] ⏳ Waiting for auth state listener to navigate...",
               );
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] (SIGNED_IN event should trigger navigation)"
+                "🔗🔗🔗 [App.js Deep Link] (SIGNED_IN event should trigger navigation)",
               );
 
               // Wait a moment for onAuthStateChange to fire
@@ -1046,7 +1081,7 @@ const SplashScreen = ({ navigation }) => {
               setTimeout(() => {
                 if (!hasNavigated) {
                   console.log(
-                    "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app..."
+                    "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app...",
                   );
                   navigateToMainApp({ focusToday: true });
                 }
@@ -1054,7 +1089,7 @@ const SplashScreen = ({ navigation }) => {
             } else if (accessToken && refreshToken) {
               // Direct token flow
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] Setting session with tokens..."
+                "🔗🔗🔗 [App.js Deep Link] Setting session with tokens...",
               );
 
               const { data, error: sessionError } =
@@ -1066,26 +1101,26 @@ const SplashScreen = ({ navigation }) => {
               if (sessionError) {
                 console.error(
                   "🔗🔗🔗 [App.js Deep Link] ❌ Set session failed:",
-                  sessionError
+                  sessionError,
                 );
                 Alert.alert(
                   "Authentication Error",
-                  "Failed to complete sign in. Please try again."
+                  "Failed to complete sign in. Please try again.",
                 );
                 return;
               }
 
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] ✅ Session set successfully!"
+                "🔗🔗🔗 [App.js Deep Link] ✅ Session set successfully!",
               );
 
               // Wait for session to be fully established and onAuthStateChange to trigger
               // Don't navigate here - let auth state listener handle it
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] ⏳ Waiting for auth state listener to navigate..."
+                "🔗🔗🔗 [App.js Deep Link] ⏳ Waiting for auth state listener to navigate...",
               );
               console.log(
-                "🔗🔗🔗 [App.js Deep Link] (SIGNED_IN event should trigger navigation)"
+                "🔗🔗🔗 [App.js Deep Link] (SIGNED_IN event should trigger navigation)",
               );
 
               // Wait a moment for onAuthStateChange to fire
@@ -1095,29 +1130,29 @@ const SplashScreen = ({ navigation }) => {
               setTimeout(() => {
                 if (!hasNavigated) {
                   console.log(
-                    "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app..."
+                    "🔗🔗🔗 [App.js Deep Link] Fallback: Navigating to main app...",
                   );
                   navigateToMainApp({ focusToday: true });
                 }
               }, 2000);
             } else {
               console.error(
-                "🔗🔗🔗 [App.js Deep Link] No code or tokens found in callback"
+                "🔗🔗🔗 [App.js Deep Link] No code or tokens found in callback",
               );
             }
           } catch (error) {
             console.error(
               "🔗🔗🔗 [App.js Deep Link] ❌ Error handling deep link:",
-              error
+              error,
             );
             console.error(
               "🔗🔗🔗 [App.js Deep Link] Error stack:",
-              error.stack
+              error.stack,
             );
           }
         } else {
           console.log(
-            "🔗🔗🔗 [App.js Deep Link] Not an auth callback, ignoring"
+            "🔗🔗🔗 [App.js Deep Link] Not an auth callback, ignoring",
           );
         }
       }
@@ -1137,7 +1172,7 @@ const SplashScreen = ({ navigation }) => {
         if (hasAuthCallback) {
           console.log("Initial URL is an auth callback:", url.href);
           console.log(
-            "OAuth callback already handled at module level, skipping"
+            "OAuth callback already handled at module level, skipping",
           );
           return;
         }
@@ -1180,11 +1215,11 @@ const SplashScreen = ({ navigation }) => {
             if (error) {
               console.error(
                 `Error checking session (attempt ${attempt}):`,
-                error
+                error,
               );
             } else if (session) {
               console.log(
-                `Mobile: Session found on attempt ${attempt}, navigating to main app`
+                `Mobile: Session found on attempt ${attempt}, navigating to main app`,
               );
 
               // 立即開始預載入所有數據（不等待完成，在背景執行）
@@ -1204,7 +1239,7 @@ const SplashScreen = ({ navigation }) => {
                 });
               } else {
                 console.log(
-                  "⚠️ [checkSession] Already in MainTabs, skipping reset to preserve current tab"
+                  "⚠️ [checkSession] Already in MainTabs, skipping reset to preserve current tab",
                 );
               }
               return;
@@ -1215,19 +1250,19 @@ const SplashScreen = ({ navigation }) => {
             // Wait before next attempt (except on last attempt)
             if (attempt < 3) {
               await new Promise((resolve) =>
-                setTimeout(resolve, 1000 * attempt)
+                setTimeout(resolve, 1000 * attempt),
               );
             }
           } catch (error) {
             console.error(
               `Error in mobile session check (attempt ${attempt}):`,
-              error
+              error,
             );
           }
         }
 
         console.log(
-          "All session check attempts completed, proceeding to check existing session"
+          "All session check attempts completed, proceeding to check existing session",
         );
       }
 
@@ -1367,17 +1402,17 @@ const SplashScreen = ({ navigation }) => {
           const currentEnv = process.env.EXPO_PUBLIC_APP_ENV || "production";
           console.log(
             "🔍 DEBUG - Current environment for redirect:",
-            currentEnv
+            currentEnv,
           );
           console.log(
             "🔍 DEBUG - All EXPO_PUBLIC env vars:",
             Object.keys(process.env).filter((key) =>
-              key.startsWith("EXPO_PUBLIC")
-            )
+              key.startsWith("EXPO_PUBLIC"),
+            ),
           );
           console.log(
             "🔍 DEBUG - EXPO_PUBLIC_APP_ENV value:",
-            process.env.EXPO_PUBLIC_APP_ENV
+            process.env.EXPO_PUBLIC_APP_ENV,
           );
 
           // Get app scheme based on environment
@@ -1447,25 +1482,25 @@ const SplashScreen = ({ navigation }) => {
         } else {
           // For mobile, use WebBrowser which handles deep links properly
           console.log(
-            "VERBOSE: Opening OAuth browser session with WebBrowser..."
+            "VERBOSE: Opening OAuth browser session with WebBrowser...",
           );
           console.log("VERBOSE: Redirect URL:", redirectUrl);
 
           // Use WebBrowser.openAuthSessionAsync for OAuth flow
           const result = await WebBrowser.openAuthSessionAsync(
             data.url,
-            redirectUrl
+            redirectUrl,
           );
           console.log(
             "VERBOSE: WebBrowser result:",
-            JSON.stringify(result, null, 2)
+            JSON.stringify(result, null, 2),
           );
 
           // ✅ KEY FIX: The result.url contains the OAuth callback URL
           // We need to manually process it since iOS doesn't automatically trigger the deep link
           if (result.type === "success" && result.url) {
             console.log(
-              "🎯 [CRITICAL] WebBrowser returned with URL, processing manually..."
+              "🎯 [CRITICAL] WebBrowser returned with URL, processing manually...",
             );
             console.log("🎯 [CRITICAL] Returned URL:", result.url);
 
@@ -1512,7 +1547,7 @@ const SplashScreen = ({ navigation }) => {
                   console.error("🎯 [CRITICAL] OAuth error:", error);
                   Alert.alert(
                     "Authentication Error",
-                    params.get("error_description") || error
+                    params.get("error_description") || error,
                   );
                   return;
                 }
@@ -1527,11 +1562,11 @@ const SplashScreen = ({ navigation }) => {
                   if (exchangeError) {
                     console.error(
                       "🎯 [CRITICAL] ❌ Code exchange failed:",
-                      exchangeError
+                      exchangeError,
                     );
                     Alert.alert(
                       "Authentication Error",
-                      "Failed to complete sign in. Please try again."
+                      "Failed to complete sign in. Please try again.",
                     );
                     return;
                   }
@@ -1545,10 +1580,10 @@ const SplashScreen = ({ navigation }) => {
                   // Don't navigate here - let auth state listener handle it
                   // exchangeCodeForSession triggers SIGNED_IN event which will navigate
                   console.log(
-                    "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
+                    "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate...",
                   );
                   console.log(
-                    "🎯 [CRITICAL] (SIGNED_IN event should trigger navigation)"
+                    "🎯 [CRITICAL] (SIGNED_IN event should trigger navigation)",
                   );
 
                   setIsSigningIn(false);
@@ -1566,11 +1601,11 @@ const SplashScreen = ({ navigation }) => {
                   if (sessionError) {
                     console.error(
                       "🎯 [CRITICAL] ❌ Set session failed:",
-                      sessionError
+                      sessionError,
                     );
                     Alert.alert(
                       "Authentication Error",
-                      "Failed to complete sign in. Please try again."
+                      "Failed to complete sign in. Please try again.",
                     );
                     return;
                   }
@@ -1579,7 +1614,7 @@ const SplashScreen = ({ navigation }) => {
 
                   // Don't navigate here - let auth state listener handle it
                   console.log(
-                    "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate..."
+                    "🎯 [CRITICAL] ⏳ Waiting for auth state listener to navigate...",
                   );
 
                   setIsSigningIn(false);
@@ -1589,11 +1624,11 @@ const SplashScreen = ({ navigation }) => {
             } catch (error) {
               console.error(
                 "🎯 [CRITICAL] ❌ Error processing OAuth callback:",
-                error
+                error,
               );
               Alert.alert(
                 "Authentication Error",
-                "Failed to process authentication. Please try again."
+                "Failed to process authentication. Please try again.",
               );
               return;
             }
@@ -1602,10 +1637,10 @@ const SplashScreen = ({ navigation }) => {
           } else if (result.type === "cancel") {
             console.log("VERBOSE: User cancelled the auth flow");
             console.log(
-              "VERBOSE: This might be due to deep link not working properly"
+              "VERBOSE: This might be due to deep link not working properly",
             );
             console.log(
-              "VERBOSE: Check if Supabase redirect URL includes: taskcal://auth/callback"
+              "VERBOSE: Check if Supabase redirect URL includes: taskcal://auth/callback",
             );
             setIsSigningIn(false);
             // Don't show alert for cancel - user might have closed browser due to redirect issue
@@ -1623,10 +1658,10 @@ const SplashScreen = ({ navigation }) => {
           // The auth state listener will handle navigation automatically
           const checkSessionWithRetry = async (
             attempt = 1,
-            maxAttempts = 5
+            maxAttempts = 5,
           ) => {
             console.log(
-              `[Auth Fallback] Session check attempt ${attempt}/${maxAttempts}...`
+              `[Auth Fallback] Session check attempt ${attempt}/${maxAttempts}...`,
             );
 
             const {
@@ -1637,13 +1672,13 @@ const SplashScreen = ({ navigation }) => {
             if (sessionCheckError) {
               console.error(
                 "[Auth Fallback] Error checking session:",
-                sessionCheckError
+                sessionCheckError,
               );
               if (attempt >= maxAttempts) {
                 setIsSigningIn(false);
                 Alert.alert(
                   "Authentication Error",
-                  "Failed to complete sign in. Please try again."
+                  "Failed to complete sign in. Please try again.",
                 );
               }
               return;
@@ -1651,7 +1686,7 @@ const SplashScreen = ({ navigation }) => {
 
             if (!newSession) {
               console.log(
-                `[Auth Fallback] No session found on attempt ${attempt}`
+                `[Auth Fallback] No session found on attempt ${attempt}`,
               );
 
               // Retry if we haven't reached max attempts
@@ -1660,21 +1695,21 @@ const SplashScreen = ({ navigation }) => {
                 console.log(`[Auth Fallback] Retrying in ${delay}ms...`);
                 setTimeout(
                   () => checkSessionWithRetry(attempt + 1, maxAttempts),
-                  delay
+                  delay,
                 );
               } else {
                 console.error(
-                  "[Auth Fallback] All attempts exhausted, no session found"
+                  "[Auth Fallback] All attempts exhausted, no session found",
                 );
                 setIsSigningIn(false);
                 Alert.alert(
                   "Sign In Issue",
-                  "Authentication completed but session was not established. Please try signing in again.\n\nIf this persists, try restarting the app."
+                  "Authentication completed but session was not established. Please try signing in again.\n\nIf this persists, try restarting the app.",
                 );
               }
             } else {
               console.log(
-                `[Auth Fallback] ✅ Session found on attempt ${attempt}!`
+                `[Auth Fallback] ✅ Session found on attempt ${attempt}!`,
               );
               console.log("[Auth Fallback] User:", newSession.user?.email);
 
@@ -1740,7 +1775,7 @@ const SplashScreen = ({ navigation }) => {
             style: "cancel",
           },
         ],
-        { cancelable: true }
+        { cancelable: true },
       );
     } finally {
       console.log("🔐 Google Authentication - Completed");
@@ -1759,7 +1794,7 @@ const SplashScreen = ({ navigation }) => {
     if (!isAppleAvailable) {
       Alert.alert(
         "Not Available",
-        "Sign in with Apple is not available on this device."
+        "Sign in with Apple is not available on this device.",
       );
       return;
     }
@@ -1810,11 +1845,11 @@ const SplashScreen = ({ navigation }) => {
       if (credential.fullName) {
         console.log(
           "🍎 fullName object:",
-          JSON.stringify(credential.fullName, null, 2)
+          JSON.stringify(credential.fullName, null, 2),
         );
       } else {
         console.log(
-          "🍎 No fullName in credential (this happens on subsequent logins)"
+          "🍎 No fullName in credential (this happens on subsequent logins)",
         );
       }
 
@@ -1830,9 +1865,9 @@ const SplashScreen = ({ navigation }) => {
               atob(base64)
                 .split("")
                 .map(
-                  (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+                  (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2),
                 )
-                .join("")
+                .join(""),
             );
             const payload = JSON.parse(jsonPayload);
             console.log("🍎 ID Token payload:", {
@@ -1844,7 +1879,7 @@ const SplashScreen = ({ navigation }) => {
             console.log("⚠️ Expected Bundle ID:", "com.cty0305.too.doo.list");
             console.log(
               "⚠️ Current EXPO_PUBLIC_APP_ENV:",
-              process.env.EXPO_PUBLIC_APP_ENV || "not set"
+              process.env.EXPO_PUBLIC_APP_ENV || "not set",
             );
           }
         } catch (e) {
@@ -1892,11 +1927,11 @@ const SplashScreen = ({ navigation }) => {
           console.log(
             `⚠️ Retryable error (${
               error?.status || "unknown"
-            }), retrying... (${retryCount}/${maxRetries})`
+            }), retrying... (${retryCount}/${maxRetries})`,
           );
           // Wait before retrying
           await new Promise((resolve) =>
-            setTimeout(resolve, retryDelay * retryCount)
+            setTimeout(resolve, retryDelay * retryCount),
           );
           continue;
         } else {
@@ -1940,7 +1975,7 @@ const SplashScreen = ({ navigation }) => {
               try {
                 console.log(
                   "🍎 Updating user_metadata (name and display_name) to:",
-                  fullName
+                  fullName,
                 );
                 const { data: updateData, error: updateError } =
                   await supabase.auth.updateUser({
@@ -1954,13 +1989,13 @@ const SplashScreen = ({ navigation }) => {
                   console.error("❌ Failed to update user name:", updateError);
                   console.error(
                     "Update error details:",
-                    JSON.stringify(updateError, null, 2)
+                    JSON.stringify(updateError, null, 2),
                   );
                 } else {
                   console.log("✅ User name updated successfully:", fullName);
                   console.log(
                     "Updated user_metadata:",
-                    JSON.stringify(updateData?.user?.user_metadata, null, 2)
+                    JSON.stringify(updateData?.user?.user_metadata, null, 2),
                   );
 
                   // Verify the update by fetching the user again
@@ -1970,20 +2005,24 @@ const SplashScreen = ({ navigation }) => {
                     if (verifyError) {
                       console.error(
                         "❌ Error verifying user update:",
-                        verifyError
+                        verifyError,
                       );
                     } else {
                       console.log(
                         "🔍 Verification - user_metadata after update:",
-                        JSON.stringify(verifyData?.user?.user_metadata, null, 2)
+                        JSON.stringify(
+                          verifyData?.user?.user_metadata,
+                          null,
+                          2,
+                        ),
                       );
                       console.log(
                         "🔍 Verification - name:",
-                        verifyData?.user?.user_metadata?.name
+                        verifyData?.user?.user_metadata?.name,
                       );
                       console.log(
                         "🔍 Verification - display_name:",
-                        verifyData?.user?.user_metadata?.display_name
+                        verifyData?.user?.user_metadata?.display_name,
                       );
                     }
                   } catch (verifyErr) {
@@ -1998,7 +2037,7 @@ const SplashScreen = ({ navigation }) => {
             } else {
               console.log(
                 "ℹ️ User name already exists and matches:",
-                existingName
+                existingName,
               );
             }
           } else {
@@ -2015,7 +2054,7 @@ const SplashScreen = ({ navigation }) => {
               try {
                 console.log(
                   "🍎 Setting display_name from email prefix:",
-                  emailPrefix
+                  emailPrefix,
                 );
                 const { data: updateData, error: updateError } =
                   await supabase.auth.updateUser({
@@ -2028,12 +2067,12 @@ const SplashScreen = ({ navigation }) => {
                 if (updateError) {
                   console.error(
                     "❌ Failed to set email prefix as name:",
-                    updateError
+                    updateError,
                   );
                 } else {
                   console.log(
                     "✅ Email prefix set as display_name:",
-                    emailPrefix
+                    emailPrefix,
                   );
 
                   // display_name 會自動在 updateUserSettings 中同步，無需手動同步
@@ -2041,22 +2080,22 @@ const SplashScreen = ({ navigation }) => {
               } catch (updateError) {
                 console.error(
                   "❌ Error setting email prefix as name:",
-                  updateError
+                  updateError,
                 );
               }
             }
           }
         } else {
           console.log(
-            "ℹ️ No fullName from Apple (this is normal for returning users)"
+            "ℹ️ No fullName from Apple (this is normal for returning users)",
           );
           console.log(
             "Current user_metadata.name:",
-            data.user.user_metadata?.name
+            data.user.user_metadata?.name,
           );
           console.log(
             "Current user_metadata.display_name:",
-            data.user.user_metadata?.display_name
+            data.user.user_metadata?.display_name,
           );
 
           // If user doesn't have a name yet, set a default from email
@@ -2068,7 +2107,7 @@ const SplashScreen = ({ navigation }) => {
             const emailPrefix = data.user.email.split("@")[0];
             console.log(
               "🍎 Setting default display_name from email:",
-              emailPrefix
+              emailPrefix,
             );
 
             try {
@@ -2094,7 +2133,7 @@ const SplashScreen = ({ navigation }) => {
                 } catch (settingsError) {
                   console.warn(
                     "⚠️ Failed to sync display_name to user_settings:",
-                    settingsError
+                    settingsError,
                   );
                 }
               }
@@ -3101,7 +3140,7 @@ const TaskSkeleton = ({ theme }) => {
           duration: 1000,
           useNativeDriver,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -3179,6 +3218,15 @@ const TaskSkeleton = ({ theme }) => {
 function SettingScreen() {
   const { language, setLanguage, t } = useContext(LanguageContext);
   const { theme, themeMode, setThemeMode } = useContext(ThemeContext);
+  const {
+    userType,
+    loadingUserType,
+    setUserType,
+    setUpdateInfo,
+    setIsUpdateModalVisible,
+    isSimulatingUpdate,
+    setIsSimulatingUpdate,
+  } = useContext(UserContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState("");
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -3203,11 +3251,12 @@ function SettingScreen() {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
   const [languageDropdownVisible, setLanguageDropdownVisible] = useState(false);
   const [themeDropdownVisible, setThemeDropdownVisible] = useState(false);
+  const [userTypeDropdownVisible, setUserTypeDropdownVisible] = useState(false);
   const [reminderSettings, setReminderSettings] = useState({
     enabled: true,
     times: [30, 10, 5], // 預設30分鐘、10分鐘和5分鐘前提醒
@@ -3215,9 +3264,159 @@ function SettingScreen() {
   const [reminderDropdownVisible, setReminderDropdownVisible] = useState(false);
   const [versionInfo, setVersionInfo] = useState(null);
   const [hasUpdate, setHasUpdate] = useState(false);
+
+  // 模擬更新資料
+  const effectiveHasUpdate = isSimulatingUpdate ? true : hasUpdate;
+  const effectiveVersionInfo = isSimulatingUpdate
+    ? {
+        version: "1.2.1", // 模擬當前是舊版
+        latestVersion: "1.2.2", // 模擬最新是 1.2.2
+        releaseNotes: "這是一條模擬的更新說明，讓您測試非最新版使用者的畫面。",
+        forceUpdate: false,
+        updateUrl: "https://apps.apple.com/app/id6753785239",
+      }
+    : versionInfo;
+
   const [isCheckingVersion, setIsCheckingVersion] = useState(false);
+  const [rateUsModalVisible, setRateUsModalVisible] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [feedbackCategory, setFeedbackCategory] = useState("suggestion");
+  const [feedbackText, setFeedbackText] = useState("");
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const navigation = useNavigation();
   const userProfileCache = useRef(null); // Cache user profile to avoid redundant API calls
+
+  // 使用者類型切換處理 (僅限開發模式)
+  const handleUserTypeChange = async (newType) => {
+    try {
+      setUserType(newType);
+      await UserService.updateUserSettings({ user_type: newType });
+      // 更新緩存
+      dataPreloadService.updateCachedUserSettings({ user_type: newType });
+      if (Platform.OS !== "web") {
+        Alert.alert(t.devTools, t.userTypeUpdated);
+      } else {
+        alert(t.userTypeUpdated);
+      }
+    } catch (error) {
+      console.error("Error updating user type:", error);
+      if (Platform.OS !== "web") {
+        Alert.alert("Error", "Failed to update user type");
+      } else {
+        alert("Failed to update user type");
+      }
+    }
+  };
+
+  // Function to open App Store write review page
+  const openAppStoreReview = async () => {
+    try {
+      const appId = "6753785239";
+      const writeReviewUrl = `itms-apps://itunes.apple.com/app/id${appId}?action=write-review`;
+      const regularUrl = `itms-apps://itunes.apple.com/app/id${appId}`;
+      const httpsWriteReviewUrl = `https://apps.apple.com/app/id${appId}?action=write-review`;
+      const httpsUrl = `https://apps.apple.com/app/id${appId}`;
+
+      if (Platform.OS === "web") {
+        window.open(httpsWriteReviewUrl, "_blank");
+        return;
+      }
+
+      if (Platform.OS === "android") {
+        const playStoreUrl = `https://play.google.com/store/apps/details?id=com.cty0305.too.doo.list`;
+        try {
+          await Linking.openURL(playStoreUrl);
+        } catch (error) {
+          await WebBrowser.openBrowserAsync(playStoreUrl);
+        }
+        return;
+      }
+
+      // iOS: Try multiple methods to open App Store write review page
+      let opened = false;
+
+      // First try: itms-apps:// with write-review action (iOS 10.3+)
+      try {
+        const canOpen = await Linking.canOpenURL(writeReviewUrl);
+        if (canOpen) {
+          await Linking.openURL(writeReviewUrl);
+          opened = true;
+          console.log("✅ [RateUs] Opened App Store write review page");
+        }
+      } catch (itmsError) {
+        console.warn(
+          "⚠️ [RateUs] itms-apps:// write-review failed:",
+          itmsError,
+        );
+      }
+
+      // Second try: Regular itms-apps:// URL
+      if (!opened) {
+        try {
+          const canOpen = await Linking.canOpenURL(regularUrl);
+          if (canOpen) {
+            await Linking.openURL(regularUrl);
+            opened = true;
+            console.log("✅ [RateUs] Opened App Store page");
+          }
+        } catch (regularError) {
+          console.warn(
+            "⚠️ [RateUs] Regular itms-apps:// failed:",
+            regularError,
+          );
+        }
+      }
+
+      // Third try: HTTPS URL with write-review action via WebBrowser
+      if (!opened) {
+        try {
+          await WebBrowser.openBrowserAsync(httpsWriteReviewUrl);
+          opened = true;
+          console.log(
+            "✅ [RateUs] Opened App Store via WebBrowser (write-review)",
+          );
+        } catch (browserError) {
+          console.warn(
+            "⚠️ [RateUs] WebBrowser write-review failed:",
+            browserError,
+          );
+        }
+      }
+
+      // Fourth try: Regular HTTPS URL via WebBrowser
+      if (!opened) {
+        try {
+          await WebBrowser.openBrowserAsync(httpsUrl);
+          opened = true;
+          console.log("✅ [RateUs] Opened App Store via WebBrowser");
+        } catch (browserError) {
+          console.warn("⚠️ [RateUs] WebBrowser failed:", browserError);
+        }
+      }
+
+      // Final fallback: HTTPS with Linking
+      if (!opened) {
+        try {
+          await Linking.openURL(httpsUrl);
+          opened = true;
+          console.log("✅ [RateUs] Opened App Store via Linking (fallback)");
+        } catch (linkingError) {
+          console.error("❌ [RateUs] All methods failed:", linkingError);
+          Alert.alert(
+            t.rateUs || "Rate Us",
+            "無法開啟 App Store，請手動前往 App Store 搜尋「TaskCal」進行評分和評論。",
+          );
+        }
+      }
+    } catch (error) {
+      console.error("❌ [RateUs] Error opening App Store:", error);
+      Alert.alert(
+        t.rateUs || "Rate Us",
+        "無法開啟 App Store，請手動前往 App Store 搜尋「TaskCal」進行評分和評論。",
+      );
+    }
+  };
 
   // Check for app updates
   useEffect(() => {
@@ -3236,13 +3435,15 @@ function SettingScreen() {
           ...currentVersionInfo,
           latestVersion: updateInfo.latestVersion,
           updateUrl: updateInfo.updateUrl,
+          releaseNotes: updateInfo.releaseNotes,
+          forceUpdate: updateInfo.forceUpdate,
         });
         setHasUpdate(updateInfo.hasUpdate);
 
         if (updateInfo.hasUpdate) {
           console.log(
             "🔔 [SettingScreen] Update available:",
-            updateInfo.latestVersion
+            updateInfo.latestVersion,
           );
         }
       } catch (error) {
@@ -3268,6 +3469,17 @@ function SettingScreen() {
       return;
     }
 
+    // 如果有更新，顯示詳細的更新彈窗
+    if (hasUpdate && versionInfo) {
+      setUpdateInfo({
+        ...versionInfo,
+        releaseNotes: versionInfo.releaseNotes || "",
+        forceUpdate: versionInfo.forceUpdate || false,
+      });
+      setIsUpdateModalVisible(true);
+      return;
+    }
+
     try {
       const httpsUrl = versionInfo?.updateUrl || getUpdateUrl("production");
       const appId = "6753785239"; // TaskCal App ID
@@ -3289,7 +3501,7 @@ function SettingScreen() {
           await Linking.openURL(httpsUrl);
           console.log(
             "🔗 [SettingScreen] Opened App Store (HTTPS - Simulator):",
-            httpsUrl
+            httpsUrl,
           );
           return;
         } catch (httpsError) {
@@ -3298,13 +3510,13 @@ function SettingScreen() {
             await WebBrowser.openBrowserAsync(httpsUrl);
             console.log(
               "🔗 [SettingScreen] Opened App Store (WebBrowser - Simulator):",
-              httpsUrl
+              httpsUrl,
             );
             return;
           } catch (browserError) {
             console.warn(
               "⚠️ [SettingScreen] Failed to open App Store in simulator:",
-              browserError
+              browserError,
             );
           }
         }
@@ -3328,13 +3540,13 @@ function SettingScreen() {
           await Linking.openURL(itmsUrl);
           console.log(
             "🔗 [SettingScreen] Opened App Store (itms-apps):",
-            itmsUrl
+            itmsUrl,
           );
           return;
         } catch (itmsError) {
           console.warn(
             "⚠️ [SettingScreen] itms-apps:// failed, trying HTTPS:",
-            itmsError
+            itmsError,
           );
         }
       }
@@ -3349,18 +3561,18 @@ function SettingScreen() {
           await WebBrowser.openBrowserAsync(httpsUrl);
           console.log(
             "🔗 [SettingScreen] Opened App Store (WebBrowser):",
-            httpsUrl
+            httpsUrl,
           );
         } catch (browserError) {
           console.warn(
-            "⚠️ [SettingScreen] All methods failed to open App Store"
+            "⚠️ [SettingScreen] All methods failed to open App Store",
           );
         }
       }
     } catch (error) {
       console.warn(
         "⚠️ [SettingScreen] Error opening App Store:",
-        error.message
+        error.message,
       );
     }
   };
@@ -3421,7 +3633,7 @@ function SettingScreen() {
           JSON.stringify({ enabled: true, times: [30, 10, 5] })
       ) {
         console.log(
-          "📦 [SettingScreen] Reminder settings already loaded, skipping reload"
+          "📦 [SettingScreen] Reminder settings already loaded, skipping reload",
         );
         return;
       }
@@ -3436,6 +3648,10 @@ function SettingScreen() {
           settings = await UserService.getUserSettings();
         } else {
           console.log("📦 [SettingScreen] Using preloaded user settings");
+        }
+
+        if (settings.user_type) {
+          setUserType(settings.user_type);
         }
 
         if (
@@ -3491,7 +3707,7 @@ function SettingScreen() {
       setLanguageDropdownVisible(false);
       setThemeDropdownVisible(false);
       setReminderDropdownVisible(false);
-    }, [])
+    }, []),
   );
 
   // 更新提醒設定
@@ -3523,7 +3739,7 @@ function SettingScreen() {
     // 如果用戶關閉提醒，取消所有已安排的任務通知
     if (!isEnabled) {
       console.log(
-        "Reminder notifications disabled, cancelling all task notifications"
+        "Reminder notifications disabled, cancelling all task notifications",
       );
       // 在背景執行，不阻塞 UI
       cancelAllNotifications().catch((error) => {
@@ -3577,7 +3793,7 @@ function SettingScreen() {
 
       if (isNetworkError) {
         console.warn(
-          "⚠️ Network error updating reminder settings. UI will revert to previous state."
+          "⚠️ Network error updating reminder settings. UI will revert to previous state.",
         );
         // 發生網絡錯誤時恢復之前的設定
         setReminderSettings(previousSettings);
@@ -3734,13 +3950,13 @@ function SettingScreen() {
             backgroundColor: theme.card,
             borderRadius: 16,
             marginHorizontal: 20,
-            marginTop: 8,
+            marginTop: 0,
             marginBottom: 0,
             padding: 20,
             shadowColor: theme.shadow,
             shadowOpacity: theme.shadowOpacity,
-            shadowRadius: 8,
-            elevation: 2,
+            shadowRadius: 6,
+            elevation: 1,
             borderWidth: 1,
             borderColor: theme.cardBorder,
           }}
@@ -3908,42 +4124,321 @@ function SettingScreen() {
               </>
             ) : (
               <>
-                <Text
+                <View
                   style={{
-                    color: theme.textTertiary,
-                    fontSize: 12,
-                    marginBottom: 5,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 12,
                   }}
                 >
-                  {t.accountType}
-                </Text>
-                <Text
+                  <Text
+                    style={{
+                      color: theme.primary,
+                      fontSize: 12,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {t.accountType}
+                  </Text>
+                  <View
+                    style={{
+                      backgroundColor:
+                        userType === "member"
+                          ? theme.primary
+                          : theme.mode === "dark"
+                            ? "rgba(255,255,255,0.1)"
+                            : "rgba(0,0,0,0.05)",
+                      paddingHorizontal: 12,
+                      paddingVertical: 4,
+                      borderRadius: 12,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: userType === "member" ? "#FFFFFF" : theme.text,
+                        fontSize: 12,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {userType === "member" ? t.memberUser : t.generalUser}
+                    </Text>
+                  </View>
+                </View>
+
+                <View
                   style={{
-                    color: theme.primary,
-                    fontSize: 14,
-                    fontWeight: "500",
+                    height: 1,
+                    backgroundColor: theme.divider,
+                    marginBottom: 12,
+                  }}
+                />
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  {userProfile?.provider === "apple"
-                    ? t.appleAccount
-                    : userProfile?.provider === "google"
-                    ? t.googleAccount
-                    : t.googleAccount}
-                </Text>
+                  <Text
+                    style={{
+                      color: theme.primary,
+                      fontSize: 12,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {t.loginMethod}
+                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    {userProfile?.provider === "apple" ? (
+                      <Image
+                        source={
+                          theme.mode === "dark"
+                            ? require("./assets/apple-100(dark).png")
+                            : require("./assets/apple-90(light).png")
+                        }
+                        style={{ width: 18, height: 18, marginRight: 8 }}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <Image
+                        source={require("./assets/google-logo.png")}
+                        style={{ width: 18, height: 18, marginRight: 8 }}
+                        resizeMode="contain"
+                      />
+                    )}
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 14,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {userProfile?.provider === "apple"
+                        ? t.appleAccount
+                        : userProfile?.provider === "google"
+                          ? t.googleAccount
+                          : t.googleAccount}
+                    </Text>
+                  </View>
+                </View>
               </>
             )}
           </View>
         </View>
 
-        {/* Version Check Item */}
-        {Platform.OS !== "web" && (
+        {/* Developer Tools */}
+        {__DEV__ && (
+          <View style={{ marginTop: 24, marginBottom: 8 }}>
+            <Text
+              style={{
+                color: theme.textSecondary,
+                fontSize: 13,
+                fontWeight: "600",
+                marginLeft: 28,
+                marginBottom: 12,
+                letterSpacing: 0.3,
+                textTransform: "uppercase",
+              }}
+            >
+              {t.devTools || "Developer Tools"}
+            </Text>
+            <View
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 16,
+                marginHorizontal: 20,
+                paddingVertical: 8,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                shadowColor: theme.shadow,
+                shadowOpacity: theme.shadowOpacity,
+                shadowRadius: 6,
+                elevation: 1,
+                overflow: "hidden",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => handleUserTypeChange("member")}
+                activeOpacity={0.6}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  backgroundColor:
+                    userType === "member"
+                      ? theme.calendarSelected
+                      : "transparent",
+                }}
+              >
+                <MaterialIcons
+                  name="card-membership"
+                  size={20}
+                  color={
+                    userType === "member" ? theme.primary : theme.textSecondary
+                  }
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{
+                    color: userType === "member" ? theme.primary : theme.text,
+                    fontSize: 15,
+                    fontWeight: userType === "member" ? "600" : "400",
+                  }}
+                >
+                  {t.switchToMember || "Switch to Member"}
+                </Text>
+              </TouchableOpacity>
+
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: theme.divider,
+                  marginHorizontal: 20,
+                }}
+              />
+
+              <TouchableOpacity
+                onPress={() => handleUserTypeChange("general")}
+                activeOpacity={0.6}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  backgroundColor:
+                    userType === "general"
+                      ? theme.calendarSelected
+                      : "transparent",
+                }}
+              >
+                <MaterialIcons
+                  name="person-outline"
+                  size={20}
+                  color={
+                    userType === "general" ? theme.primary : theme.textSecondary
+                  }
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{
+                    color: userType === "general" ? theme.primary : theme.text,
+                    fontSize: 15,
+                    fontWeight: userType === "general" ? "600" : "400",
+                  }}
+                >
+                  {t.switchToGeneral || "Switch to General"}
+                </Text>
+              </TouchableOpacity>
+
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: theme.divider,
+                  marginHorizontal: 20,
+                }}
+              />
+
+              <TouchableOpacity
+                onPress={() => {
+                  setUpdateInfo({
+                    latestVersion: "1.3.0",
+                    releaseNotes:
+                      "新版本功能：\n• 支援 iOS 原生風格更新彈窗\n• 優化深色模式顯示效果\n• 提升應用程式啟動速度\n• 修復已知的小錯誤",
+                    forceUpdate: false,
+                    updateUrl: "https://apps.apple.com/app/id6753785239",
+                  });
+                  setIsUpdateModalVisible(true);
+                }}
+                activeOpacity={0.6}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                }}
+              >
+                <MaterialIcons
+                  name="system-update"
+                  size={20}
+                  color={theme.textSecondary}
+                  style={{ marginRight: 12 }}
+                />
+                <Text style={{ color: theme.text, fontSize: 15 }}>
+                  {"Test Update Modal"}
+                </Text>
+              </TouchableOpacity>
+
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: theme.divider,
+                  marginHorizontal: 20,
+                }}
+              />
+
+              <TouchableOpacity
+                onPress={() => setIsSimulatingUpdate(!isSimulatingUpdate)}
+                activeOpacity={0.6}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  backgroundColor: isSimulatingUpdate
+                    ? theme.primary + "10"
+                    : "transparent",
+                }}
+              >
+                <MaterialIcons
+                  name={isSimulatingUpdate ? "toggle-on" : "toggle-off"}
+                  size={24}
+                  color={
+                    isSimulatingUpdate ? theme.primary : theme.textSecondary
+                  }
+                  style={{ marginRight: 12 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: isSimulatingUpdate ? theme.primary : theme.text,
+                      fontSize: 15,
+                      fontWeight: isSimulatingUpdate ? "600" : "400",
+                    }}
+                  >
+                    {"Simulate Update Available"}
+                  </Text>
+                  <Text style={{ color: theme.textTertiary, fontSize: 11 }}>
+                    {"Force Settings UI to show 'Update Available'"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* General Section */}
+        <View style={{ marginTop: 24, marginBottom: 8 }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              fontWeight: "600",
+              marginLeft: 28,
+              marginBottom: 12,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.general}
+          </Text>
           <View
             style={{
               backgroundColor: theme.card,
               borderRadius: 16,
               marginHorizontal: 20,
-              marginTop: 16,
-              marginBottom: 0,
               overflow: "hidden",
               shadowColor: theme.shadow,
               shadowOpacity: theme.shadowOpacity,
@@ -3953,9 +4448,14 @@ function SettingScreen() {
               borderColor: theme.cardBorder,
             }}
           >
+            {/* Language Selection */}
             <TouchableOpacity
-              onPress={handleVersionPress}
-              activeOpacity={0.7}
+              onPress={() => {
+                setLanguageDropdownVisible(!languageDropdownVisible);
+                setThemeDropdownVisible(false);
+                setReminderDropdownVisible(false);
+              }}
+              activeOpacity={0.6}
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -3968,62 +4468,1241 @@ function SettingScreen() {
                 style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
               >
                 <MaterialIcons
-                  name={hasUpdate ? "system-update" : "check-circle"}
-                  size={22}
-                  color={hasUpdate ? theme.warning : theme.primary}
+                  name="language"
+                  size={20}
+                  color={theme.primary}
                   style={{ marginRight: 12 }}
                 />
-                <View style={{ flex: 1 }}>
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+                >
+                  {t.language}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text
+                  style={{
+                    color: theme.textSecondary,
+                    fontSize: 14,
+                    marginRight: 4,
+                  }}
+                >
+                  {language === "en"
+                    ? t.english
+                    : language === "zh"
+                      ? t.chinese
+                      : t.spanish}
+                </Text>
+                <MaterialIcons
+                  name={
+                    languageDropdownVisible
+                      ? "keyboard-arrow-up"
+                      : "keyboard-arrow-right"
+                  }
+                  size={20}
+                  color={theme.textTertiary}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {languageDropdownVisible && (
+              <View
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: theme.divider,
+                  backgroundColor:
+                    themeMode === "light"
+                      ? "#f9f9f9"
+                      : theme.backgroundTertiary,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    setLanguage("en");
+                    setLanguageDropdownVisible(false);
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 52,
+                    backgroundColor:
+                      language === "en"
+                        ? theme.calendarSelected
+                        : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        language === "en" ? theme.primary : theme.textSecondary,
+                      fontSize: 15,
+                      fontWeight: language === "en" ? "600" : "400",
+                    }}
+                  >
+                    {t.english}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setLanguage("zh");
+                    setLanguageDropdownVisible(false);
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 52,
+                    backgroundColor:
+                      language === "zh"
+                        ? theme.calendarSelected
+                        : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        language === "zh" ? theme.primary : theme.textSecondary,
+                      fontSize: 15,
+                      fontWeight: language === "zh" ? "600" : "400",
+                    }}
+                  >
+                    {t.chinese}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setLanguage("es");
+                    setLanguageDropdownVisible(false);
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 52,
+                    backgroundColor:
+                      language === "es"
+                        ? theme.calendarSelected
+                        : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        language === "es" ? theme.primary : theme.textSecondary,
+                      fontSize: 15,
+                      fontWeight: language === "es" ? "600" : "400",
+                    }}
+                  >
+                    {t.spanish}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.divider,
+                marginHorizontal: 20,
+              }}
+            />
+
+            {/* Theme Selection */}
+            <TouchableOpacity
+              onPress={() => {
+                setThemeDropdownVisible(!themeDropdownVisible);
+                setLanguageDropdownVisible(false);
+                setReminderDropdownVisible(false);
+              }}
+              activeOpacity={0.6}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                <MaterialIcons
+                  name="palette"
+                  size={20}
+                  color={theme.primary}
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+                >
+                  {t.theme}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text
+                  style={{
+                    color: theme.textSecondary,
+                    fontSize: 14,
+                    marginRight: 4,
+                  }}
+                >
+                  {themeMode === "light" ? t.lightMode : t.darkMode}
+                </Text>
+                <MaterialIcons
+                  name={
+                    themeDropdownVisible
+                      ? "keyboard-arrow-up"
+                      : "keyboard-arrow-right"
+                  }
+                  size={20}
+                  color={theme.textTertiary}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {themeDropdownVisible && (
+              <View
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: theme.divider,
+                  backgroundColor:
+                    themeMode === "light"
+                      ? "#f9f9f9"
+                      : theme.backgroundTertiary,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    setThemeMode("light");
+                    setThemeDropdownVisible(false);
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 52,
+                    backgroundColor:
+                      themeMode === "light"
+                        ? theme.calendarSelected
+                        : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        themeMode === "light"
+                          ? theme.primary
+                          : theme.textSecondary,
+                      fontSize: 15,
+                      fontWeight: themeMode === "light" ? "600" : "400",
+                    }}
+                  >
+                    {t.lightMode}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setThemeMode("dark");
+                    setThemeDropdownVisible(false);
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 52,
+                    backgroundColor:
+                      themeMode === "dark"
+                        ? theme.calendarSelected
+                        : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        themeMode === "dark"
+                          ? theme.primary
+                          : theme.textSecondary,
+                      fontSize: 15,
+                      fontWeight: themeMode === "dark" ? "600" : "400",
+                    }}
+                  >
+                    {t.darkMode}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.divider,
+                marginHorizontal: 20,
+              }}
+            />
+
+            {/* Reminder Settings */}
+            <TouchableOpacity
+              onPress={() => {
+                setReminderDropdownVisible(!reminderDropdownVisible);
+                setLanguageDropdownVisible(false);
+                setThemeDropdownVisible(false);
+              }}
+              activeOpacity={0.6}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                {isLoadingSettings ? (
+                  <Animated.View
+                    style={{
+                      height: 16,
+                      borderRadius: 4,
+                      backgroundColor:
+                        theme.mode === "dark"
+                          ? "rgba(255,255,255,0.1)"
+                          : "rgba(0,0,0,0.1)",
+                      width: "60%",
+                      opacity: shimmerAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.3, 0.7],
+                      }),
+                    }}
+                  />
+                ) : (
+                  <>
+                    <MaterialIcons
+                      name="notifications"
+                      size={20}
+                      color={theme.primary}
+                      style={{ marginRight: 12 }}
+                    />
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 16,
+                        fontWeight: "500",
+                      }}
+                    >
+                      {t.reminderSettings}
+                    </Text>
+                  </>
+                )}
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                {!isLoadingSettings && (
+                  <Text
+                    style={{
+                      color: theme.textSecondary,
+                      fontSize: 14,
+                      marginRight: 4,
+                    }}
+                  >
+                    {reminderSettings?.enabled === true
+                      ? t.reminderEnabled
+                      : t.reminderDisabled}
+                  </Text>
+                )}
+                <MaterialIcons
+                  name={
+                    reminderDropdownVisible
+                      ? "keyboard-arrow-up"
+                      : "keyboard-arrow-right"
+                  }
+                  size={20}
+                  color={theme.textTertiary}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {reminderDropdownVisible && (
+              <View
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: theme.divider,
+                  backgroundColor:
+                    themeMode === "light"
+                      ? "#f9f9f9"
+                      : theme.backgroundTertiary,
+                  paddingVertical: 8,
+                }}
+              >
+                {/* 啟用/停用提醒 */}
+                <TouchableOpacity
+                  onPress={() => {
+                    try {
+                      const newEnabled = !(reminderSettings?.enabled === true);
+                      const newTimes = newEnabled
+                        ? [30, 10, 5]
+                        : Array.isArray(reminderSettings?.times)
+                          ? reminderSettings.times
+                          : [30, 10, 5];
+                      updateReminderSettings({
+                        enabled: newEnabled,
+                        times: newTimes,
+                      });
+                    } catch (error) {
+                      console.error("Error toggling reminder enabled:", error);
+                    }
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingVertical: 12,
+                    paddingHorizontal: 20,
+                  }}
+                >
+                  <Text style={{ color: theme.text, fontSize: 15 }}>
+                    {t.reminderEnabled}
+                  </Text>
+                  <MaterialIcons
+                    name={
+                      reminderSettings?.enabled !== false
+                        ? "check-box"
+                        : "check-box-outline-blank"
+                    }
+                    size={24}
+                    color={
+                      reminderSettings?.enabled !== false
+                        ? theme.primary
+                        : theme.textTertiary
+                    }
+                  />
+                </TouchableOpacity>
+
+                {reminderSettings?.enabled !== false && (
+                  <>
+                    <View
+                      style={{
+                        borderTopWidth: 1,
+                        borderTopColor: theme.divider,
+                        marginVertical: 4,
+                      }}
+                    />
+
+                    {/* 提醒時間選項 */}
+                    {[
+                      { value: 30, label: t.reminder30min },
+                      { value: 10, label: t.reminder10min },
+                      { value: 5, label: t.reminder5min },
+                    ].map((option) => {
+                      const times = Array.isArray(reminderSettings.times)
+                        ? reminderSettings.times
+                        : [30, 10, 5];
+                      const isSelected = times.includes(option.value);
+
+                      return (
+                        <TouchableOpacity
+                          key={option.value}
+                          onPress={() => {
+                            const currentTimes = Array.isArray(
+                              reminderSettings.times,
+                            )
+                              ? reminderSettings.times
+                              : [30, 10, 5];
+                            const newTimes = isSelected
+                              ? currentTimes.filter(
+                                  (time) => time !== option.value,
+                                )
+                              : [...currentTimes, option.value].sort(
+                                  (a, b) => b - a,
+                                );
+
+                            updateReminderSettings({
+                              ...reminderSettings,
+                              times: newTimes,
+                            });
+                          }}
+                          activeOpacity={0.6}
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            paddingVertical: 12,
+                            paddingHorizontal: 20,
+                          }}
+                        >
+                          <Text style={{ color: theme.text, fontSize: 15 }}>
+                            {option.label}
+                          </Text>
+                          <MaterialIcons
+                            name={
+                              isSelected
+                                ? "check-box"
+                                : "check-box-outline-blank"
+                            }
+                            size={24}
+                            color={
+                              isSelected ? theme.primary : theme.textTertiary
+                            }
+                          />
+                        </TouchableOpacity>
+                      );
+                    })}
+
+                    <View
+                      style={{
+                        borderTopWidth: 1,
+                        borderTopColor: theme.divider,
+                        marginVertical: 4,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        color: theme.textTertiary,
+                        fontSize: 12,
+                        paddingHorizontal: 20,
+                        paddingVertical: 8,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {t.reminderNote}
+                    </Text>
+                  </>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Support Section */}
+        <View style={{ marginTop: 24, marginBottom: 8 }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              fontWeight: "600",
+              marginLeft: 28,
+              marginBottom: 12,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.support}
+          </Text>
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 16,
+              marginHorizontal: 20,
+              overflow: "hidden",
+              shadowColor: theme.shadow,
+              shadowOpacity: theme.shadowOpacity,
+              shadowRadius: 6,
+              elevation: 1,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+            }}
+          >
+            {/* Rate Us on App Store */}
+            <TouchableOpacity
+              onPress={async () => {
+                // iOS: Try native StoreReview first (shows native iOS rating dialog)
+                if (
+                  Platform.OS === "ios" &&
+                  StoreReview &&
+                  StoreReview.isAvailableAsync
+                ) {
+                  try {
+                    const isAvailable = await StoreReview.isAvailableAsync();
+                    if (isAvailable) {
+                      await StoreReview.requestReview();
+                      return;
+                    }
+                  } catch (reviewError) {
+                    console.warn(
+                      "StoreReview not available:",
+                      reviewError.message,
+                    );
+                  }
+                }
+                setRateUsModalVisible(true);
+              }}
+              activeOpacity={0.6}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                <MaterialIcons
+                  name="star"
+                  size={20}
+                  color={theme.primary}
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+                >
+                  {t.rateUs || "Rate Us"}
+                </Text>
+              </View>
+              <MaterialIcons
+                name="open-in-new"
+                size={20}
+                color={theme.textTertiary}
+              />
+            </TouchableOpacity>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.divider,
+                marginHorizontal: 20,
+              }}
+            />
+
+            {/* Send Feedback Button */}
+            <TouchableOpacity
+              onPress={() => setFeedbackModalVisible(true)}
+              activeOpacity={0.6}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                <MaterialIcons
+                  name="feedback"
+                  size={20}
+                  color={theme.primary}
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+                >
+                  {t.feedback || "Send Feedback"}
+                </Text>
+              </View>
+              <MaterialIcons
+                name="keyboard-arrow-right"
+                size={20}
+                color={theme.textTertiary}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Rate Us Modal with Brand Colors */}
+        <Modal
+          visible={rateUsModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setRateUsModalVisible(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 20,
+                padding: 28,
+                width: "100%",
+                maxWidth: 400,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+              }}
+            >
+              {/* Title */}
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: 22,
+                  fontWeight: "600",
+                  marginBottom: 12,
+                  textAlign: "center",
+                }}
+              >
+                喜歡 TaskCal 嗎？
+              </Text>
+
+              {/* Description */}
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 15,
+                  marginBottom: 20,
+                  textAlign: "center",
+                  lineHeight: 22,
+                }}
+              >
+                點擊星星為我們評分，這會幫助更多用戶發現我們
+              </Text>
+
+              {/* Star Rating */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginBottom: 28,
+                  gap: 8,
+                }}
+              >
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setRating(star)}
+                    activeOpacity={0.7}
+                    style={{ padding: 4 }}
+                  >
+                    <MaterialIcons
+                      name={star <= rating ? "star" : "star-border"}
+                      size={44}
+                      color={
+                        star <= rating
+                          ? "#6c63ff" // Brand color (purple)
+                          : theme.textTertiary
+                      }
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Action Buttons */}
+              <View style={{ gap: 12 }}>
+                {/* Submit Button - Brand Color */}
+                <TouchableOpacity
+                  onPress={async () => {
+                    if (rating === 0) {
+                      Alert.alert("提示", "請先選擇評分", [
+                        { text: "好", style: "default" },
+                      ]);
+                      return;
+                    }
+                    setRateUsModalVisible(false);
+                    setRating(0);
+                    await openAppStoreReview();
+                  }}
+                  activeOpacity={0.8}
+                  disabled={rating === 0}
+                  style={{
+                    backgroundColor:
+                      rating === 0 ? theme.textTertiary : "#6c63ff", // Brand color (purple)
+                    borderRadius: 12,
+                    paddingVertical: 14,
+                    paddingHorizontal: 24,
+                    alignItems: "center",
+                    shadowColor: "#6c63ff",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: rating === 0 ? 0 : 0.3,
+                    shadowRadius: 4,
+                    elevation: rating === 0 ? 0 : 3,
+                    opacity: rating === 0 ? 0.5 : 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#ffffff",
+                      fontSize: 16,
+                      fontWeight: "600",
+                    }}
+                  >
+                    提交
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Cancel Button */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setRateUsModalVisible(false);
+                    setRating(0);
+                  }}
+                  activeOpacity={0.7}
+                  style={{
+                    paddingVertical: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: theme.textSecondary,
+                      fontSize: 15,
+                      fontWeight: "500",
+                    }}
+                  >
+                    取消
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Feedback Form Modal */}
+        <Modal
+          visible={feedbackModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => {
+            if (!isSubmittingFeedback) setFeedbackModalVisible(false);
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              justifyContent: "flex-end",
+            }}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={{ width: "100%" }}
+            >
+              <View
+                style={{
+                  backgroundColor: theme.card,
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                  padding: 24,
+                  maxHeight: Dimensions.get("window").height * 0.85,
+                }}
+              >
+                {/* Header */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 20,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {t.feedback || "Send Feedback"}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setFeedbackModalVisible(false)}
+                    disabled={isSubmittingFeedback}
+                  >
+                    <MaterialIcons
+                      name="close"
+                      size={24}
+                      color={theme.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {/* Category Selection */}
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 16,
+                      fontWeight: "600",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {t.feedbackType}
+                  </Text>
                   <View
                     style={{
                       flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: 8,
+                      marginBottom: 20,
+                    }}
+                  >
+                    {[
+                      { id: "bug", label: t.bugReport, icon: "bug-report" },
+                      {
+                        id: "suggestion",
+                        label: t.improvementSuggestion,
+                        icon: "auto-fix-high",
+                      },
+                      {
+                        id: "feature",
+                        label: t.featureRequest,
+                        icon: "auto-awesome",
+                      },
+                      {
+                        id: "other",
+                        label: t.feedbackOther,
+                        icon: "more-horiz",
+                      },
+                    ].map((cat) => (
+                      <TouchableOpacity
+                        key={cat.id}
+                        onPress={() => setFeedbackCategory(cat.id)}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          paddingVertical: 8,
+                          paddingHorizontal: 16,
+                          borderRadius: 20,
+                          backgroundColor:
+                            feedbackCategory === cat.id
+                              ? theme.primary
+                              : theme.background,
+                          borderWidth: 1,
+                          borderColor:
+                            feedbackCategory === cat.id
+                              ? theme.primary
+                              : theme.divider,
+                        }}
+                      >
+                        <MaterialIcons
+                          name={cat.icon}
+                          size={16}
+                          color={
+                            feedbackCategory === cat.id ? "#fff" : theme.text
+                          }
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text
+                          style={{
+                            color:
+                              feedbackCategory === cat.id ? "#fff" : theme.text,
+                            fontSize: 14,
+                            fontWeight:
+                              feedbackCategory === cat.id ? "600" : "400",
+                          }}
+                        >
+                          {cat.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Feedback Text Area */}
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 16,
+                      fontWeight: "600",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {t.feedbackDetails}
+                  </Text>
+                  <TextInput
+                    style={{
+                      backgroundColor: theme.background,
+                      color: theme.text,
+                      borderRadius: 12,
+                      padding: 16,
+                      minHeight: 120,
+                      textAlignVertical: "top",
+                      fontSize: 16,
+                      borderWidth: 1,
+                      borderColor: theme.divider,
+                    }}
+                    placeholder={t.feedbackPlaceholder}
+                    placeholderTextColor={theme.textTertiary}
+                    multiline={true}
+                    value={feedbackText}
+                    onChangeText={setFeedbackText}
+                    maxLength={1000}
+                  />
+                  <Text
+                    style={{
+                      color: theme.textTertiary,
+                      fontSize: 12,
+                      textAlign: "right",
+                      marginTop: 4,
+                      marginBottom: 20,
+                    }}
+                  >
+                    {feedbackText.length} / 1000
+                  </Text>
+
+                  {/* Submit Button */}
+                  <TouchableOpacity
+                    onPress={async () => {
+                      if (!feedbackText.trim()) {
+                        Alert.alert(t.confirm, t.pleaseEnterFeedback);
+                        return;
+                      }
+
+                      setIsSubmittingFeedback(true);
+                      try {
+                        const {
+                          data: { user },
+                        } = await supabase.auth.getUser();
+
+                        if (!user) {
+                          Alert.alert(t.confirm, t.pleaseLoginFirst);
+                          setIsSubmittingFeedback(false);
+                          return;
+                        }
+
+                        const { error } = await supabase
+                          .from("user_feedback")
+                          .insert({
+                            user_id: user.id,
+                            email: user.email,
+                            category: feedbackCategory,
+                            feedback: feedbackText.trim(),
+                            app_version: Application.nativeApplicationVersion,
+                            build_number: Application.nativeBuildVersion,
+                            os_version: Platform.Version,
+                            platform: Platform.OS,
+                          });
+
+                        if (error) throw error;
+
+                        // Mixpanel: Track feedback submission
+                        mixpanelService.track("Feedback Submitted", {
+                          category: feedbackCategory,
+                          feedback_length: feedbackText.trim().length,
+                          app_version: Application.nativeApplicationVersion,
+                          platform: Platform.OS,
+                        });
+
+                        Alert.alert(t.submitSuccess, t.thanksFeedback, [
+                          {
+                            text: t.done,
+                            onPress: () => {
+                              setFeedbackModalVisible(false);
+                              setFeedbackText("");
+                              setFeedbackCategory("suggestion");
+                            },
+                          },
+                        ]);
+                      } catch (err) {
+                        console.error("Error submitting feedback:", err);
+                        Alert.alert(t.submitFailed, t.pleaseTryAgainLater);
+                      } finally {
+                        setIsSubmittingFeedback(false);
+                      }
+                    }}
+                    disabled={isSubmittingFeedback || !feedbackText.trim()}
+                    style={{
+                      backgroundColor:
+                        isSubmittingFeedback || !feedbackText.trim()
+                          ? theme.textTertiary
+                          : "#6c63ff", // Brand purple
+                      borderRadius: 12,
+                      paddingVertical: 16,
                       alignItems: "center",
-                      marginBottom: 6,
+                      marginBottom: 12,
                     }}
                   >
                     <Text
                       style={{
-                        color: theme.text,
-                        fontSize: 14,
-                        fontWeight: "500",
-                        marginRight: 8,
+                        color: "#fff",
+                        fontSize: 16,
+                        fontWeight: "700",
                       }}
                     >
-                      {t.version}
+                      {isSubmittingFeedback ? t.submitting : t.submitFeedback}
                     </Text>
-                    {hasUpdate ? (
-                      <View
+                  </TouchableOpacity>
+
+                  <Text
+                    style={{
+                      color: theme.textTertiary,
+                      fontSize: 13,
+                      textAlign: "center",
+                      marginBottom: 40,
+                      lineHeight: 18,
+                    }}
+                  >
+                    {t.feedbackMotivation}
+                  </Text>
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
+          </View>
+        </Modal>
+
+        {/* About & Legal Section */}
+        <View style={{ marginTop: 24, marginBottom: 8 }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              fontWeight: "600",
+              marginLeft: 28,
+              marginBottom: 12,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.about || "About"}
+          </Text>
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 16,
+              marginHorizontal: 20,
+              overflow: "hidden",
+              shadowColor: theme.shadow,
+              shadowOpacity: theme.shadowOpacity,
+              shadowRadius: 6,
+              elevation: 1,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+            }}
+          >
+            {/* Terms of Use */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Terms")}
+              activeOpacity={0.6}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                <MaterialIcons
+                  name="description"
+                  size={20}
+                  color={theme.primary}
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+                >
+                  {t.terms}
+                </Text>
+              </View>
+              <MaterialIcons
+                name="keyboard-arrow-right"
+                size={20}
+                color={theme.textTertiary}
+              />
+            </TouchableOpacity>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.divider,
+                marginHorizontal: 20,
+              }}
+            />
+
+            {/* Privacy Policy */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Privacy")}
+              activeOpacity={0.6}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                <MaterialIcons
+                  name="privacy-tip"
+                  size={20}
+                  color={theme.primary}
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+                >
+                  {t.privacy}
+                </Text>
+              </View>
+              <MaterialIcons
+                name="keyboard-arrow-right"
+                size={20}
+                color={theme.textTertiary}
+              />
+            </TouchableOpacity>
+
+            {Platform.OS !== "web" && (
+              <>
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: theme.divider,
+                    marginHorizontal: 20,
+                  }}
+                />
+
+                {/* Version Info */}
+                {effectiveHasUpdate ? (
+                  <TouchableOpacity
+                    onPress={handleVersionPress}
+                    activeOpacity={0.6}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 14,
+                      paddingHorizontal: 20,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flex: 1,
+                      }}
+                    >
+                      <MaterialIcons
+                        name="system-update"
+                        size={20}
+                        color={theme.primary}
+                        style={{ marginRight: 12 }}
+                      />
+                      <Text
                         style={{
-                          backgroundColor: theme.warning + "20",
-                          borderRadius: 12,
-                          paddingHorizontal: 8,
-                          paddingVertical: 3,
-                          marginLeft: 4,
-                          borderWidth: 1,
-                          borderColor: theme.warning + "60",
+                          color: theme.text,
+                          fontSize: 16,
+                          fontWeight: "500",
                         }}
                       >
-                        <Text
-                          style={{
-                            color: theme.warning,
-                            fontSize: 10,
-                            fontWeight: "700",
-                            letterSpacing: 0.3,
-                          }}
-                        >
-                          {t.updateAvailable || "Update Available"}
-                        </Text>
-                      </View>
-                    ) : (
+                        {t.version}{" "}
+                        {effectiveVersionInfo?.version ||
+                          Application.nativeApplicationVersion ||
+                          "1.2.2"}
+                      </Text>
+                    </View>
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
                       <View
                         style={{
                           backgroundColor: theme.primary + "20",
                           borderRadius: 12,
                           paddingHorizontal: 8,
                           paddingVertical: 3,
-                          marginLeft: 4,
+                          marginRight: 10,
                           borderWidth: 1,
-                          borderColor: theme.primary + "40",
+                          borderColor: theme.primary + "60",
                         }}
                       >
                         <Text
@@ -4034,831 +5713,65 @@ function SettingScreen() {
                             letterSpacing: 0.3,
                           }}
                         >
-                          {t.latestVersion || "Latest"}
+                          {t.updateAvailable || "Download Latest"}
                         </Text>
                       </View>
-                    )}
-                  </View>
+                      <MaterialIcons
+                        name="open-in-new"
+                        size={18}
+                        color={theme.primary}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                ) : (
                   <View
-                    style={{ flexDirection: "row", alignItems: "baseline" }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 14,
+                      paddingHorizontal: 20,
+                    }}
                   >
-                    <Text
+                    <View
                       style={{
-                        color: theme.text,
-                        fontSize: 16,
-                        fontWeight: "700",
-                        letterSpacing: 0.5,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flex: 1,
                       }}
                     >
-                      {versionInfo?.version ||
-                        Constants.expoConfig?.version ||
-                        appConfig.expo?.version ||
-                        Application.nativeApplicationVersion ||
-                        "1.2.1"}
-                    </Text>
-                    {hasUpdate && versionInfo && (
-                      <>
-                        <MaterialIcons
-                          name="arrow-forward"
-                          size={16}
-                          color={theme.warning}
-                          style={{ marginHorizontal: 6 }}
-                        />
-                        <Text
-                          style={{
-                            color: theme.warning,
-                            fontSize: 16,
-                            fontWeight: "700",
-                            letterSpacing: 0.5,
-                          }}
-                        >
-                          {versionInfo.latestVersion || "Latest"}
-                        </Text>
-                      </>
-                    )}
-                  </View>
-                </View>
-              </View>
-              <MaterialIcons
-                name="open-in-new"
-                size={20}
-                color={hasUpdate ? theme.warning : theme.textTertiary}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* General Section Title */}
-        <View style={{ marginTop: 24, marginBottom: 12 }}>
-          <Text
-            style={{
-              color: theme.textSecondary,
-              fontSize: 13,
-              fontWeight: "600",
-              marginLeft: 28,
-              marginBottom: 0,
-              letterSpacing: 0.3,
-              textTransform: "uppercase",
-            }}
-          >
-            {t.general}
-          </Text>
-        </View>
-        {/* Language selection block */}
-        <View
-          style={{
-            backgroundColor: theme.card,
-            borderRadius: 16,
-            marginHorizontal: 20,
-            marginTop: 8,
-            marginBottom: 0,
-            overflow: "hidden",
-            shadowColor: theme.shadow,
-            shadowOpacity: theme.shadowOpacity,
-            shadowRadius: 6,
-            elevation: 1,
-            borderWidth: 1,
-            borderColor: theme.cardBorder,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              setLanguageDropdownVisible(!languageDropdownVisible);
-              setThemeDropdownVisible(false); // 關閉主題下拉選單
-              setReminderDropdownVisible(false); // 關閉提醒下拉選單
-            }}
-            activeOpacity={0.6}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 14,
-              paddingHorizontal: 20,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              <MaterialIcons
-                name="language"
-                size={20}
-                color={theme.primary}
-                style={{ marginRight: 12 }}
-              />
-              <Text
-                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
-              >
-                {t.language}
-              </Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text
-                style={{
-                  color: theme.textSecondary,
-                  fontSize: 14,
-                  marginRight: 8,
-                }}
-              >
-                {language === "en"
-                  ? t.english
-                  : language === "zh"
-                  ? t.chinese
-                  : t.spanish}
-              </Text>
-              <MaterialIcons
-                name={
-                  languageDropdownVisible
-                    ? "keyboard-arrow-up"
-                    : "keyboard-arrow-down"
-                }
-                size={20}
-                color={theme.textTertiary}
-                style={{ marginLeft: 6 }}
-              />
-            </View>
-          </TouchableOpacity>
-
-          {languageDropdownVisible && (
-            <View
-              style={{
-                borderTopWidth: 1,
-                borderTopColor: theme.divider,
-                backgroundColor:
-                  themeMode === "light" ? "#ffffff" : theme.backgroundTertiary,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  setLanguage("en");
-                  setLanguageDropdownVisible(false);
-                }}
-                activeOpacity={0.6}
-                style={{
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  backgroundColor:
-                    language === "en" ? theme.calendarSelected : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      language === "en" ? theme.primary : theme.textSecondary,
-                    fontSize: 15,
-                    fontWeight: language === "en" ? "600" : "400",
-                  }}
-                >
-                  {t.english}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setLanguage("zh");
-                  setLanguageDropdownVisible(false);
-                }}
-                activeOpacity={0.6}
-                style={{
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  backgroundColor:
-                    language === "zh" ? theme.calendarSelected : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      language === "zh" ? theme.primary : theme.textSecondary,
-                    fontSize: 15,
-                    fontWeight: language === "zh" ? "600" : "400",
-                  }}
-                >
-                  {t.chinese}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setLanguage("es");
-                  setLanguageDropdownVisible(false);
-                }}
-                activeOpacity={0.6}
-                style={{
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  backgroundColor:
-                    language === "es" ? theme.calendarSelected : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      language === "es" ? theme.primary : theme.textSecondary,
-                    fontSize: 15,
-                    fontWeight: language === "es" ? "600" : "400",
-                  }}
-                >
-                  {t.spanish}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {/* Theme selection block */}
-        <View
-          style={{
-            backgroundColor: theme.card,
-            borderRadius: 16,
-            marginHorizontal: 20,
-            marginTop: 12,
-            marginBottom: 0,
-            overflow: "hidden",
-            shadowColor: theme.shadow,
-            shadowOpacity: theme.shadowOpacity,
-            shadowRadius: 6,
-            elevation: 1,
-            borderWidth: 1,
-            borderColor: theme.cardBorder,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              setThemeDropdownVisible(!themeDropdownVisible);
-              setLanguageDropdownVisible(false); // 關閉語言下拉選單
-              setReminderDropdownVisible(false); // 關閉提醒下拉選單
-            }}
-            activeOpacity={0.6}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 14,
-              paddingHorizontal: 20,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              <MaterialIcons
-                name="palette"
-                size={20}
-                color={theme.primary}
-                style={{ marginRight: 12 }}
-              />
-              <Text
-                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
-              >
-                {t.theme}
-              </Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text
-                style={{
-                  color: theme.textSecondary,
-                  fontSize: 14,
-                  marginRight: 8,
-                }}
-              >
-                {themeMode === "light" ? t.lightMode : t.darkMode}
-              </Text>
-              <MaterialIcons
-                name={
-                  themeDropdownVisible
-                    ? "keyboard-arrow-up"
-                    : "keyboard-arrow-down"
-                }
-                size={20}
-                color={theme.textTertiary}
-                style={{ marginLeft: 6 }}
-              />
-            </View>
-          </TouchableOpacity>
-
-          {themeDropdownVisible && (
-            <View
-              style={{
-                borderTopWidth: 1,
-                borderTopColor: theme.divider,
-                backgroundColor:
-                  themeMode === "light" ? "#ffffff" : theme.backgroundTertiary,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  setThemeMode("light");
-                  setThemeDropdownVisible(false);
-                }}
-                activeOpacity={0.6}
-                style={{
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  backgroundColor:
-                    themeMode === "light"
-                      ? theme.calendarSelected
-                      : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      themeMode === "light"
-                        ? theme.primary
-                        : theme.textSecondary,
-                    fontSize: 15,
-                    fontWeight: themeMode === "light" ? "600" : "400",
-                  }}
-                >
-                  {t.lightMode}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setThemeMode("dark");
-                  setThemeDropdownVisible(false);
-                }}
-                activeOpacity={0.6}
-                style={{
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  backgroundColor:
-                    themeMode === "dark"
-                      ? theme.calendarSelected
-                      : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      themeMode === "dark"
-                        ? theme.primary
-                        : theme.textSecondary,
-                    fontSize: 15,
-                    fontWeight: themeMode === "dark" ? "600" : "400",
-                  }}
-                >
-                  {t.darkMode}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {/* Reminder Settings Section */}
-        <View
-          style={{
-            backgroundColor: theme.card,
-            borderRadius: 16,
-            marginHorizontal: 20,
-            marginTop: 12,
-            marginBottom: 0,
-            overflow: "hidden",
-            shadowColor: theme.shadow,
-            shadowOpacity: theme.shadowOpacity,
-            shadowRadius: 6,
-            elevation: 1,
-            borderWidth: 1,
-            borderColor: theme.cardBorder,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              try {
-                setReminderDropdownVisible(!reminderDropdownVisible);
-                setLanguageDropdownVisible(false);
-                setThemeDropdownVisible(false);
-              } catch (error) {
-                console.error("Error toggling reminder dropdown:", error);
-              }
-            }}
-            activeOpacity={0.6}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 14,
-              paddingHorizontal: 20,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              {isLoadingSettings ? (
-                <Animated.View
-                  style={{
-                    height: 16,
-                    borderRadius: 4,
-                    backgroundColor:
-                      theme.mode === "dark"
-                        ? "rgba(255,255,255,0.1)"
-                        : "rgba(0,0,0,0.1)",
-                    width: "60%",
-                    opacity: shimmerAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.3, 0.7],
-                    }),
-                  }}
-                />
-              ) : (
-                <>
-                  <MaterialIcons
-                    name="notifications"
-                    size={20}
-                    color={theme.primary}
-                    style={{ marginRight: 12 }}
-                  />
-                  <Text
-                    style={{
-                      color: theme.text,
-                      fontSize: 16,
-                      fontWeight: "500",
-                    }}
-                  >
-                    {t.reminderSettings}
-                  </Text>
-                </>
-              )}
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              {isLoadingSettings ? (
-                <Animated.View
-                  style={{
-                    height: 14,
-                    borderRadius: 4,
-                    backgroundColor:
-                      theme.mode === "dark"
-                        ? "rgba(255,255,255,0.1)"
-                        : "rgba(0,0,0,0.1)",
-                    width: 80,
-                    marginRight: 8,
-                    opacity: shimmerAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.3, 0.7],
-                    }),
-                  }}
-                />
-              ) : (
-                <Text
-                  style={{
-                    color: theme.textSecondary,
-                    fontSize: 14,
-                    marginRight: 8,
-                  }}
-                >
-                  {reminderSettings?.enabled === true
-                    ? t.reminderEnabled
-                    : t.reminderDisabled}
-                </Text>
-              )}
-              <MaterialIcons
-                name={
-                  reminderDropdownVisible
-                    ? "keyboard-arrow-up"
-                    : "keyboard-arrow-down"
-                }
-                size={20}
-                color={theme.textTertiary}
-                style={{ marginLeft: 6 }}
-              />
-            </View>
-          </TouchableOpacity>
-
-          {reminderDropdownVisible && (
-            <View
-              style={{
-                borderTopWidth: 1,
-                borderTopColor: theme.divider,
-                backgroundColor:
-                  themeMode === "light" ? "#ffffff" : theme.backgroundTertiary,
-                paddingVertical: 8,
-              }}
-            >
-              {/* 啟用/停用提醒 */}
-              <TouchableOpacity
-                onPress={() => {
-                  try {
-                    const newEnabled = !(reminderSettings?.enabled === true);
-                    // 如果從停用切換到啟用，預設開啟所有三個時間
-                    const newTimes = newEnabled
-                      ? [30, 10, 5] // 啟用時預設全開
-                      : Array.isArray(reminderSettings?.times)
-                      ? reminderSettings.times
-                      : [30, 10, 5];
-                    updateReminderSettings({
-                      enabled: newEnabled,
-                      times: newTimes,
-                    });
-                  } catch (error) {
-                    console.error("Error toggling reminder enabled:", error);
-                  }
-                }}
-                activeOpacity={0.6}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                }}
-              >
-                <Text style={{ color: theme.text, fontSize: 15 }}>
-                  {t.reminderEnabled}
-                </Text>
-                <MaterialIcons
-                  name={
-                    reminderSettings?.enabled !== false
-                      ? "check-box"
-                      : "check-box-outline-blank"
-                  }
-                  size={24}
-                  color={
-                    reminderSettings?.enabled !== false
-                      ? theme.primary
-                      : theme.textTertiary
-                  }
-                />
-              </TouchableOpacity>
-
-              {reminderSettings?.enabled !== false && (
-                <>
-                  <View
-                    style={{ borderTopWidth: 1, borderTopColor: theme.divider }}
-                  />
-
-                  {/* 提醒時間選項 */}
-                  {[
-                    { value: 30, label: t.reminder30min },
-                    { value: 10, label: t.reminder10min },
-                    { value: 5, label: t.reminder5min },
-                  ].map((option) => {
-                    const times = Array.isArray(reminderSettings.times)
-                      ? reminderSettings.times
-                      : [30, 10, 5];
-                    const isSelected = times.includes(option.value);
-
-                    return (
-                      <TouchableOpacity
-                        key={option.value}
-                        onPress={() => {
-                          const currentTimes = Array.isArray(
-                            reminderSettings.times
-                          )
-                            ? reminderSettings.times
-                            : [30, 10, 5];
-                          const newTimes = isSelected
-                            ? currentTimes.filter(
-                                (time) => time !== option.value
-                              )
-                            : [...currentTimes, option.value].sort(
-                                (a, b) => b - a
-                              );
-
-                          updateReminderSettings({
-                            ...reminderSettings,
-                            times: newTimes,
-                          });
-                        }}
-                        activeOpacity={0.6}
+                      <MaterialIcons
+                        name="info-outline"
+                        size={20}
+                        color={theme.primary}
+                        style={{ marginRight: 12 }}
+                      />
+                      <Text
                         style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          paddingVertical: 12,
-                          paddingHorizontal: 20,
+                          color: theme.text,
+                          fontSize: 16,
+                          fontWeight: "500",
                         }}
                       >
-                        <Text style={{ color: theme.text, fontSize: 15 }}>
-                          {option.label}
-                        </Text>
-                        <MaterialIcons
-                          name={
-                            isSelected ? "check-box" : "check-box-outline-blank"
-                          }
-                          size={24}
-                          color={
-                            isSelected ? theme.primary : theme.textTertiary
-                          }
-                        />
-                      </TouchableOpacity>
-                    );
-                  })}
-
-                  <View
-                    style={{ borderTopWidth: 1, borderTopColor: theme.divider }}
-                  />
-                  <Text
-                    style={{
-                      color: theme.textTertiary,
-                      fontSize: 12,
-                      paddingHorizontal: 20,
-                      paddingVertical: 8,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    {t.reminderNote}
-                  </Text>
-                </>
-              )}
-            </View>
-          )}
-        </View>
-
-        {/* Support Section Title */}
-        <View style={{ marginTop: 24, marginBottom: 12 }}>
-          <Text
-            style={{
-              color: theme.textSecondary,
-              fontSize: 13,
-              fontWeight: "600",
-              marginLeft: 28,
-              marginBottom: 0,
-              letterSpacing: 0.3,
-              textTransform: "uppercase",
-            }}
-          >
-            {t.support}
-          </Text>
-        </View>
-
-        {/* Send Feedback */}
-        <View
-          style={{
-            backgroundColor: theme.card,
-            borderRadius: 16,
-            marginHorizontal: 20,
-            marginTop: 8,
-            marginBottom: 0,
-            overflow: "hidden",
-            shadowColor: theme.shadow,
-            shadowOpacity: theme.shadowOpacity,
-            shadowRadius: 6,
-            elevation: 1,
-          }}
-        >
-          <TouchableOpacity
-            onPress={async () => {
-              const feedbackUrl =
-                "https://docs.google.com/forms/d/e/1FAIpQLSclqPkboMn_BVtOHojyIsS47ydbZaU7MEjca_Qvkh_eHqpM5w/viewform?usp=dialog";
-              try {
-                if (Platform.OS === "web") {
-                  // Web: 在新分頁開啟
-                  window.open(feedbackUrl, "_blank");
-                } else {
-                  // iOS/Android: 使用 expo-web-browser
-                  const { openBrowserAsync } = await import("expo-web-browser");
-                  await openBrowserAsync(feedbackUrl);
-                }
-              } catch (error) {
-                console.error("Failed to open feedback form:", error);
-              }
-            }}
-            activeOpacity={0.6}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 14,
-              paddingHorizontal: 20,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              <MaterialIcons
-                name="feedback"
-                size={20}
-                color={theme.primary}
-                style={{ marginRight: 12 }}
-              />
-              <Text
-                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
-              >
-                {t.feedback}
-              </Text>
-            </View>
-            <MaterialIcons
-              name="open-in-new"
-              size={20}
-              color={theme.textTertiary}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Legal Section Title */}
-        <View style={{ marginTop: 24, marginBottom: 12 }}>
-          <Text
-            style={{
-              color: theme.textSecondary,
-              fontSize: 13,
-              fontWeight: "600",
-              marginLeft: 28,
-              marginBottom: 0,
-              letterSpacing: 0.3,
-              textTransform: "uppercase",
-            }}
-          >
-            {t.legal}
-          </Text>
-        </View>
-
-        {/* Terms of Use */}
-        <View
-          style={{
-            backgroundColor: theme.card,
-            borderRadius: 16,
-            marginHorizontal: 20,
-            marginTop: 8,
-            marginBottom: 0,
-            overflow: "hidden",
-            shadowColor: theme.shadow,
-            shadowOpacity: theme.shadowOpacity,
-            shadowRadius: 6,
-            elevation: 1,
-            borderWidth: 1,
-            borderColor: theme.cardBorder,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Terms")}
-            activeOpacity={0.6}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 14,
-              paddingHorizontal: 20,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              <MaterialIcons
-                name="description"
-                size={20}
-                color={theme.primary}
-                style={{ marginRight: 12 }}
-              />
-              <Text
-                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
-              >
-                {t.terms}
-              </Text>
-            </View>
-            <MaterialIcons
-              name="keyboard-arrow-right"
-              size={20}
-              color={theme.textTertiary}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Privacy Policy */}
-        <View
-          style={{
-            backgroundColor: theme.card,
-            borderRadius: 16,
-            marginHorizontal: 20,
-            marginTop: 12,
-            marginBottom: 0,
-            overflow: "hidden",
-            shadowColor: theme.shadow,
-            shadowOpacity: theme.shadowOpacity,
-            shadowRadius: 6,
-            elevation: 1,
-            borderWidth: 1,
-            borderColor: theme.cardBorder,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Privacy")}
-            activeOpacity={0.6}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 14,
-              paddingHorizontal: 20,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              <MaterialIcons
-                name="privacy-tip"
-                size={20}
-                color={theme.primary}
-                style={{ marginRight: 12 }}
-              />
-              <Text
-                style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
-              >
-                {t.privacy}
-              </Text>
-            </View>
-            <MaterialIcons
-              name="keyboard-arrow-right"
-              size={20}
-              color={theme.textTertiary}
-            />
-          </TouchableOpacity>
+                        {t.version}{" "}
+                        {effectiveVersionInfo?.version ||
+                          Application.nativeApplicationVersion ||
+                          "1.2.2"}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        color: theme.textTertiary,
+                        fontSize: 14,
+                      }}
+                    >
+                      {t.latestVersion || "Latest"}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
+          </View>
         </View>
 
         {/* Log Out Button */}
@@ -4867,7 +5780,7 @@ function SettingScreen() {
             backgroundColor: theme.card,
             borderRadius: 16,
             marginHorizontal: 20,
-            marginTop: 24,
+            marginTop: 32,
             marginBottom: 0,
             overflow: "hidden",
             shadowColor: theme.shadow,
@@ -4913,25 +5826,45 @@ function SettingScreen() {
           activeOpacity={0.6}
           style={{
             alignItems: "center",
-            marginTop: 16,
-            marginBottom: 24,
+            marginTop: 12,
+            marginBottom: 40,
             paddingVertical: 12,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              opacity: 0.8,
+            }}
+          >
             <MaterialIcons
               name="delete-outline"
-              size={18}
-              color={theme.error}
+              size={16}
+              color={theme.textTertiary}
               style={{ marginRight: 6 }}
             />
             <Text
-              style={{ color: theme.error, fontSize: 14, fontWeight: "500" }}
+              style={{
+                color: theme.textTertiary,
+                fontSize: 13,
+                fontWeight: "500",
+                textDecorationLine: "underline",
+              }}
             >
               {t.deleteAccount || "Delete Account"}
             </Text>
           </View>
         </TouchableOpacity>
+
+        {/* Developer Tools (Only in __DEV__ mode) */}
+        {/* Banner Ad at bottom of settings */}
+        <AdBanner
+          position="bottom"
+          size="banner"
+          userType={userType}
+          loadingUserType={loadingUserType}
+        />
       </ScrollView>
 
       <Modal
@@ -5201,6 +6134,7 @@ function SettingScreen() {
 function CalendarScreen({ navigation, route }) {
   const { language, t } = useContext(LanguageContext);
   const { theme, themeMode } = useContext(ThemeContext);
+  const { userType, loadingUserType } = useContext(UserContext);
   const insets = useSafeAreaInsets();
   const { isDesktop, isMobile, isTablet } = useResponsive();
   const getCurrentDate = () => {
@@ -5219,10 +6153,10 @@ function CalendarScreen({ navigation, route }) {
   const [taskToMove, setTaskToMove] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [visibleMonth, setVisibleMonth] = useState(
-    new Date(getCurrentDate()).getMonth()
+    new Date(getCurrentDate()).getMonth(),
   );
   const [visibleYear, setVisibleYear] = useState(
-    new Date(getCurrentDate()).getFullYear()
+    new Date(getCurrentDate()).getFullYear(),
   );
   const [taskText, setTaskText] = useState("");
   const [taskTime, setTaskTime] = useState("");
@@ -5240,6 +6174,10 @@ function CalendarScreen({ navigation, route }) {
   const scrollViewRef = useRef(null); // 日曆 ScrollView
   const modalScrollViewRef = useRef(null); // Modal ScrollView
   const fetchedRangesRef = useRef(new Set()); // Track fetched date ranges for caching
+  const visibleRangeRef = useRef({
+    visibleYear: new Date(getCurrentDate()).getFullYear(),
+    visibleMonth: new Date(getCurrentDate()).getMonth(),
+  });
   const lastScrollY = useRef(0); // Track last scroll position for month detection
   const scrollTimeoutRef = useRef(null); // Debounce scroll updates
   const isScrollingProgrammatically = useRef(false); // Prevent infinite scroll loop
@@ -5262,7 +6200,7 @@ function CalendarScreen({ navigation, route }) {
     } else {
       return `${limitedNumbers.slice(0, 4)}-${limitedNumbers.slice(
         4,
-        6
+        6,
       )}-${limitedNumbers.slice(6)}`;
     }
   };
@@ -5389,7 +6327,7 @@ function CalendarScreen({ navigation, route }) {
         const rangeKey = `${startDateStr}_${endDateStr}`;
         if (fetchedRangesRef.current.has(rangeKey)) {
           console.log(
-            `📦 [Cache] Using cached tasks for ${startDateStr} to ${endDateStr}`
+            `📦 [Cache] Using cached tasks for ${startDateStr} to ${endDateStr}`,
           );
           setIsLoadingTasks(false);
           return; // Skip API call
@@ -5408,12 +6346,12 @@ function CalendarScreen({ navigation, route }) {
           const preloadPromise = dataPreloadService.preloadPromise;
           if (preloadPromise) {
             console.log(
-              "⏳ [CalendarScreen] Waiting for preload to complete..."
+              "⏳ [CalendarScreen] Waiting for preload to complete...",
             );
             try {
               // 等待預載入完成，但設置超時避免無限等待
               const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Preload timeout")), 3000)
+                setTimeout(() => reject(new Error("Preload timeout")), 1000),
               );
               await Promise.race([preloadPromise, timeoutPromise]);
               // 預載入完成後，重新檢查緩存
@@ -5422,12 +6360,12 @@ function CalendarScreen({ navigation, route }) {
               // 超時或錯誤時，繼續執行後續的 API 請求
               if (error.message === "Preload timeout") {
                 console.log(
-                  "⚠️ [CalendarScreen] Preload timeout after 3s, fetching directly"
+                  "⚠️ [CalendarScreen] Preload timeout after 1s, fetching directly",
                 );
               } else {
                 console.log(
                   "⚠️ [CalendarScreen] Preload error, fetching directly:",
-                  error.message
+                  error.message,
                 );
               }
             }
@@ -5477,17 +6415,17 @@ function CalendarScreen({ navigation, route }) {
               return;
             } else {
               console.log(
-                `⚠️ [CalendarScreen] Preloaded tasks exist but none in range ${startDateStr} to ${endDateStr}, fetching from API`
+                `⚠️ [CalendarScreen] Preloaded tasks exist but none in range ${startDateStr} to ${endDateStr}, fetching from API`,
               );
             }
           } else {
             console.log(
-              `⚠️ [CalendarScreen] Preloaded tasks exist but not in range ${startDateStr} to ${endDateStr}, fetching from API`
+              `⚠️ [CalendarScreen] Preloaded tasks exist but not in range ${startDateStr} to ${endDateStr}, fetching from API`,
             );
           }
         } else {
           console.log(
-            `📥 [CalendarScreen] No cached data available, fetching from API for ${startDateStr} to ${endDateStr}`
+            `📥 [CalendarScreen] No cached data available, fetching from API for ${startDateStr} to ${endDateStr}`,
           );
         }
 
@@ -5495,7 +6433,7 @@ function CalendarScreen({ navigation, route }) {
 
         const newTasks = await TaskService.getTasksByDateRange(
           startDateStr,
-          endDateStr
+          endDateStr,
         );
 
         // Mark this range as fetched
@@ -5529,7 +6467,7 @@ function CalendarScreen({ navigation, route }) {
           error.message?.includes("Failed to fetch")
         ) {
           console.warn(
-            "⚠️ [CalendarScreen] Network error detected, will retry on next mount"
+            "⚠️ [CalendarScreen] Network error detected, will retry on next mount",
           );
         }
       }
@@ -5545,6 +6483,45 @@ function CalendarScreen({ navigation, route }) {
     };
   }, [visibleYear, visibleMonth, isInitialized]);
 
+  // 同步目前可見範圍到 ref，供 preload 更新回調使用
+  useEffect(() => {
+    visibleRangeRef.current = {
+      visibleYear,
+      visibleMonth,
+    };
+  }, [visibleYear, visibleMonth]);
+
+  // 訂閱預載入服務：背景載入前後月完成時合併到畫面的 tasks，解決登入後只顯示當月的問題
+  useEffect(() => {
+    const handleCalendarTasksUpdated = (newCalendarTasks) => {
+      if (!newCalendarTasks || Object.keys(newCalendarTasks).length === 0)
+        return;
+      const { visibleYear: y, visibleMonth: m } = visibleRangeRef.current;
+      const startDate = new Date(y, m - 1, 1);
+      const endDate = new Date(y, m + 2, 0);
+      const filtered = {};
+      Object.keys(newCalendarTasks).forEach((date) => {
+        const taskDate = new Date(date);
+        if (taskDate >= startDate && taskDate <= endDate) {
+          filtered[date] = newCalendarTasks[date];
+        }
+      });
+      if (Object.keys(filtered).length > 0) {
+        setTasks((prev) => {
+          const updated = { ...prev, ...filtered };
+          widgetService.syncTodayTasks(updated);
+          return updated;
+        });
+      }
+    };
+    dataPreloadService.addCalendarTasksListener(handleCalendarTasksUpdated);
+    return () => {
+      dataPreloadService.removeCalendarTasksListener(
+        handleCalendarTasksUpdated,
+      );
+    };
+  }, []);
+
   // Center calendar to today (only called on init, not when month changes)
   const centerToday = useCallback(() => {
     if (!scrollViewRef.current) return;
@@ -5557,7 +6534,7 @@ function CalendarScreen({ navigation, route }) {
     const firstSunday = new Date(firstDayOfMonth);
     firstSunday.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
     const diffInDays = Math.floor(
-      (todayDate - firstSunday) / (1000 * 60 * 60 * 24)
+      (todayDate - firstSunday) / (1000 * 60 * 60 * 24),
     );
     const weekNumber = Math.floor(diffInDays / 7);
     const weekHeight = 50;
@@ -5613,7 +6590,7 @@ function CalendarScreen({ navigation, route }) {
         console.log(
           `✅ [CalendarScreen] Loaded ${
             Object.keys(filteredTasks).length
-          } dates with tasks from cache`
+          } dates with tasks from cache`,
         );
         setTasks(filteredTasks);
         setIsLoadingTasks(false);
@@ -5628,13 +6605,13 @@ function CalendarScreen({ navigation, route }) {
         widgetService.syncTodayTasks(filteredTasks);
       } else {
         console.log(
-          "⚠️ [CalendarScreen] Preloaded tasks exist but none in current range, will fetch from API"
+          "⚠️ [CalendarScreen] Preloaded tasks exist but none in current range, will fetch from API",
         );
         // 保持 isLoadingTasks 為 true，讓後續的 fetchTasksForVisibleRange 來處理
       }
     } else {
       console.log(
-        "📥 [CalendarScreen] No preloaded tasks available, will fetch from API"
+        "📥 [CalendarScreen] No preloaded tasks available, will fetch from API",
       );
       // 如果沒有預載入數據，保持 isLoadingTasks 為 true，讓後續的 fetchTasksForVisibleRange 來處理
     }
@@ -5670,7 +6647,7 @@ function CalendarScreen({ navigation, route }) {
           centerToday();
         }, 100);
       }
-    }, [route?.params?.focusToday, centerToday])
+    }, [route?.params?.focusToday, centerToday]),
   );
 
   // Note: We no longer need to save tasks to AsyncStorage
@@ -5740,7 +6717,7 @@ function CalendarScreen({ navigation, route }) {
         // Date changed
         const oldDayTasks = tasks[editingTask.date] || [];
         const newOldDayTasks = oldDayTasks.filter(
-          (t) => t.id !== editingTask.id
+          (t) => t.id !== editingTask.id,
         );
         const newDayTasks = tasks[targetDate] || [];
         const updatedNewDayTasks = [...newDayTasks, updatedTask];
@@ -5756,7 +6733,7 @@ function CalendarScreen({ navigation, route }) {
         // Same date
         const dayTasks = tasks[targetDate] || [];
         const updatedDayTasks = dayTasks.map((t) =>
-          t.id === editingTask.id ? updatedTask : t
+          t.id === editingTask.id ? updatedTask : t,
         );
         const newTasksState = { ...tasks, [targetDate]: updatedDayTasks };
         setTasks(newTasksState);
@@ -5800,7 +6777,7 @@ function CalendarScreen({ navigation, route }) {
         if (String(currentEditingTask.id).startsWith("temp-")) {
           console.log(
             "Updating temporary task locally:",
-            currentEditingTask.id
+            currentEditingTask.id,
           );
           return; // Skip API call, the create flow will handle the sync
         }
@@ -5815,7 +6792,7 @@ function CalendarScreen({ navigation, route }) {
         // API Call
         const updatedTaskFromServer = await TaskService.updateTask(
           currentEditingTask.id,
-          taskData
+          taskData,
         );
 
         // Schedule new notification
@@ -5831,7 +6808,7 @@ function CalendarScreen({ navigation, route }) {
             t.taskReminder,
             getActiveReminderMinutes(),
             null,
-            t
+            t,
           );
 
           // Update local state with new notification IDs (silent update)
@@ -5841,7 +6818,7 @@ function CalendarScreen({ navigation, route }) {
               const updatedDayTasks = dayTasks.map((t) =>
                 t.id === updatedTaskFromServer.id
                   ? { ...t, notificationIds }
-                  : t
+                  : t,
               );
               return { ...currentTasks, [targetDate]: updatedDayTasks };
             });
@@ -5877,10 +6854,10 @@ function CalendarScreen({ navigation, route }) {
           if (pendingTempActions.current[tempId] === "delete") {
             console.log(
               "Task deleted while creating, deleting from server:",
-              createdTask.id
+              createdTask.id,
             );
             TaskService.deleteTask(createdTask.id).catch((e) =>
-              console.error("Failed to delete ghost task", e)
+              console.error("Failed to delete ghost task", e),
             );
 
             // Remove from state if it exists
@@ -5939,12 +6916,12 @@ function CalendarScreen({ navigation, route }) {
             console.log("Syncing pending toggle for new task");
             TaskService.toggleTaskChecked(
               createdTask.id,
-              finalTask.is_completed
+              finalTask.is_completed,
             ).catch((e) => console.error("Failed to sync toggle", e));
           }
 
           const updatedDayTasks = dayTasks.map((t) =>
-            t.id === tempId ? finalTask : t
+            t.id === tempId ? finalTask : t,
           );
           const updatedTasksState = {
             ...currentTasks,
@@ -5969,7 +6946,7 @@ function CalendarScreen({ navigation, route }) {
             t.taskReminder,
             getActiveReminderMinutes(),
             null,
-            t
+            t,
           );
 
           if (notificationIds.length > 0) {
@@ -5977,7 +6954,7 @@ function CalendarScreen({ navigation, route }) {
             setTasks((currentTasks) => {
               const dayTasks = currentTasks[targetDate] || [];
               const updatedDayTasks = dayTasks.map((t) =>
-                t.id === createdTask.id ? { ...t, notificationIds } : t
+                t.id === createdTask.id ? { ...t, notificationIds } : t,
               );
               return { ...currentTasks, [targetDate]: updatedDayTasks };
             });
@@ -6025,7 +7002,7 @@ function CalendarScreen({ navigation, route }) {
             style: "destructive",
           },
         ],
-        { cancelable: true }
+        { cancelable: true },
       );
     }
   };
@@ -6035,6 +7012,21 @@ function CalendarScreen({ navigation, route }) {
 
   const deleteTask = async () => {
     if (!editingTask) return;
+
+    // Mixpanel: Track task deletion
+    const taskAgeMs = editingTask.created_at
+      ? Date.now() - new Date(editingTask.created_at).getTime()
+      : null;
+    const taskAgeDays = taskAgeMs ? Math.floor(taskAgeMs / (1000 * 60 * 60 * 24)) : null;
+
+    mixpanelService.track("Task Deleted", {
+      task_id: editingTask.id,
+      was_completed: !!editingTask.isCompleted,
+      had_time: !!editingTask.time,
+      had_link: !!editingTask.link,
+      had_note: !!editingTask.note,
+      task_age_days: taskAgeDays,
+    });
 
     // 1. Optimistic Update: Remove from UI immediately
     const day = editingTask.date;
@@ -6136,83 +7128,194 @@ function CalendarScreen({ navigation, route }) {
     }
   };
 
-  const renderCalendar = () => {
-    const weeks = []; // For calendar rendering
+  // Format Date to YYYY-MM-DD in local time (avoid UTC shift in getMonthDates/getAdjacentDate/getWeekStart)
+  const toLocalDateStr = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-    // Render only current month with 6 weeks
-    const firstDayOfMonth = new Date(visibleYear, visibleMonth, 1);
-    const firstDayOfWeek = firstDayOfMonth.getDay();
-    const firstSunday = new Date(firstDayOfMonth);
-    firstSunday.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
+  // Helper to get all dates in a month
+  const getMonthDates = (year, month) => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const firstDayOfWeek = firstDay.getDay();
+    const daysInMonth = lastDay.getDate();
 
-    // Render exactly 6 weeks
-    const weeksPerMonth = 6;
-    for (let week = 0; week < weeksPerMonth; week++) {
-      const weekDates = [];
-
-      // Generate all 7 days of the week
-      for (let day = 0; day < 7; day++) {
-        const dayDate = new Date(firstSunday);
-        dayDate.setDate(firstSunday.getDate() + week * 7 + day);
-        dayDate.setHours(12, 0, 0, 0);
-
-        const dateStr = dayDate.toISOString().split("T")[0];
-        weekDates.push(renderDate(dateStr));
-      }
-
-      weeks.push(
-        <View key={`week-${week}`} style={styles.calendarWeekRow}>
-          {weekDates}
-        </View>
+    const dates = [];
+    // Add previous month's trailing days
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      dates.push(
+        toLocalDateStr(new Date(year, month - 1, prevMonthLastDay - i)),
       );
     }
+    // Add current month's days
+    for (let i = 1; i <= daysInMonth; i++) {
+      dates.push(toLocalDateStr(new Date(year, month, i)));
+    }
+    // Add next month's leading days to fill 6 weeks
+    const remainingDays = 42 - dates.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      dates.push(toLocalDateStr(new Date(year, month + 1, i)));
+    }
+    return dates;
+  };
 
-    return <View key={`calendar-${visibleYear}-${visibleMonth}`}>{weeks}</View>;
+  const renderCalendar = () => {
+    const monthDates = getMonthDates(visibleYear, visibleMonth);
+    const today = getCurrentDate();
+    const currentMonth = new Date(visibleYear, visibleMonth, 1);
+
+    // Group dates into weeks
+    const weeks = [];
+    for (let i = 0; i < monthDates.length; i += 7) {
+      weeks.push(monthDates.slice(i, i + 7));
+    }
+
+    return (
+      <View style={styles.monthContainer}>
+        <View
+          style={[styles.customCalendar, { backgroundColor: theme.background }]}
+        >
+          {/* Week day headers */}
+          <View
+            style={[
+              styles.weekDaysHeader,
+              { borderBottomColor: theme.divider },
+            ]}
+          >
+            {t.weekDays.map((day, index) => (
+              <Text
+                key={index}
+                style={[styles.weekDayText, { color: theme.textSecondary }]}
+              >
+                {day}
+              </Text>
+            ))}
+          </View>
+          {/* Calendar grid */}
+          {weeks.map((week, weekIndex) => (
+            <View key={weekIndex} style={styles.calendarWeekRow}>
+              {week.map((dateStr) => {
+                const dateObj = new Date(dateStr);
+                const isSelected = dateStr === selectedDate;
+                const isToday = dateStr === today;
+                const isCurrentMonth = dateObj.getMonth() === visibleMonth;
+                const dayTasks = tasks[dateStr] || [];
+                const taskCount = dayTasks.length; // Show dot for all tasks, including completed ones
+
+                return (
+                  <TouchableOpacity
+                    key={dateStr}
+                    onPress={() => {
+                      if (moveMode && taskToMove) {
+                        moveTaskToDate(taskToMove, dateStr);
+                        setMoveMode(false);
+                        setTaskToMove(null);
+                      } else {
+                        setSelectedDate(dateStr);
+                      }
+                    }}
+                    style={[
+                      styles.calendarDay,
+                      isSelected && [
+                        styles.selectedDay,
+                        { backgroundColor: theme.calendarSelected },
+                      ],
+                      !isSelected && { backgroundColor: theme.background },
+                      moveMode && styles.calendarDayMoveTarget,
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.calendarDayContent}>
+                      <View style={styles.dateContainer}>
+                        {isToday ? (
+                          <View
+                            style={[
+                              styles.todayCircle,
+                              { backgroundColor: theme.primary },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.calendarDayText,
+                                styles.todayText,
+                                // 如果是 today，文字永遠是白色，不受 selectedDayText 影響
+                              ]}
+                            >
+                              {dateObj.getDate()}
+                            </Text>
+                          </View>
+                        ) : (
+                          <Text
+                            style={[
+                              styles.calendarDayText,
+                              {
+                                color: isCurrentMonth
+                                  ? theme.text
+                                  : theme.textTertiary,
+                              },
+                              isSelected && [
+                                styles.selectedDayText,
+                                { color: theme.primary },
+                              ],
+                              !isCurrentMonth && styles.otherMonthText,
+                            ]}
+                          >
+                            {dateObj.getDate()}
+                          </Text>
+                        )}
+                        {taskCount > 0 && (
+                          <View
+                            style={[
+                              styles.taskDot,
+                              { backgroundColor: theme.primary },
+                            ]}
+                          />
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      </View>
+    );
   };
 
   const renderDate = (date) => {
     const isSelected = date === selectedDate;
     const dateObj = new Date(date);
 
-    const isCurrentMonth =
-      dateObj.getMonth() === visibleMonth &&
-      dateObj.getFullYear() === visibleYear;
-
     // Format the current date to match the date string format (YYYY-MM-DD)
     const today = new Date();
     const todayFormatted = `${today.getFullYear()}-${String(
-      today.getMonth() + 1
+      today.getMonth() + 1,
     ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     const isToday = date === todayFormatted;
-    const isInRange = true; // Always show the date number
 
     const renderDateContent = () => {
       return (
         <View style={styles.dateContainer}>
           <View
             style={[
-              styles.dateTextContainer,
-              isToday && styles.todayCircle,
-              isSelected && styles.selectedDate,
+              styles.dayViewDateContainer,
+              isToday && styles.todayCircleLarge,
+              isSelected && styles.selectedDateLarge,
             ]}
           >
             <Text
               style={[
-                styles.calendarDayText,
+                styles.dayViewDayNumber,
                 { color: theme.text },
-                !isCurrentMonth && [
-                  styles.otherMonthText,
-                  { color: theme.textTertiary },
-                ],
                 isSelected && [
                   styles.selectedDayText,
                   { color: theme.primary },
                 ],
-                isToday && styles.todayText,
-                !isInRange && styles.hiddenDate,
+                isToday && styles.todayTextLarge,
               ]}
             >
-              {isInRange ? String(dateObj.getDate()) : ""}
+              {String(dateObj.getDate())}
             </Text>
           </View>
         </View>
@@ -6232,18 +7335,21 @@ function CalendarScreen({ navigation, route }) {
           }
         }}
         style={[
-          styles.calendarDay,
+          styles.dayViewDayButton,
           { backgroundColor: "transparent" },
           isSelected && [
-            styles.selectedDay,
+            styles.selectedDayLarge,
             { backgroundColor: theme.calendarSelected },
           ],
           moveMode && styles.calendarDayMoveTarget,
         ]}
+        activeOpacity={0.7}
       >
         {renderDateContent()}
         {tasks[date] && tasks[date].length > 0 && (
-          <View style={[styles.taskDot, { backgroundColor: theme.primary }]} />
+          <View
+            style={[styles.taskDotLarge, { backgroundColor: theme.primary }]}
+          />
         )}
       </TouchableOpacity>
     );
@@ -6262,7 +7368,7 @@ function CalendarScreen({ navigation, route }) {
             checked: newCompletedState,
             is_completed: newCompletedState,
           }
-        : t
+        : t,
     );
     const newTasksState = { ...tasks, [task.date]: updatedTasksList };
 
@@ -6294,7 +7400,7 @@ function CalendarScreen({ navigation, route }) {
         {
           task_id: task.id,
           platform: Platform.OS,
-        }
+        },
       );
     } catch (error) {
       console.error("Error toggling task:", error);
@@ -6370,11 +7476,19 @@ function CalendarScreen({ navigation, route }) {
     </View>
   );
 
-  // Helper to get previous/next day in YYYY-MM-DD
+  // Helper to get previous/next day in YYYY-MM-DD (local time)
   const getAdjacentDate = (dateStr, diff) => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + diff);
-    return date.toISOString().split("T")[0];
+    return toLocalDateStr(date);
+  };
+
+  // Helper to get week start date (Sunday) in local YYYY-MM-DD
+  const getWeekStart = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = date.getDay();
+    date.setDate(date.getDate() - day);
+    return toLocalDateStr(date);
   };
 
   // Handler for horizontal swipe in task area
@@ -6485,10 +7599,7 @@ function CalendarScreen({ navigation, route }) {
                 data={[1, 2, 3, 4]} // 顯示 4 個 skeleton
                 keyExtractor={(item) => `skeleton-${item}`}
                 renderItem={() => <TaskSkeleton theme={theme} />}
-                contentContainerStyle={[
-                  styles.tasksScrollContent,
-                  { paddingBottom: 32 },
-                ]}
+                contentContainerStyle={styles.tasksScrollContent}
                 showsVerticalScrollIndicator={false}
               />
             </View>
@@ -6540,10 +7651,7 @@ function CalendarScreen({ navigation, route }) {
                 })}
                 keyExtractor={(item) => item.id}
                 renderItem={renderTask}
-                contentContainerStyle={[
-                  styles.tasksScrollContent,
-                  { paddingBottom: 32 },
-                ]}
+                contentContainerStyle={styles.tasksScrollContent}
                 showsVerticalScrollIndicator={false}
               />
             </View>
@@ -6732,7 +7840,7 @@ function CalendarScreen({ navigation, route }) {
                             ? taskLink
                             : `https://${taskLink}`;
                           Linking.openURL(url).catch((err) =>
-                            console.error("Failed to open URL:", err)
+                            console.error("Failed to open URL:", err),
                           );
                         }}
                         style={styles.linkPreviewButton}
@@ -6745,6 +7853,21 @@ function CalendarScreen({ navigation, route }) {
                       </TouchableOpacity>
                     ) : null}
                   </View>
+                  {/* Google Maps Preview */}
+                  {taskLink ? (
+                    <MapPreview
+                      url={taskLink}
+                      theme={theme}
+                      onOpenInBrowser={() => {
+                        const url = taskLink.startsWith("http")
+                          ? taskLink
+                          : `https://${taskLink}`;
+                        Linking.openURL(url).catch((err) =>
+                          console.error("Failed to open URL:", err),
+                        );
+                      }}
+                    />
+                  ) : null}
                 </View>
 
                 {/* Date Input Field */}
@@ -6908,9 +8031,9 @@ function CalendarScreen({ navigation, route }) {
                                 0,
                                 1,
                                 parseInt(taskTime.split(":")[0]) || 0,
-                                parseInt(taskTime.split(":")[1]) || 0
+                                parseInt(taskTime.split(":")[1]) || 0,
                               )
-                            : now
+                            : now,
                         );
                         setTimePickerVisible(true);
                       }}
@@ -6970,7 +8093,10 @@ function CalendarScreen({ navigation, route }) {
                       setTaskNote(text);
                       // 根據內容動態調整高度
                       const lineCount = text.split("\n").length;
-                      const estimatedHeight = Math.max(100, lineCount * 24 + 24); // 每行約 24px + padding
+                      const estimatedHeight = Math.max(
+                        100,
+                        lineCount * 24 + 24,
+                      ); // 每行約 24px + padding
                       setNoteInputHeight(Math.min(estimatedHeight, 300)); // 最大 300px
                     }}
                     placeholder={t.notePlaceholder}
@@ -6982,7 +8108,9 @@ function CalendarScreen({ navigation, route }) {
                     onContentSizeChange={(event) => {
                       // 根據實際內容高度調整
                       const { height } = event.nativeEvent.contentSize;
-                      setNoteInputHeight(Math.max(100, Math.min(height + 24, 300))); // 加上 padding
+                      setNoteInputHeight(
+                        Math.max(100, Math.min(height + 24, 300)),
+                      ); // 加上 padding
                     }}
                     onFocus={() => {
                       setTimeout(() => {
@@ -7070,7 +8198,7 @@ function CalendarScreen({ navigation, route }) {
   const renderDeleteConfirmModal = () => {
     console.log(
       "renderDeleteConfirmModal called, deleteConfirmVisible:",
-      deleteConfirmVisible
+      deleteConfirmVisible,
     );
 
     if (!deleteConfirmVisible) return null;
@@ -7238,7 +8366,7 @@ function CalendarScreen({ navigation, route }) {
                     const year = tempDate.getFullYear();
                     const month = String(tempDate.getMonth() + 1).padStart(
                       2,
-                      "0"
+                      "0",
                     );
                     const day = String(tempDate.getDate()).padStart(2, "0");
                     setTaskDate(`${year}-${month}-${day}`);
@@ -7340,7 +8468,7 @@ function CalendarScreen({ navigation, route }) {
                     const hours = String(tempTime.getHours()).padStart(2, "0");
                     const minutes = String(tempTime.getMinutes()).padStart(
                       2,
-                      "0"
+                      "0",
                     );
                     setTaskTime(`${hours}:${minutes}`);
                   }
@@ -7432,106 +8560,76 @@ function CalendarScreen({ navigation, route }) {
     }
   };
 
-  const goToNextMonth = () => {
-    let newMonth = visibleMonth + 1;
-    let newYear = visibleYear;
-    if (newMonth > 11) {
-      newMonth = 0;
-      newYear += 1;
-    }
-    console.log("goToNextMonth:", {
-      from: { month: visibleMonth, year: visibleYear },
-      to: { month: newMonth, year: newYear },
-    });
-    setVisibleMonth((prevMonth) => {
-      console.log(
-        "🔄 setVisibleMonth called: prevMonth =",
-        prevMonth,
-        ", newMonth =",
-        newMonth
-      );
-      return newMonth;
-    });
-    setVisibleYear((prevYear) => {
-      console.log(
-        "🔄 setVisibleYear called: prevYear =",
-        prevYear,
-        ", newYear =",
-        newYear
-      );
-      return newYear;
-    });
-    console.log(
-      "✅ State update initiated: visibleMonth =",
-      newMonth,
-      ", visibleYear =",
-      newYear
-    );
-  };
+  // Calendar header UI - Month view
+  const monthNames = t.months;
+  const monthName = monthNames[visibleMonth];
+  const year = visibleYear;
 
   const goToPrevMonth = () => {
-    let newMonth = visibleMonth - 1;
-    let newYear = visibleYear;
-    if (newMonth < 0) {
-      newMonth = 11;
-      newYear -= 1;
-    }
-    console.log("goToPrevMonth:", {
-      from: { month: visibleMonth, year: visibleYear },
-      to: { month: newMonth, year: newYear },
-    });
-    setVisibleMonth((prevMonth) => {
-      console.log(
-        "🔄 setVisibleMonth called: prevMonth =",
-        prevMonth,
-        ", newMonth =",
-        newMonth
-      );
-      return newMonth;
-    });
-    setVisibleYear((prevYear) => {
-      console.log(
-        "🔄 setVisibleYear called: prevYear =",
-        prevYear,
-        ", newYear =",
-        newYear
-      );
-      return newYear;
-    });
-    console.log(
-      "✅ State update initiated: visibleMonth =",
-      newMonth,
-      ", visibleYear =",
-      newYear
-    );
+    const newMonth = visibleMonth === 0 ? 11 : visibleMonth - 1;
+    const newYear = visibleMonth === 0 ? visibleYear - 1 : visibleYear;
+    setVisibleMonth(newMonth);
+    setVisibleYear(newYear);
+    // Don't change selectedDate when navigating months
+    // User is just browsing different months, not selecting a new date
   };
 
-  // Calendar header UI
-  const monthNames = t.months;
+  const goToNextMonth = () => {
+    const newMonth = visibleMonth === 11 ? 0 : visibleMonth + 1;
+    const newYear = visibleMonth === 11 ? visibleYear + 1 : visibleYear;
+    setVisibleMonth(newMonth);
+    setVisibleYear(newYear);
+    // Don't change selectedDate when navigating months
+    // User is just browsing different months, not selecting a new date
+  };
+
   const header = (
     <View style={styles.fixedHeader}>
       <View style={styles.headerContainer}>
-        <Text style={[styles.currentMonthTitle, { color: theme.text }]}>
-          {visibleYear} {monthNames[visibleMonth]}
-        </Text>
-        <TouchableOpacity
-          style={[
-            styles.todayButton,
-            {
-              backgroundColor: theme.primary,
-            },
-          ]}
-          onPress={() => {
-            const today = getCurrentDate();
-            setSelectedDate(today);
-            setVisibleMonth(new Date(today).getMonth());
-            setVisibleYear(new Date(today).getFullYear());
-          }}
-        >
-          <Text style={[styles.todayButtonText, { color: "#ffffff" }]}>
-            {t.today}
+        <View style={styles.headerLeftContainer}>
+          <Text
+            style={[
+              styles.currentMonthTitle,
+              { color: theme.text, marginRight: 4 },
+            ]}
+          >
+            {year} {monthName}
           </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={goToPrevMonth}
+            style={styles.dayNavButton}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="chevron-left" size={24} color={theme.text} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={goToNextMonth}
+            style={styles.dayNavButton}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="chevron-right" size={24} color={theme.text} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.headerRightContainer}>
+          <TouchableOpacity
+            style={[
+              styles.todayButton,
+              {
+                backgroundColor: theme.primary,
+              },
+            ]}
+            onPress={() => {
+              const today = getCurrentDate();
+              setSelectedDate(today);
+              setVisibleMonth(new Date(today).getMonth());
+              setVisibleYear(new Date(today).getFullYear());
+            }}
+          >
+            <Text style={[styles.todayButtonText, { color: "#ffffff" }]}>
+              {t.today}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -7542,58 +8640,47 @@ function CalendarScreen({ navigation, route }) {
         style={[styles.calendarSection, { backgroundColor: theme.background }]}
       >
         {header}
-        <View
-          style={[styles.weekDaysHeader, { borderBottomColor: theme.divider }]}
-        >
-          {t.weekDays.map((d, i) => (
-            <Text
-              key={i}
-              style={[styles.weekDayText, { color: theme.textSecondary }]}
-            >
-              {d}
-            </Text>
-          ))}
-        </View>
-        <View>
-          {Platform.OS === "web" ? (
-            <ScrollView
-              ref={scrollViewRef}
-              style={[
-                styles.calendarScrollView,
-                { backgroundColor: theme.background },
-              ]}
-              contentContainerStyle={styles.scrollContent}
-              onScrollBeginDrag={handleScrollBeginDrag}
-              onScrollEndDrag={handleScrollEnd}
-              onMomentumScrollEnd={handleScrollEnd}
-            >
-              {renderCalendar()}
-            </ScrollView>
-          ) : (
-            <ScrollView
-              ref={scrollViewRef}
-              style={[
-                styles.calendarScrollView,
-                { backgroundColor: theme.background },
-              ]}
-              contentContainerStyle={styles.scrollContent}
-              scrollEnabled={true}
-              onScrollBeginDrag={handleScrollBeginDrag}
-              onScrollEndDrag={handleScrollEnd}
-              onMomentumScrollEnd={handleScrollEnd}
-            >
-              {renderCalendar()}
-            </ScrollView>
-          )}
+        <View style={styles.calendarScrollView}>
+          <ScrollView
+            ref={scrollViewRef}
+            onScrollBeginDrag={handleScrollBeginDrag}
+            onScrollEndDrag={handleScrollEnd}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {renderCalendar()}
+            <View style={styles.scrollSpacer} />
+          </ScrollView>
         </View>
       </View>
       <View
         style={[
           styles.taskAreaContainer,
-          { backgroundColor: theme.backgroundSecondary },
+          {
+            backgroundColor: theme.backgroundSecondary,
+            paddingBottom: !loadingUserType && userType === "general" ? 58 : 0,
+          },
         ]}
       >
         {renderTaskArea()}
+      </View>
+      {/* Banner Ad 固定底部，general 一進日曆即可見 */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          alignItems: "center",
+        }}
+      >
+        <AdBanner
+          position="bottom"
+          size="banner"
+          userType={userType}
+          loadingUserType={loadingUserType}
+        />
       </View>
       {renderModal()}
     </View>
@@ -7723,6 +8810,13 @@ export default function App() {
   const [loadingLang, setLoadingLang] = useState(true);
   const [themeMode, setThemeModeState] = useState("light");
   const [loadingTheme, setLoadingTheme] = useState(true);
+  const [userType, setUserTypeState] = useState("general");
+  const [loadingUserType, setLoadingUserType] = useState(true);
+
+  // 版本更新狀態
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [isSimulatingUpdate, setIsSimulatingUpdate] = useState(false);
 
   // Load theme function (定義在外部，可以在登入後重新調用)
   // 注意：這個函數會在 App 啟動時和登入後調用
@@ -7730,10 +8824,12 @@ export default function App() {
   const loadTheme = React.useCallback(async () => {
     try {
       console.log("🎨 Loading theme settings...");
-      
+
       // 檢查預載入是否正在進行中
       if (dataPreloadService.isPreloading) {
-        console.log("⏳ [Theme] Preload in progress, waiting for userSettings...");
+        console.log(
+          "⏳ [Theme] Preload in progress, waiting for userSettings...",
+        );
         try {
           // 等待預載入的 userSettings 部分完成
           await new Promise((resolve) => {
@@ -7743,14 +8839,18 @@ export default function App() {
               checkCount++;
               const cachedData = dataPreloadService.getCachedData();
               if (cachedData?.userSettings) {
-                console.log(`✅ [Theme] UserSettings found after ${checkCount * 50}ms`);
+                console.log(
+                  `✅ [Theme] UserSettings found after ${checkCount * 50}ms`,
+                );
                 clearInterval(checkInterval);
                 resolve();
                 return;
               }
               // 最多等待 2 秒
               if (checkCount >= maxChecks) {
-                console.log(`⏳ [Theme] Timeout after ${maxChecks * 50}ms, proceeding...`);
+                console.log(
+                  `⏳ [Theme] Timeout after ${maxChecks * 50}ms, proceeding...`,
+                );
                 clearInterval(checkInterval);
                 resolve();
               }
@@ -7760,25 +8860,45 @@ export default function App() {
           console.log("⏳ [Theme] Preload wait error:", error);
         }
       }
-      
+
       // 優先檢查預載入緩存
       const cachedData = dataPreloadService.getCachedData();
       let userSettings = cachedData?.userSettings;
-      
+
       if (userSettings) {
         console.log("📦 [Theme] Using preloaded user settings");
       } else {
-        // 如果還是沒有緩存，才從 API 載入
+        // 如果還是沒有緩存，才從 API 載入（加逾時避免登入後卡住）
         console.log("📥 [Theme] Loading theme settings from Supabase...");
-        userSettings = await UserService.getUserSettings();
+        const THEME_LOAD_TIMEOUT_MS = 5000;
+        try {
+          userSettings = await Promise.race([
+            UserService.getUserSettings(),
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error("Theme load timeout")),
+                THEME_LOAD_TIMEOUT_MS,
+              ),
+            ),
+          ]);
+        } catch (timeoutErr) {
+          if (timeoutErr?.message === "Theme load timeout") {
+            console.warn(
+              `⚠️ [Theme] Supabase timeout after ${THEME_LOAD_TIMEOUT_MS}ms, using default theme`,
+            );
+            userSettings = { theme: "light" };
+          } else {
+            throw timeoutErr;
+          }
+        }
       }
-      
+
       console.log("📦 Theme settings received:", userSettings);
       console.log(
         "📦 Theme value:",
         userSettings.theme,
         "Type:",
-        typeof userSettings.theme
+        typeof userSettings.theme,
       );
 
       // 明確檢查 theme 值
@@ -7787,7 +8907,7 @@ export default function App() {
         setThemeModeState(userSettings.theme);
       } else {
         console.log(
-          `⚠️ Invalid theme setting (${userSettings.theme}), using default: light`
+          `⚠️ Invalid theme setting (${userSettings.theme}), using default: light`,
         );
         setThemeModeState("light");
       }
@@ -7797,6 +8917,41 @@ export default function App() {
       setThemeModeState("light");
     } finally {
       setLoadingTheme(false);
+    }
+  }, []);
+
+  const loadUserType = useCallback(async () => {
+    try {
+      setLoadingUserType(true);
+
+      // 先等待預載入開始
+      const preloadPromise = dataPreloadService.preloadPromise;
+      if (preloadPromise) {
+        try {
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout")), 2000),
+          );
+          await Promise.race([preloadPromise, timeoutPromise]);
+        } catch (error) {
+          console.log("⏳ [UserType] Preload wait error:", error);
+        }
+      }
+
+      // 優先檢查預載入緩存
+      const cachedData = dataPreloadService.getCachedData();
+      let userSettings = cachedData?.userSettings;
+
+      if (!userSettings) {
+        userSettings = await UserService.getUserSettings();
+      }
+
+      if (userSettings && userSettings.user_type) {
+        setUserTypeState(userSettings.user_type);
+      }
+    } catch (error) {
+      console.error("❌ Error loading user type settings:", error);
+    } finally {
+      setLoadingUserType(false);
     }
   }, []);
 
@@ -7833,7 +8988,7 @@ export default function App() {
         console.log("✅ [GA] Web Production 環境 - 已初始化");
       } else {
         console.log(
-          `🔧 [GA] Web ${env} 環境 - 跳過初始化（僅 Production 追蹤）`
+          `🔧 [GA] Web ${env} 環境 - 跳過初始化（僅 Production 追蹤）`,
         );
       }
     }
@@ -7872,11 +9027,14 @@ export default function App() {
         }
         return false; // 沒有 session，不預載入
       } catch (error) {
-        console.error("❌ [App] Error checking session for early preload:", error);
+        console.error(
+          "❌ [App] Error checking session for early preload:",
+          error,
+        );
         return false;
       }
     };
-    
+
     // 先啟動預載入（如果有的話）
     const preloadStartedPromise = startEarlyPreload();
 
@@ -7884,13 +9042,15 @@ export default function App() {
     const loadLanguage = async () => {
       try {
         console.log("🌐 Loading language settings...");
-        
+
         // 等待預載入開始（如果有的話）
         const preloadStarted = await preloadStartedPromise;
-        
+
         // 如果預載入已開始，等待 userSettings 載入完成（最多等待 2 秒）
         if (preloadStarted && dataPreloadService.isPreloading) {
-          console.log("⏳ [Language] Preload in progress, waiting for userSettings...");
+          console.log(
+            "⏳ [Language] Preload in progress, waiting for userSettings...",
+          );
           try {
             // 等待預載入的 userSettings 部分完成
             await new Promise((resolve) => {
@@ -7900,14 +9060,18 @@ export default function App() {
                 checkCount++;
                 const cachedData = dataPreloadService.getCachedData();
                 if (cachedData?.userSettings) {
-                  console.log(`✅ [Language] UserSettings found after ${checkCount * 50}ms`);
+                  console.log(
+                    `✅ [Language] UserSettings found after ${checkCount * 50}ms`,
+                  );
                   clearInterval(checkInterval);
                   resolve();
                   return;
                 }
                 // 最多等待 2 秒
                 if (checkCount >= maxChecks) {
-                  console.log(`⏳ [Language] Timeout after ${maxChecks * 50}ms, proceeding...`);
+                  console.log(
+                    `⏳ [Language] Timeout after ${maxChecks * 50}ms, proceeding...`,
+                  );
                   clearInterval(checkInterval);
                   resolve();
                 }
@@ -7917,19 +9081,21 @@ export default function App() {
             console.log("⏳ [Language] Preload wait error:", error);
           }
         }
-        
+
         // 優先檢查預載入緩存
         const cachedData = dataPreloadService.getCachedData();
         let userSettings = cachedData?.userSettings;
-        
+
         if (userSettings) {
           console.log("📦 [Language] Using preloaded user settings");
         } else {
           // 如果還是沒有緩存，才從 API 載入
-          console.log("📥 [Language] Loading language settings from Supabase...");
+          console.log(
+            "📥 [Language] Loading language settings from Supabase...",
+          );
           userSettings = await UserService.getUserSettings();
         }
-        
+
         console.log("📦 User settings received:", userSettings);
 
         if (
@@ -7978,10 +9144,95 @@ export default function App() {
       await preloadStartedPromise;
       loadLanguage();
       loadTheme();
+      loadUserType();
     })();
-    
+
     updatePlatformOnStart();
   }, [loadTheme]);
+
+  // 主動檢查版本更新
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+
+    const LAST_UPDATE_PROMPT_KEY = "LAST_UPDATE_PROMPT_INFO";
+
+    const checkShouldShowPrompt = async (latestVersion, forceUpdate) => {
+      if (forceUpdate) return true;
+
+      try {
+        const storedInfo = await AsyncStorage.getItem(LAST_UPDATE_PROMPT_KEY);
+        if (!storedInfo) return true;
+
+        const { version, timestamp } = JSON.parse(storedInfo);
+
+        // 如果偵測到更新的版本，不受 24 小時限制
+        if (versionService.compareVersions(latestVersion, version) > 0) {
+          return true;
+        }
+
+        // 否則檢查是否超過 24 小時 (24 * 60 * 60 * 1000)
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000;
+        return now - timestamp > oneDay;
+      } catch (error) {
+        console.error("Error checking version prompt frequency:", error);
+        return true; // 發生錯誤時預設顯示，確保用戶看到更新
+      }
+    };
+
+    const checkUpdateProactively = async () => {
+      try {
+        console.log("🔍 [App] 開始主動檢查版本更新...");
+        const info = await versionService.checkForUpdates();
+
+        if (info.hasUpdate) {
+          const shouldShow = await checkShouldShowPrompt(
+            info.latestVersion,
+            info.forceUpdate,
+          );
+
+          if (shouldShow) {
+            console.log("🔔 [App] 顯示版本更新提示:", info.latestVersion);
+            setUpdateInfo(info);
+            setIsUpdateModalVisible(true);
+
+            // 記錄本次提示的版本與時間
+            await AsyncStorage.setItem(
+              LAST_UPDATE_PROMPT_KEY,
+              JSON.stringify({
+                version: info.latestVersion,
+                timestamp: Date.now(),
+              }),
+            );
+          }
+        }
+      } catch (error) {
+        console.error("❌ [App] 主動檢查版本失敗:", error);
+      }
+    };
+
+    // EAS OTA：僅在 production build 檢查並套用 JS 更新（dev client 不執行）
+    const checkAndApplyOTA = async () => {
+      if (__DEV__) return;
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (e) {
+        console.warn("⚠️ [OTA] 檢查/套用更新失敗:", e?.message ?? e);
+      }
+    };
+
+    // 延遲一下再檢查，避免與啟動流程競爭資源；OTA 先跑（2s），商店版本檢查 3s
+    const otaTimer = setTimeout(checkAndApplyOTA, 2000);
+    const storeTimer = setTimeout(checkUpdateProactively, 3000);
+    return () => {
+      clearTimeout(otaTimer);
+      clearTimeout(storeTimer);
+    };
+  }, []);
 
   const setLanguage = async (lang) => {
     console.log(`🌐 Setting language to: ${lang}`);
@@ -8010,7 +9261,7 @@ export default function App() {
       if (isNetworkError) {
         console.warn(
           "⚠️ Network error saving language to Supabase:",
-          error.message
+          error.message,
         );
       } else {
         console.error("❌ Error saving language to Supabase:", {
@@ -8085,8 +9336,8 @@ export default function App() {
       </View>
     );
   }
-  if ((loadingLang || loadingTheme) && !fontTimeout) {
-    console.log("Waiting for language and theme...");
+  if ((loadingLang || loadingTheme || loadingUserType) && !fontTimeout) {
+    console.log("Waiting for language, theme and user type...");
     return (
       <View
         style={{
@@ -8162,66 +9413,90 @@ export default function App() {
     <ThemeContext.Provider
       value={{ theme, themeMode, setThemeMode, toggleTheme, loadTheme }}
     >
-      <LanguageContext.Provider value={{ language, setLanguage, t }}>
-        <NavigationContainer
-          linking={{
-            prefixes: [getRedirectUrl(), "http://localhost:8081", "taskcal://"],
-            config: {
-              screens: {
-                Splash: "",
-                MainTabs: "app",
-                Terms: "terms",
-                Privacy: "privacy",
+      <UserContext.Provider
+        value={{
+          userType,
+          loadingUserType,
+          setUserType: setUserTypeState,
+          loadUserType,
+          setUpdateInfo,
+          setIsUpdateModalVisible,
+          isSimulatingUpdate,
+          setIsSimulatingUpdate,
+        }}
+      >
+        <LanguageContext.Provider value={{ language, setLanguage, t }}>
+          <NavigationContainer
+            linking={{
+              prefixes: [
+                getRedirectUrl(),
+                "http://localhost:8081",
+                "taskcal://",
+              ],
+              config: {
+                screens: {
+                  Splash: "",
+                  MainTabs: "app",
+                  Terms: "terms",
+                  Privacy: "privacy",
+                },
               },
-            },
-          }}
-          onStateChange={() => {
-            if (typeof document !== "undefined") {
-              document.title = getAppDisplayName();
-            }
-          }}
-        >
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false,
-              gestureEnabled: true,
-              gestureDirection: "horizontal",
             }}
-            initialRouteName="Splash"
+            onStateChange={() => {
+              if (typeof document !== "undefined") {
+                document.title = getAppDisplayName();
+              }
+            }}
           >
-            <Stack.Screen name="Splash" component={SplashScreen} />
-            <Stack.Screen
-              name="MainTabs"
-              component={MainTabs}
-              options={{
+            <Stack.Navigator
+              screenOptions={{
                 headerShown: false,
-                gestureEnabled: false,
-                animationEnabled: false,
-              }}
-            />
-            <Stack.Screen
-              name="Terms"
-              component={TermsScreen}
-              options={{
-                headerShown: false,
-                presentation: "card",
                 gestureEnabled: true,
                 gestureDirection: "horizontal",
               }}
+              initialRouteName="Splash"
+            >
+              <Stack.Screen name="Splash" component={SplashScreen} />
+              <Stack.Screen
+                name="MainTabs"
+                component={MainTabs}
+                options={{
+                  headerShown: false,
+                  gestureEnabled: false,
+                  animationEnabled: false,
+                }}
+              />
+              <Stack.Screen
+                name="Terms"
+                component={TermsScreen}
+                options={{
+                  headerShown: false,
+                  presentation: "card",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
+              <Stack.Screen
+                name="Privacy"
+                component={PrivacyScreen}
+                options={{
+                  headerShown: false,
+                  presentation: "card",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
+            </Stack.Navigator>
+            <VersionUpdateModal
+              visible={isUpdateModalVisible}
+              onClose={() => setIsUpdateModalVisible(false)}
+              updateInfo={updateInfo}
+              forceUpdate={updateInfo?.forceUpdate}
+              theme={theme}
             />
-            <Stack.Screen
-              name="Privacy"
-              component={PrivacyScreen}
-              options={{
-                headerShown: false,
-                presentation: "card",
-                gestureEnabled: true,
-                gestureDirection: "horizontal",
-              }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </LanguageContext.Provider>
+          </NavigationContainer>
+        </LanguageContext.Provider>
+      </UserContext.Provider>
     </ThemeContext.Provider>
   );
 }
@@ -8296,13 +9571,13 @@ const styles = StyleSheet.create({
   },
   calendarSection: {
     flexShrink: 0,
+    paddingVertical: 4, // Reduced from 8 to give more space to task area
     // backgroundColor moved to inline style to use theme
   },
   taskAreaContainer: {
     // backgroundColor moved to inline style to use theme
     width: "100%",
     flex: 1,
-    paddingBottom: 60, // Add padding equal to bottom bar height
   },
   taskArea: {
     flex: 1,
@@ -8311,18 +9586,22 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 16,
   },
+  fixedHeader: {
+    backgroundColor: "transparent",
+    zIndex: 10,
+  },
   currentMonthTitle: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
     textAlign: "left",
   },
   weekDaysHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 16, // 8 (original) + 8 (to compensate for marginHorizontal)
+    paddingBottom: 6, // Reduced from 8
+    marginHorizontal: -8, // Extend border line to edges (matches customCalendar marginHorizontal)
     borderBottomWidth: 1,
-    borderBottomColor: "#bbbbbb",
   },
   // Scroll container
   calendarDivider: {
@@ -8332,13 +9611,12 @@ const styles = StyleSheet.create({
   },
   calendarScrollView: {
     flexGrow: 0,
-    backgroundColor: "#fff",
   },
   scrollContent: {
     paddingBottom: 0,
   },
   scrollSpacer: {
-    height: 10,
+    height: 4, // Reduced from 10 to minimize space
   },
   // Month container
   monthContainer: {
@@ -8348,8 +9626,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     elevation: 2,
-    backgroundColor: "#fff",
-    padding: 6,
+    padding: 4,
+    paddingBottom: 6, // Extra bottom padding to ensure task dots are visible
+    marginHorizontal: 8,
   },
   weekDayText: {
     flex: 1,
@@ -8364,7 +9643,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    height: 50,
+    height: 44, // Reduced from 50 to make calendar more compact
     paddingHorizontal: 4,
   },
   emptyDate: {
@@ -8382,12 +9661,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     margin: 1,
     borderRadius: 8,
-    backgroundColor: "#fff",
     zIndex: 1,
     minWidth: 40,
     maxWidth: 40,
     minHeight: 40,
     maxHeight: 40,
+    overflow: "visible", // Ensure task dots are visible
   },
   calendarDayContent: {
     width: "100%",
@@ -8395,6 +9674,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    overflow: "visible", // Ensure task dots are visible
   },
   dateContainer: {
     width: "100%",
@@ -8402,6 +9682,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    overflow: "visible", // Ensure task dots are visible
   },
   calendarDayText: {
     fontSize: 16,
@@ -8411,7 +9692,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   selectedDay: {
-    backgroundColor: "#e8e7fc",
+    backgroundColor: "#e8e7fc", // Light mode selected background
     zIndex: 3,
     elevation: 2,
     minWidth: 40,
@@ -8420,7 +9701,7 @@ const styles = StyleSheet.create({
     maxHeight: 40,
   },
   selectedDayText: {
-    color: "#6c63ff",
+    color: "#6c63ff", // Light mode selected text color
     fontWeight: "700",
     zIndex: 4,
   },
@@ -8433,22 +9714,22 @@ const styles = StyleSheet.create({
   },
   taskDot: {
     position: "absolute",
-    bottom: 2,
+    bottom: 0,
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: "#6c63ff",
+    zIndex: 10,
   },
   todayCircle: {
-    backgroundColor: "#6c63ff",
-    width: 20,
-    height: 20,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: "center",
     justifyContent: "center",
   },
   todayText: {
-    color: "white", // White for better contrast
+    color: "#ffffff", // Always white for better contrast on purple background
     fontWeight: "600",
     fontSize: 14,
   },
@@ -8458,6 +9739,54 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 16,
+  },
+  dayViewDateContainer: {
+    width: 80,
+    height: 80,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 40,
+  },
+  dayViewDayButton: {
+    width: 100,
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 50,
+    position: "relative",
+  },
+  dayViewDayNumber: {
+    fontSize: 48,
+    fontWeight: "700",
+    textAlign: "center",
+    lineHeight: 56,
+  },
+  selectedDayLarge: {
+    backgroundColor: "#e8e7fc",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  todayCircleLarge: {
+    backgroundColor: "#6c63ff",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  todayTextLarge: {
+    color: "white",
+    fontWeight: "700",
+  },
+  selectedDateLarge: {
+    // No additional styling needed
+  },
+  taskDotLarge: {
+    position: "absolute",
+    bottom: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#6c63ff",
   },
   noTaskContainer: {
     flex: 1,
@@ -9250,13 +10579,13 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   modalButtons: {
-    height: 80,
+    minHeight: 100,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 16,
+    paddingBottom: 26,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
@@ -9639,8 +10968,61 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+  },
+  headerLeftContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingRight: 0,
+  },
+  dayNavButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dayViewHeaderContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 16,
+  },
+  dayViewDateText: {
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  dayViewDateNumber: {
+    fontSize: 32,
+    fontWeight: "700",
+    textAlign: "center",
+    lineHeight: 40,
+  },
+  dayViewMonthYear: {
+    fontSize: 14,
+    fontWeight: "400",
+    textAlign: "center",
+    marginTop: 2,
+  },
+  dayViewCalendarContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+    minHeight: 120,
+  },
+  dayViewContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
   todayButton: {
     backgroundColor: "#6c63ff",
@@ -9667,5 +11049,6 @@ const styles = StyleSheet.create({
   tasksScrollContent: {
     flexGrow: 1,
     paddingTop: 8,
+    paddingBottom: 8, // Minimal padding for last item visibility
   },
 });
