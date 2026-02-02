@@ -9,14 +9,15 @@ import { getUpdateUrl } from "../config/updateUrls";
  */
 class VersionService {
   constructor() {
-    this.currentVersion = Application.nativeApplicationVersion || "1.2.4";
-    this.currentBuildNumber = Application.nativeBuildVersion || "12";
+    this.currentVersion = Application.nativeApplicationVersion || "1.2.6";
+    this.currentBuildNumber = Application.nativeBuildVersion || "14";
     this.latestVersion = null;
     this.updateUrl = null;
-    // 快取機制：快取版本檢查結果 5 分鐘
+    // 快取機制：快取版本檢查結果 5 分鐘（依語言分別快取）
     this.cache = {
       data: null,
       timestamp: null,
+      language: null, // 記錄快取的語言
       ttl: 5 * 60 * 1000, // 5 分鐘
     };
     // 追蹤版本登記狀態，避免重複查詢
@@ -25,10 +26,15 @@ class VersionService {
 
   /**
    * 檢查快取是否有效
+   * @param {string} language - 當前語言
    * @returns {boolean} 快取是否有效
    */
-  isCacheValid() {
-    if (!this.cache.data || !this.cache.timestamp) {
+  isCacheValid(language) {
+    if (!this.cache.data || !this.cache.timestamp || !this.cache.language) {
+      return false;
+    }
+    // 如果語言不同，快取無效
+    if (this.cache.language !== language) {
       return false;
     }
     const now = Date.now();
@@ -41,14 +47,53 @@ class VersionService {
   clearCache() {
     this.cache.data = null;
     this.cache.timestamp = null;
+    this.cache.language = null;
+  }
+
+  /**
+   * 解析多語系 release notes
+   * @param {string|object} releaseNotes - release notes (可以是字串或 JSON 物件)
+   * @param {string} language - 使用者語言代碼 ('en', 'zh', 'es' 等)
+   * @returns {string|null} 對應語言的 release notes
+   */
+  parseReleaseNotes(releaseNotes, language = "en") {
+    if (!releaseNotes) return null;
+
+    // 如果是字串，嘗試解析為 JSON
+    if (typeof releaseNotes === "string") {
+      try {
+        const parsed = JSON.parse(releaseNotes);
+        // 如果是物件，使用對應語言的版本
+        if (typeof parsed === "object" && parsed !== null) {
+          // 語言代碼映射：zh -> zh-TW
+          const langKey = language === "zh" ? "zh-TW" : language;
+          return parsed[langKey] || parsed["en"] || releaseNotes;
+        }
+        // 如果不是物件，返回原字串
+        return releaseNotes;
+      } catch (e) {
+        // JSON 解析失敗，返回原字串
+        console.warn("⚠️ [VersionCheck] Release notes JSON parse failed:", e.message);
+        return releaseNotes;
+      }
+    }
+
+    // 如果已經是物件，直接使用對應語言
+    if (typeof releaseNotes === "object" && releaseNotes !== null) {
+      const langKey = language === "zh" ? "zh-TW" : language;
+      return releaseNotes[langKey] || releaseNotes["en"] || null;
+    }
+
+    return releaseNotes;
   }
 
   /**
    * 檢查版本更新
    * @param {boolean} forceRefresh - 強制重新檢查，忽略快取
+   * @param {string} language - 使用者語言代碼 ('en', 'zh', 'es')，用於取得對應語言的 release notes
    * @returns {Promise<{hasUpdate: boolean, latestVersion: string, updateUrl: string}>}
    */
-  async checkForUpdates(forceRefresh = false) {
+  async checkForUpdates(forceRefresh = false, language = "en") {
     try {
       console.log("🔍 [VersionCheck] 開始檢查版本更新...");
       console.log("🔍 [VersionCheck] 當前版本:", this.currentVersion);
@@ -67,9 +112,9 @@ class VersionService {
         };
       }
 
-      // 檢查快取
-      if (!forceRefresh && this.isCacheValid()) {
-        console.log("📦 [VersionCheck] 使用快取結果");
+      // 檢查快取（包含語言檢查）
+      if (!forceRefresh && this.isCacheValid(language)) {
+        console.log("📦 [VersionCheck] 使用快取結果 (language:", language, ")");
         return this.cache.data;
       }
 
@@ -77,7 +122,10 @@ class VersionService {
       if (!this.versionRegistrationChecked) {
         this.versionRegistrationChecked = true;
         this.ensureVersionRegistered().catch((err) => {
-          console.warn("⚠️ [VersionCheck] 自動登記版本時出錯:", err);
+          // 靜默處理 RLS 錯誤（不影響版本檢查功能）
+          if (err.code !== "42501") {
+            console.warn("⚠️ [VersionCheck] 自動登記版本時出錯:", err);
+          }
         });
       }
 
@@ -108,6 +156,7 @@ class VersionService {
         // 即使錯誤也快取結果，避免頻繁查詢
         this.cache.data = result;
         this.cache.timestamp = Date.now();
+        this.cache.language = language;
         return result;
       }
 
@@ -135,18 +184,22 @@ class VersionService {
 
       console.log("🔍 [VersionCheck] 需要更新:", hasUpdate);
 
+      // 解析多語系 release notes
+      const releaseNotes = this.parseReleaseNotes(data.release_notes, language);
+
       const result = {
         hasUpdate,
         latestVersion: this.latestVersion,
         updateUrl: this.updateUrl,
-        releaseNotes: data.release_notes,
+        releaseNotes,
         forceUpdate: data.force_update,
         buildNumber: data.build_number,
       };
 
-      // 快取結果
+      // 快取結果（包含語言）
       this.cache.data = result;
       this.cache.timestamp = Date.now();
+      this.cache.language = language;
 
       return result;
     } catch (error) {
@@ -162,6 +215,7 @@ class VersionService {
       // 錯誤時也快取結果，避免頻繁查詢
       this.cache.data = result;
       this.cache.timestamp = Date.now();
+      this.cache.language = language;
       return result;
     }
   }

@@ -154,10 +154,10 @@ export default {
     "隱私問題諮詢：\n• 應用程式內支援功能\n• 電子郵件：privacy@todo-app.com\n• 我們會在 7 個工作天內回覆\n\n資料保護申訴：\n• 如對資料處理有疑慮，可提出申訴\n• 我們會認真處理每件申訴\n• 提供明確的處理結果和說明\n\n監管機關：\n• 如對處理結果不滿，可向主管機關申訴\n• 台灣個人資料保護委員會\n• 相關法律救濟管道",
   privacyAcknowledgment:
     "感謝您信任 TaskCal。我們承諾持續改進隱私保護措施，為您提供安全可靠的任務管理服務。如有任何隱私相關問題，請隨時與我們聯繫。",
-  googleAccount: "Google 帳號",
+  googleAccount: "Google",
   signInWithGoogle: "使用 Google 登入",
   signInWithApple: "使用 Apple 登入",
-  appleAccount: "Apple 帳號",
+  appleAccount: "Apple",
   selectTime: "選擇時間",
   hour: "時",
   minute: "分",
@@ -208,4 +208,11 @@ export default {
   pleaseLoginFirst: "請先登入後再提交回饋",
   submitFailed: "提交失敗",
   pleaseTryAgainLater: "請稍後再試",
+  // Version Update Modal
+  versionUpdateTitle: "版本更新可用",
+  forceUpdateRequired: "此更新為必要更新",
+  defaultReleaseNotes:
+    "我們推出了新版本，包含效能優化與錯誤修正，建議您立即更新以獲得最佳體驗。",
+  updateLater: "稍後更新",
+  updateNow: "立即更新",
 };

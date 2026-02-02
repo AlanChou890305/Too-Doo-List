@@ -1,9 +1,9 @@
-# Release Notes - Version 1.2.4
+# Release Notes - Version 1.2.5
 
 ## Version Information
 
-- **Version**: 1.2.4
-- **Build**: 12
+- **Version**: 1.2.5
+- **Build**: 13
 - **Release Date**: 2026-02-01
 - **Platform**: iOS
 
@@ -36,18 +36,17 @@ Key Features:
 
 Give it a try and see if it helps you stay on top of things!
 
-### 3. What's New in Version 1.2.4 (版本更新說明)
+### 3. What's New in Version 1.2.5 (版本更新說明)
 
-Bug Fixes & Improvements
+Widget Improvements
 
-- Fixed Calendar Navigation: Switching between months no longer resets your selected date to the 1st
-- Enhanced Today Indicator: The purple circle marking today's date is now slightly larger for better visibility
-- Improved Analytics: Better event tracking to help us understand how you use the app and improve your experience
-
-Backend Enhancements
-
-- User version tracking for better support and diagnostics
-- Automatic timezone detection for accurate scheduling
+- Fixed iOS 17+ compatibility issue with widget background
+- Redesigned widget layout for better space utilization
+- Improved task display with square checkboxes
+- Time now displays on the right in app's signature purple color
+- Cleaner time format (hours and minutes only)
+- Better spacing between tasks for easier reading
+- Optimized vertical padding to show more tasks at a glance
 
 ### 4. Keywords (關鍵字)
 
@@ -82,18 +81,17 @@ TaskCal - 日曆型的待辦任務清單 iOS App
 
 試試看吧，希望對你有幫助！
 
-### 3. What's New in Version 1.2.4 (版本更新說明)
+### 3. What's New in Version 1.2.5 (版本更新說明)
 
-錯誤修正與改進
+Widget 小工具改進
 
-- 修正日曆導覽問題：切換月份時，選定的日期不再自動跳回 1 號
-- 強化今日指示器：標記今日的紫色圓圈變得稍微大一點，更容易看見
-- 改進分析追蹤：更好的事件追蹤機制，幫助我們了解你如何使用 App，進而改善體驗
-
-後端優化
-
-- 使用者版本追蹤，提供更好的支援與診斷
-- 自動偵測時區，確保排程準確
+- 修正 iOS 17+ 相容性問題（Widget 背景顯示）
+- 重新設計 Widget 版面，更有效利用空間
+- 改用方形 Checkbox，顯示更清楚
+- 時間移到右側，並使用 App 標誌性的紫色顯示
+- 時間格式更簡潔（只顯示小時:分鐘）
+- 任務之間間距優化，閱讀更輕鬆
+- 減少上下留白，一眼看到更多任務
 
 ### 4. Keywords (關鍵字)
 
@@ -128,18 +126,17 @@ Características Principales:
 
 ¡Pruébalo y ve si te ayuda a mantener todo bajo control!
 
-### 3. What's New in Version 1.2.4 (版本更新說明)
+### 3. What's New in Version 1.2.5 (版本更新說明)
 
-Correcciones de Errores y Mejoras
+Mejoras del Widget
 
-- Navegación de Calendario Corregida: Cambiar entre meses ya no restablece tu fecha seleccionada al día 1
-- Indicador de Hoy Mejorado: El círculo morado que marca la fecha de hoy ahora es ligeramente más grande para mejor visibilidad
-- Análisis Mejorados: Mejor seguimiento de eventos para ayudarnos a entender cómo usas la aplicación y mejorar tu experiencia
-
-Mejoras del Sistema
-
-- Seguimiento de versión de usuario para mejor soporte y diagnósticos
-- Detección automática de zona horaria para una programación precisa
+- Problema de compatibilidad con iOS 17+ corregido (fondo del widget)
+- Diseño del widget rediseñado para mejor utilización del espacio
+- Casillas de verificación cuadradas para mejor visualización
+- Hora ahora se muestra a la derecha en el morado característico de la app
+- Formato de hora más limpio (solo horas y minutos)
+- Mejor espaciado entre tareas para lectura más fácil
+- Relleno vertical optimizado para mostrar más tareas de un vistazo
 
 ### 4. Keywords (關鍵字)
 
@@ -151,14 +148,19 @@ tarea,calendario,pendiente,recordatorio,productividad,organizador,planificador,h
 
 ### Pre-Release
 
-- [x] Update version number in all files (1.2.4)
-- [x] Update build number in all files (12)
+- [x] Update version number in all files (1.2.5)
+- [x] Update build number in all files (13)
 - [x] Update RELEASE_NOTES.md
-- [ ] Update README.md
+- [ ] Test npm start (React Native)
+- [ ] Test iOS Widget build in Xcode
 - [ ] Test on physical device
-- [ ] Verify calendar navigation fix
-- [ ] Verify today indicator size
-- [ ] Test Mixpanel events in production
+- [ ] Verify Widget UI improvements
+  - [ ] Square checkboxes
+  - [ ] Time on right side with purple color
+  - [ ] Time format shows hh:mm only
+  - [ ] Proper spacing between tasks
+  - [ ] Reduced vertical padding
+- [ ] Test Widget data sync
 
 ### Xcode Build
 
@@ -174,20 +176,26 @@ tarea,calendario,pendiente,recordatorio,productividad,organizador,planificador,h
 
 ### App Store Connect
 
-- [ ] Select build 12
+- [ ] Select build 13
 - [ ] Copy "What's New" from this file
 - [ ] Submit for review
 
 ### Post-Release
 
 - [ ] Monitor crash reports
-- [ ] Check Mixpanel events
+- [ ] Check Widget performance on iOS 17+
 - [ ] Verify version update prompt works for older versions
 - [ ] Git commit and push
 
 ---
 
 ## 🔄 Version History
+
+### v1.2.5 (Build 13) - 2026-02-01
+- Fixed iOS 17+ Widget background compatibility
+- Redesigned Widget UI layout
+- Improved Widget space utilization
+- Enhanced Widget visual design
 
 ### v1.2.4 (Build 12) - 2026-02-01
 - Fixed calendar navigation bug
@@ -208,5 +216,5 @@ tarea,calendario,pendiente,recordatorio,productividad,organizador,planificador,h
 
 ---
 
-**文檔版本**: 1.2.4
+**文檔版本**: 1.2.5
 **最後更新**: 2026-02-01

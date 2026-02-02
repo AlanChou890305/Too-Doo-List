@@ -25,6 +25,7 @@ const VersionUpdateModal = ({
   updateInfo,
   forceUpdate = false,
   theme,
+  t, // translations
 }) => {
   // Web 版本會自動更新，不需要顯示版本更新 modal
   if (Platform.OS === "web") {
@@ -123,10 +124,12 @@ const VersionUpdateModal = ({
             <Text
               style={[styles.title, { color: isDarkMode ? "#FFF" : "#000" }]}
             >
-              版本更新可用
+              {t?.versionUpdateTitle || "Version Update Available"}
             </Text>
             {forceUpdate && (
-              <Text style={styles.forceUpdateText}>此更新為必要更新</Text>
+              <Text style={styles.forceUpdateText}>
+                {t?.forceUpdateRequired || "This is a required update"}
+              </Text>
             )}
 
             <View
@@ -166,7 +169,8 @@ const VersionUpdateModal = ({
                     { color: isDarkMode ? "#FFF" : "#000" },
                   ]}
                 >
-                  我們推出了新版本，包含效能優化與錯誤修正，建議您立即更新以獲得最佳體驗。
+                  {t?.defaultReleaseNotes ||
+                    "We've released a new version with performance optimizations and bug fixes. We recommend updating for the best experience."}
                 </Text>
               )}
             </ScrollView>
@@ -189,7 +193,9 @@ const VersionUpdateModal = ({
                 onPress={handleLater}
                 activeOpacity={0.7}
               >
-                <Text style={styles.laterButtonText}>稍後更新</Text>
+                <Text style={styles.laterButtonText}>
+                  {t?.updateLater || "Update Later"}
+                </Text>
               </TouchableOpacity>
             )}
 
@@ -199,11 +205,7 @@ const VersionUpdateModal = ({
               activeOpacity={0.7}
             >
               <Text style={styles.updateButtonText}>
-                {(() => {
-                  const appEnv =
-                    process.env.EXPO_PUBLIC_APP_ENV || "production";
-                  return getUpdateButtonText(appEnv);
-                })()}
+                {t?.updateNow || "Update Now"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -236,7 +238,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "600",
     textAlign: "center",
-    marginBottom: 4,
+    marginBottom: 6,
   },
   forceUpdateText: {
     fontSize: 12,
@@ -264,7 +266,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 13,
-    textAlign: "center",
+    textAlign: "left",
     lineHeight: 18,
   },
   buttonContainer: {

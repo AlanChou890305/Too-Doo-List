@@ -2235,12 +2235,8 @@ const SplashScreen = ({ navigation }) => {
         }}
       >
         <Image
-          source={
-            themeMode === "dark"
-              ? require("./assets/logo-dark.png")
-              : require("./assets/logo-white.png")
-          }
-          style={{ width: 200, height: 200, marginBottom: 16 }}
+          source={require("./assets/logo-login.png")}
+          style={{ width: 120, height: 120, marginBottom: 16 }}
           resizeMode="contain"
         />
         <Text
@@ -3431,7 +3427,7 @@ function SettingScreen() {
 
       setIsCheckingVersion(true);
       try {
-        const updateInfo = await versionService.checkForUpdates();
+        const updateInfo = await versionService.checkForUpdates(false, language);
         const currentVersionInfo = versionService.getCurrentVersionInfo();
 
         // Combine current version info with update info
@@ -9187,7 +9183,7 @@ export default function App() {
     const checkUpdateProactively = async () => {
       try {
         console.log("🔍 [App] 開始主動檢查版本更新...");
-        const info = await versionService.checkForUpdates();
+        const info = await versionService.checkForUpdates(false, language);
 
         if (info.hasUpdate) {
           const shouldShow = await checkShouldShowPrompt(
@@ -9241,6 +9237,11 @@ export default function App() {
   const setLanguage = async (lang) => {
     console.log(`🌐 Setting language to: ${lang}`);
     setLanguageState(lang);
+
+    // Clear version service cache when language changes
+    // This ensures release notes are fetched in the new language
+    versionService.clearCache();
+    console.log("🗑️ Version cache cleared for language change");
 
     try {
       // Save to Supabase user settings (platform 會自動更新)
@@ -9497,6 +9498,7 @@ export default function App() {
               updateInfo={updateInfo}
               forceUpdate={updateInfo?.forceUpdate}
               theme={theme}
+              t={t}
             />
           </NavigationContainer>
         </LanguageContext.Provider>

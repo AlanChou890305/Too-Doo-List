@@ -153,10 +153,10 @@ export default {
     "Privacy Inquiries:\n• In-app support feature\n• Email: privacy@todo-app.com\n• We will respond within 7 business days\n• Dedicated privacy officer contact\n\nData Protection Complaints:\n• Submit complaints if you have concerns about data processing\n• We take every complaint seriously\n• Provide clear processing results and explanations\n• Escalation procedures for unresolved issues\n\nRegulatory Authorities:\n• Contact relevant supervisory authorities if dissatisfied with our response\n• Data Protection Authority in your jurisdiction\n• Legal remedies available\n• Independent dispute resolution mechanisms",
   privacyAcknowledgment:
     "Thank you for trusting TaskCal. We are committed to continuously improving our privacy protection measures to provide you with secure and reliable task management services. If you have any privacy-related questions, please don't hesitate to contact us.",
-  googleAccount: "Google Account",
+  googleAccount: "Google",
   signInWithGoogle: "Sign in with Google",
   signInWithApple: "Sign in with Apple",
-  appleAccount: "Apple Account",
+  appleAccount: "Apple",
   selectTime: "Select Time",
   hour: "Hour",
   minute: "Min",
@@ -208,4 +208,11 @@ export default {
   pleaseLoginFirst: "Please log in first before submitting feedback",
   submitFailed: "Submission Failed",
   pleaseTryAgainLater: "Please try again later",
+  // Version Update Modal
+  versionUpdateTitle: "Version Update Available",
+  forceUpdateRequired: "This is a required update",
+  defaultReleaseNotes:
+    "We've released a new version with performance optimizations and bug fixes. We recommend updating for the best experience.",
+  updateLater: "Update Later",
+  updateNow: "Update Now",
 };

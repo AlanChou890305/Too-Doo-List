@@ -13,12 +13,12 @@ const getEnvironmentConfig = () => {
   return {
     name: "TaskCal",
     slug: "too-doo-list",
-    version: "1.2.4",
+    version: "1.2.6",
     description: "Simple and intuitive task management app with Google SSO",
     scheme: "taskcal",
     bundleIdentifier: "com.cty0305.too.doo.list",
     package: "com.cty0305.too.doo.list",
-    iosBuildNumber: "12",
+    iosBuildNumber: "14",
   };
 };
 
@@ -43,7 +43,7 @@ module.exports = {
       bundleIdentifier: envConfig.bundleIdentifier,
       buildNumber: envConfig.iosBuildNumber || "1",
       supportsTablet: false,
-      deploymentTarget: "15.1",
+      deploymentTarget: "16.0",
       associatedDomains: getAssociatedDomains(),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
@@ -126,7 +126,7 @@ module.exports = {
 
     // Splash screen configuration
     splash: {
-      image: "./assets/logo-white.png",
+      image: "./assets/splash.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },

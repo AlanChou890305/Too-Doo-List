@@ -9,7 +9,7 @@ export default {
   privacy: "Política de privacidad",
   version: "Versión",
   checkUpdate: "Buscar actualizaciones",
-  updateAvailable: "Descargar última versión",
+  updateAvailable: "Actualizar",
   latestVersion: "Última versión",
   general: "General",
   support: "Soporte",
@@ -157,10 +157,10 @@ export default {
     "Consultas de privacidad:\n• Función de soporte en la aplicación\n• Correo electrónico: privacy@todo-app.com\n• Responderemos dentro de 7 días hábiles\n• Contacto del oficial de privacidad dedicado\n\nQuejas de protección de datos:\n• Enviar quejas si tiene preocupaciones sobre el procesamiento de datos\n• Tomamos cada queja en serio\n• Proporcionar resultados y explicaciones claras del procesamiento\n• Procedimientos de escalamiento para problemas no resueltos\n\nAutoridades regulatorias:\n• Contactar autoridades supervisoras relevantes si no está satisfecho con nuestra respuesta\n• Autoridad de protección de datos en su jurisdicción\n• Recursos legales disponibles\n• Mecanismos independientes de resolución de disputas",
   privacyAcknowledgment:
     "Gracias por confiar en TaskCal. Estamos comprometidos a mejorar continuamente nuestras medidas de protección de privacidad para brindarle servicios de gestión de tareas seguros y confiables. Si tiene alguna pregunta relacionada con la privacidad, no dude en contactarnos.",
-  googleAccount: "Cuenta de Google",
+  googleAccount: "Google",
   signInWithGoogle: "Iniciar sesión con Google",
   signInWithApple: "Iniciar sesión con Apple",
-  appleAccount: "Cuenta de Apple",
+  appleAccount: "Apple",
   selectTime: "Seleccionar hora",
   hour: "Hora",
   minute: "Min",
@@ -213,4 +213,11 @@ export default {
     "Por favor, inicie sesión primero antes de enviar comentarios",
   submitFailed: "Error al enviar",
   pleaseTryAgainLater: "Por favor, inténtelo de nuevo más tarde",
+  // Version Update Modal
+  versionUpdateTitle: "Actualización disponible",
+  forceUpdateRequired: "Esta es una actualización obligatoria",
+  defaultReleaseNotes:
+    "Hemos lanzado una nueva versión con optimizaciones de rendimiento y correcciones de errores. Recomendamos actualizar para obtener la mejor experiencia.",
+  updateLater: "Más tarde",
+  updateNow: "Actualizar",
 };
