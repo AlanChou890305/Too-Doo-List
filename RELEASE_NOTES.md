@@ -1,10 +1,10 @@
-# Release Notes - Version 1.2.5
+# Release Notes - Version 1.2.6
 
 ## Version Information
 
-- **Version**: 1.2.5
-- **Build**: 13
-- **Release Date**: 2026-02-01
+- **Version**: 1.2.6
+- **Build**: 14
+- **Release Date**: 2026-02-03
 - **Platform**: iOS
 
 ---
@@ -36,17 +36,15 @@ Key Features:
 
 Give it a try and see if it helps you stay on top of things!
 
-### 3. What's New in Version 1.2.5 (版本更新說明)
+### 3. What's New in Version 1.2.6 (版本更新說明)
 
-Widget Improvements
+Visual & User Experience Improvements
 
-- Fixed iOS 17+ compatibility issue with widget background
-- Redesigned widget layout for better space utilization
-- Improved task display with square checkboxes
-- Time now displays on the right in app's signature purple color
-- Cleaner time format (hours and minutes only)
-- Better spacing between tasks for easier reading
-- Optimized vertical padding to show more tasks at a glance
+- Redesigned splash screen with optimized logo for faster app launch
+- Improved login screen with better visual hierarchy
+- Enhanced widget empty state with friendly "All done for today!" message
+- Better multilingual support for version update notifications
+- Refined overall app appearance for a more polished experience
 
 ### 4. Keywords (關鍵字)
 
@@ -81,17 +79,15 @@ TaskCal - 日曆型的待辦任務清單 iOS App
 
 試試看吧，希望對你有幫助！
 
-### 3. What's New in Version 1.2.5 (版本更新說明)
+### 3. What's New in Version 1.2.6 (版本更新說明)
 
-Widget 小工具改進
+視覺與使用體驗改善
 
-- 修正 iOS 17+ 相容性問題（Widget 背景顯示）
-- 重新設計 Widget 版面，更有效利用空間
-- 改用方形 Checkbox，顯示更清楚
-- 時間移到右側，並使用 App 標誌性的紫色顯示
-- 時間格式更簡潔（只顯示小時:分鐘）
-- 任務之間間距優化，閱讀更輕鬆
-- 減少上下留白，一眼看到更多任務
+- 重新設計啟動畫面，使用優化的 Logo，啟動更快速
+- 改善登入畫面的視覺層級，更清楚易讀
+- Widget 空狀態顯示更友善的「All done for today!」訊息
+- 版本更新通知支援多語系，更貼近使用者語言
+- 整體介面細節優化，使用體驗更流暢
 
 ### 4. Keywords (關鍵字)
 
@@ -126,17 +122,15 @@ Características Principales:
 
 ¡Pruébalo y ve si te ayuda a mantener todo bajo control!
 
-### 3. What's New in Version 1.2.5 (版本更新說明)
+### 3. What's New in Version 1.2.6 (版本更新說明)
 
-Mejoras del Widget
+Mejoras Visuales y de Experiencia de Usuario
 
-- Problema de compatibilidad con iOS 17+ corregido (fondo del widget)
-- Diseño del widget rediseñado para mejor utilización del espacio
-- Casillas de verificación cuadradas para mejor visualización
-- Hora ahora se muestra a la derecha en el morado característico de la app
-- Formato de hora más limpio (solo horas y minutos)
-- Mejor espaciado entre tareas para lectura más fácil
-- Relleno vertical optimizado para mostrar más tareas de un vistazo
+- Pantalla de inicio rediseñada con logo optimizado para un lanzamiento más rápido
+- Pantalla de inicio de sesión mejorada con mejor jerarquía visual
+- Estado vacío del widget mejorado con mensaje amigable "All done for today!"
+- Mejor soporte multilingüe para notificaciones de actualización de versión
+- Apariencia general refinada para una experiencia más pulida
 
 ### 4. Keywords (關鍵字)
 
@@ -148,14 +142,14 @@ tarea,calendario,pendiente,recordatorio,productividad,organizador,planificador,h
 
 ### Pre-Release
 
-- [x] Update version number in all files (1.2.5)
-- [x] Update build number in all files (13)
+- [x] Update version number in all files (1.2.6)
+- [x] Update build number in all files (14)
 - [x] Update RELEASE_NOTES.md
 - [ ] Test npm start (React Native)
 - [ ] Test iOS Widget build in Xcode
 - [ ] Test on physical device
-- [ ] Verify Widget UI improvements
-  - [ ] Square checkboxes
+- [ ] Verify splash screen and login screen improvements
+- [ ] Verify Widget empty state improvements
   - [ ] Time on right side with purple color
   - [ ] Time format shows hh:mm only
   - [ ] Proper spacing between tasks
