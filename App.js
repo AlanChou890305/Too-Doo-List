@@ -205,11 +205,14 @@ import * as Updates from "expo-updates";
 import { getTheme, lightTheme, darkTheme } from "./src/config/theme";
 
 // Ad Components (conditionally imported for native only)
-let AdBanner = null;
+let AdBanner;
 let AdService = null;
 if (Platform.OS !== "web") {
   AdBanner = require("./src/components/AdBanner").default;
   AdService = require("./src/services/adService").default;
+} else {
+  // Fallback component for web
+  AdBanner = () => null;
 }
 
 // Storage
@@ -2471,7 +2474,6 @@ function TermsScreen() {
           paddingHorizontal: 20,
           paddingTop: 24,
           paddingBottom: 48,
-          flexGrow: 1,
         }}
         showsVerticalScrollIndicator={true}
         bounces={true}
@@ -2798,7 +2800,6 @@ function PrivacyScreen() {
           paddingHorizontal: 20,
           paddingTop: 24,
           paddingBottom: 48,
-          flexGrow: 1,
         }}
         showsVerticalScrollIndicator={true}
         bounces={true}
@@ -3116,6 +3117,173 @@ function PrivacyScreen() {
           {t.privacyAcknowledgment}
         </Text>
       </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function SupportScreen() {
+  const { t } = useContext(LanguageContext);
+  const { theme } = useContext(ThemeContext);
+  const navigation = useNavigation();
+  const appVersion = Constants.expoConfig?.version || "1.0.0";
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // If no history (e.g., direct URL access), go to main app
+      navigation.navigate("MainTabs", { screen: "Calendar" });
+    }
+  };
+
+  return (
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.backgroundSecondary }}
+      accessibilityViewIsModal={true}
+      accessibilityLabel="Support Screen"
+    >
+      {/* Custom Header with Back Chevron */}
+      <View
+        style={{
+          backgroundColor: theme.backgroundSecondary,
+          height: 64,
+          flexDirection: "row",
+          alignItems: "center",
+          paddingLeft: 8,
+        }}
+      >
+        <TouchableOpacity
+          onPress={handleBack}
+          style={{ padding: 10, marginRight: 4 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Svg width={18} height={28}>
+            <Line
+              x1={12}
+              y1={6}
+              x2={4}
+              y2={14}
+              stroke={theme.text}
+              strokeWidth={2.2}
+              strokeLinecap="round"
+            />
+            <Line
+              x1={4}
+              y1={14}
+              x2={12}
+              y2={22}
+              stroke={theme.text}
+              strokeWidth={2.2}
+              strokeLinecap="round"
+            />
+          </Svg>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: 20,
+          paddingTop: 40,
+          alignItems: "center",
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 28,
+            color: theme.text,
+            fontWeight: "bold",
+            marginBottom: 16,
+            textAlign: "center",
+          }}
+        >
+          {t.supportTitle}
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: theme.textSecondary,
+            marginBottom: 48,
+            textAlign: "center",
+            lineHeight: 24,
+          }}
+        >
+          {t.supportIntro}
+        </Text>
+
+        {/* GitHub Issues */}
+        <TouchableOpacity
+          onPress={() => {
+            if (Platform.OS === "web") {
+              window.open(t.supportGithubUrl, "_blank");
+            } else {
+              import("expo-web-browser").then((WebBrowser) => {
+                WebBrowser.openBrowserAsync(t.supportGithubUrl);
+              });
+            }
+          }}
+          style={{
+            width: "100%",
+            maxWidth: 400,
+            paddingVertical: 16,
+            paddingHorizontal: 20,
+            backgroundColor: theme.primary,
+            borderRadius: 12,
+            marginBottom: 16,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              color: "#fff",
+              fontWeight: "600",
+            }}
+          >
+            {t.supportGithub}
+          </Text>
+        </TouchableOpacity>
+
+        {/* In-App Feedback */}
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate("MainTabs", { screen: "Setting" });
+          }}
+          style={{
+            width: "100%",
+            maxWidth: 400,
+            paddingVertical: 16,
+            paddingHorizontal: 20,
+            backgroundColor: theme.card,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              color: theme.text,
+              fontWeight: "600",
+            }}
+          >
+            {t.supportAppFeedback}
+          </Text>
+        </TouchableOpacity>
+
+        {/* App Version */}
+        <Text
+          style={{
+            fontSize: 13,
+            color: theme.textTertiary,
+            textAlign: "center",
+            marginTop: 48,
+          }}
+        >
+          {t.supportVersion} {appVersion}
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }
@@ -5537,7 +5705,7 @@ function SettingScreen() {
           </View>
         </Modal>
 
-        {/* About & Legal Section */}
+        {/* Legal & Support Section */}
         <View style={{ marginTop: 24, marginBottom: 8 }}>
           <Text
             style={{
@@ -5550,7 +5718,7 @@ function SettingScreen() {
               textTransform: "uppercase",
             }}
           >
-            {t.about || "About"}
+            {t.legalAndSupport || "Legal & Support"}
           </Text>
           <View
             style={{
@@ -5633,6 +5801,48 @@ function SettingScreen() {
                   style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
                 >
                   {t.privacy}
+                </Text>
+              </View>
+              <MaterialIcons
+                name="keyboard-arrow-right"
+                size={20}
+                color={theme.textTertiary}
+              />
+            </TouchableOpacity>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.divider,
+                marginHorizontal: 20,
+              }}
+            />
+
+            {/* About/Support */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Support")}
+              activeOpacity={0.6}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
+                <MaterialIcons
+                  name="info-outline"
+                  size={20}
+                  color={theme.primary}
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
+                >
+                  {t.support || "Support"}
                 </Text>
               </View>
               <MaterialIcons
@@ -9444,6 +9654,7 @@ export default function App() {
                   MainTabs: "app",
                   Terms: "terms",
                   Privacy: "privacy",
+                  Support: "support",
                 },
               },
             }}
@@ -9484,6 +9695,16 @@ export default function App() {
               <Stack.Screen
                 name="Privacy"
                 component={PrivacyScreen}
+                options={{
+                  headerShown: false,
+                  presentation: "card",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
+              <Stack.Screen
+                name="Support"
+                component={SupportScreen}
                 options={{
                   headerShown: false,
                   presentation: "card",

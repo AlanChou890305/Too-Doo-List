@@ -12,12 +12,16 @@ import { dataPreloadService } from "../services/dataPreloadService";
 // 動態導入 Google Mobile Ads，如果不可用則為 null
 let BannerAd = null;
 let BannerAdSize = null;
-try {
-  const adsModule = require("react-native-google-mobile-ads");
-  BannerAd = adsModule.BannerAd;
-  BannerAdSize = adsModule.BannerAdSize;
-} catch (error) {
-  console.warn("Google Mobile Ads components not available:", error.message);
+
+// Only import on native platforms
+if (Platform.OS !== "web") {
+  try {
+    const adsModule = require("react-native-google-mobile-ads");
+    BannerAd = adsModule.BannerAd;
+    BannerAdSize = adsModule.BannerAdSize;
+  } catch (error) {
+    console.warn("Google Mobile Ads components not available:", error.message);
+  }
 }
 
 /**

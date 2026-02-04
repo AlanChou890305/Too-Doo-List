@@ -7,10 +7,14 @@ import { Platform } from "react-native";
 
 // 動態導入 Google Mobile Ads，如果不可用則為 null
 let mobileAds = null;
-try {
-  mobileAds = require("react-native-google-mobile-ads").default;
-} catch (error) {
-  console.warn("Google Mobile Ads not available:", error.message);
+
+// Only import on native platforms
+if (Platform.OS !== "web") {
+  try {
+    mobileAds = require("react-native-google-mobile-ads").default;
+  } catch (error) {
+    console.warn("Google Mobile Ads not available:", error.message);
+  }
 }
 
 // AdMob Application ID（從 Info.plist 讀取，如果讀取失敗則使用測試 ID）

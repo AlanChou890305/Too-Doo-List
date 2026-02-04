@@ -220,4 +220,13 @@ export default {
     "Hemos lanzado una nueva versión con optimizaciones de rendimiento y correcciones de errores. Recomendamos actualizar para obtener la mejor experiencia.",
   updateLater: "Más tarde",
   updateNow: "Actualizar",
+  // Legal section
+  legalAndSupport: "Legal",
+  // Support Page translations
+  supportTitle: "Soporte",
+  supportIntro: "¿Necesitas ayuda con TaskCal?",
+  supportGithub: "Reportar Problemas o Solicitar Funciones",
+  supportGithubUrl: "https://github.com/AlanChou890305/Too-Doo-List/issues",
+  supportAppFeedback: "Compartir Comentarios en la App",
+  supportVersion: "Versión",
 };

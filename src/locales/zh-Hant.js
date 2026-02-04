@@ -215,4 +215,13 @@ export default {
     "我們推出了新版本，包含效能優化與錯誤修正，建議您立即更新以獲得最佳體驗。",
   updateLater: "稍後更新",
   updateNow: "立即更新",
+  // Legal section
+  legalAndSupport: "法律相關",
+  // Support Page translations
+  supportTitle: "支援",
+  supportIntro: "需要 TaskCal 的協助嗎？",
+  supportGithub: "回報問題或請求功能",
+  supportGithubUrl: "https://github.com/AlanChou890305/Too-Doo-List/issues",
+  supportAppFeedback: "在 App 內分享回饋",
+  supportVersion: "版本",
 };
