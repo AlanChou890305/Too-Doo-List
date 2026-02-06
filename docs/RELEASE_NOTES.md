@@ -1,3 +1,50 @@
+# Release Notes
+
+## 🚀 Unreleased - Version 1.2.7
+
+> **Status**: In Development
+> **Planned Features**: 已完成但尚未發布
+
+### Changes Made (2026-02-06)
+
+#### 🎨 Auto Theme Mode
+- Added "Auto (Follow System)" theme option
+- App now automatically follows iOS system dark/light mode
+- Theme selector reordered: Auto → Light → Dark
+- Database migration: `20260206_add_auto_theme.sql`
+- Default theme changed from "light" to "auto"
+
+#### 📝 Feedback Enhancements
+- Added optional "Title" field to feedback form
+- Helps users provide more structured feedback
+- Fully localized in EN / 繁中 / ES
+
+#### 🎯 UI/UX Improvements
+- **Terms & Privacy Pages**:
+  - Single card layout (cleaner, less visual noise)
+  - Centered page title and last updated date
+  - Improved line height (26) for better readability
+  - Optimized letter spacing
+  - Removed emoji decorations for professional look
+
+#### ⚙️ Version Management
+- Optimized version registration workflow
+- Development environment no longer auto-activates new versions
+- Prevents premature version update prompts
+- New versions default to inactive until manually enabled
+
+#### 🗄️ Database
+- Migration: `20260206_add_auto_theme.sql` - Add "auto" theme support
+- Migration: `20260206_fix_rls_performance.sql` - RLS performance optimization
+
+### Translation Keys Added
+- `autoMode`: "Auto (Follow System)" / "自動（跟隨系統）" / "Auto (Seguir sistema)"
+- `feedbackTitle`: "Title" / "標題" / "Título"
+- `feedbackTitlePlaceholder`: Brief summary prompts
+- `optional`: "Optional" / "選填" / "Opcional"
+
+---
+
 # Release Notes - Version 1.2.6
 
 ## Version Information

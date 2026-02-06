@@ -63,6 +63,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Keyboard,
+  useColorScheme,
 } from "react-native";
 
 // 🚨 CRITICAL: Handle OAuth callback IMMEDIATELY before React initializes
@@ -2421,6 +2422,35 @@ const SplashScreen = ({ navigation }) => {
   );
 };
 
+// Section Component for Terms & Privacy pages (inside one card)
+const Section = ({ title, content, theme, isFirst }) => (
+  <View style={{ marginTop: isFirst ? 0 : 24 }}>
+    {title && (
+      <Text
+        style={{
+          fontSize: 17,
+          color: theme.text,
+          fontWeight: "700",
+          marginBottom: 8,
+          letterSpacing: -0.3,
+        }}
+      >
+        {title}
+      </Text>
+    )}
+    <Text
+      style={{
+        fontSize: 15,
+        color: theme.text,
+        lineHeight: 26,
+        letterSpacing: 0.2,
+      }}
+    >
+      {content}
+    </Text>
+  </View>
+);
+
 function TermsScreen() {
   const { t } = useContext(LanguageContext);
   const { theme } = useContext(ThemeContext);
@@ -2431,313 +2461,165 @@ function TermsScreen() {
       accessibilityViewIsModal={true}
       accessibilityLabel="Terms of Use Screen"
     >
-      {/* Custom Header with Back Chevron */}
+      {/* Custom Header with Back Chevron, Title and Date */}
       <View
         style={{
           backgroundColor: theme.backgroundSecondary,
-          height: 64,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingLeft: 8,
+          paddingTop: 8,
+          paddingBottom: 16,
+          paddingHorizontal: 20,
         }}
       >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ padding: 10, marginRight: 4 }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Svg width={18} height={28}>
-            <Line
-              x1={12}
-              y1={6}
-              x2={4}
-              y2={14}
-              stroke={theme.text}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-            />
-            <Line
-              x1={4}
-              y1={14}
-              x2={12}
-              y2={22}
-              stroke={theme.text}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-            />
-          </Svg>
-        </TouchableOpacity>
+        <View style={{ position: "relative" }}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{
+              position: "absolute",
+              left: -10,
+              top: 0,
+              padding: 10,
+              zIndex: 1,
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Svg width={18} height={28}>
+              <Line
+                x1={12}
+                y1={6}
+                x2={4}
+                y2={14}
+                stroke={theme.text}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+              />
+              <Line
+                x1={4}
+                y1={14}
+                x2={12}
+                y2={22}
+                stroke={theme.text}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          </TouchableOpacity>
+          <View style={{ alignItems: "center", paddingHorizontal: 40 }}>
+            <Text
+              style={{
+                fontSize: 24,
+                color: theme.text,
+                fontWeight: "bold",
+                letterSpacing: -0.5,
+                textAlign: "center",
+              }}
+            >
+              {t.termsTitle}
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: theme.textSecondary,
+                marginTop: 4,
+                textAlign: "center",
+              }}
+            >
+              {t.termsLastUpdated} {new Date().toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
       </View>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingTop: 24,
+          paddingTop: 20,
           paddingBottom: 48,
         }}
         showsVerticalScrollIndicator={true}
         bounces={true}
       >
-        <Text
+        {/* One big card with all sections */}
+        <View
           style={{
-            fontSize: 24,
-            color: theme.text,
-            fontWeight: "bold",
-            marginBottom: 8,
-            textAlign: "center",
-            letterSpacing: -0.5,
+            backgroundColor: theme.card || theme.backgroundSecondary,
+            borderRadius: 12,
+            padding: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+            elevation: 2,
           }}
         >
-          {t.termsTitle}
-        </Text>
+          <Section
+            title={t.termsAcceptance}
+            content={t.termsAcceptanceText}
+            theme={theme}
+            isFirst={true}
+          />
 
-        <Text
-          style={{
-            fontSize: 13,
-            color: theme.textSecondary,
-            marginBottom: 32,
-            textAlign: "center",
-          }}
-        >
-          {t.termsLastUpdated} {new Date().toLocaleDateString()}
-        </Text>
+          <Section
+            title={t.termsDescription}
+            content={t.termsDescriptionText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsAcceptance}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsAcceptanceText}
-        </Text>
+          <Section
+            title={t.termsAccounts}
+            content={t.termsAccountsText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsDescription}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsDescriptionText}
-        </Text>
+          <Section
+            title={t.termsContent}
+            content={t.termsContentText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsAccounts}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsAccountsText}
-        </Text>
+          <Section
+            title={t.termsAcceptableUse}
+            content={t.termsAcceptableUseText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsContent}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsContentText}
-        </Text>
+          <Section
+            title={t.termsPrivacy}
+            content={t.termsPrivacyText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsAcceptableUse}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsAcceptableUseText}
-        </Text>
+          <Section
+            title={t.termsAvailability}
+            content={t.termsAvailabilityText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsPrivacy}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsPrivacyText}
-        </Text>
+          <Section
+            title={t.termsLiability}
+            content={t.termsLiabilityText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsAvailability}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsAvailabilityText}
-        </Text>
+          <Section
+            title={t.termsChanges}
+            content={t.termsChangesText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsLiability}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsLiabilityText}
-        </Text>
-
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsChanges}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsChangesText}
-        </Text>
-
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.termsContact}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.termsContactText}
-        </Text>
+          <Section
+            title={t.termsContact}
+            content={t.termsContactText}
+            theme={theme}
+          />
+        </View>
 
         <Text
           style={{
             fontSize: 14,
             color: theme.textSecondary,
-            marginTop: 32,
-            lineHeight: 20,
+            marginTop: 16,
+            lineHeight: 22,
+            textAlign: "center",
           }}
         >
           {t.termsAcknowledgment}
@@ -2757,361 +2639,183 @@ function PrivacyScreen() {
       accessibilityViewIsModal={true}
       accessibilityLabel="Privacy Policy Screen"
     >
-      {/* Custom Header with Back Chevron */}
+      {/* Custom Header with Back Chevron, Title and Date */}
       <View
         style={{
           backgroundColor: theme.backgroundSecondary,
-          height: 64,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingLeft: 8,
+          paddingTop: 8,
+          paddingBottom: 16,
+          paddingHorizontal: 20,
         }}
       >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ padding: 10, marginRight: 4 }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Svg width={18} height={28}>
-            <Line
-              x1={12}
-              y1={6}
-              x2={4}
-              y2={14}
-              stroke={theme.text}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-            />
-            <Line
-              x1={4}
-              y1={14}
-              x2={12}
-              y2={22}
-              stroke={theme.text}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-            />
-          </Svg>
-        </TouchableOpacity>
+        <View style={{ position: "relative" }}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{
+              position: "absolute",
+              left: -10,
+              top: 0,
+              padding: 10,
+              zIndex: 1,
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Svg width={18} height={28}>
+              <Line
+                x1={12}
+                y1={6}
+                x2={4}
+                y2={14}
+                stroke={theme.text}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+              />
+              <Line
+                x1={4}
+                y1={14}
+                x2={12}
+                y2={22}
+                stroke={theme.text}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          </TouchableOpacity>
+          <View style={{ alignItems: "center", paddingHorizontal: 40 }}>
+            <Text
+              style={{
+                fontSize: 24,
+                color: theme.text,
+                fontWeight: "bold",
+                letterSpacing: -0.5,
+                textAlign: "center",
+              }}
+            >
+              {t.privacyTitle}
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: theme.textSecondary,
+                marginTop: 4,
+                textAlign: "center",
+              }}
+            >
+              {t.privacyLastUpdated} {new Date().toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
       </View>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingTop: 24,
+          paddingTop: 20,
           paddingBottom: 48,
         }}
         showsVerticalScrollIndicator={true}
         bounces={true}
       >
-        <Text
+        {/* One big card with all sections */}
+        <View
           style={{
-            fontSize: 24,
-            color: theme.text,
-            fontWeight: "bold",
-            marginBottom: 8,
-            textAlign: "center",
-            letterSpacing: -0.5,
+            backgroundColor: theme.card || theme.backgroundSecondary,
+            borderRadius: 12,
+            padding: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+            elevation: 2,
           }}
         >
-          {t.privacyTitle}
-        </Text>
+          <Section
+            title={t.privacyIntroduction}
+            content={t.privacyIntroductionText}
+            theme={theme}
+            isFirst={true}
+          />
 
-        <Text
-          style={{
-            fontSize: 13,
-            color: theme.textSecondary,
-            marginBottom: 32,
-            textAlign: "center",
-          }}
-        >
-          {t.privacyLastUpdated} {new Date().toLocaleDateString()}
-        </Text>
+          <Section
+            title={t.privacyInformation}
+            content={
+              <>
+                <Text style={{ fontWeight: "600" }}>{t.privacyAccountInfo}</Text>
+                {"\n"}
+                {t.privacyAccountInfoText}
+              </>
+            }
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyIntroduction}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyIntroductionText}
-        </Text>
+          <Section
+            title={t.privacyUse}
+            content={t.privacyUseText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyInformation}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          <Text style={{ fontWeight: "600" }}>{t.privacyAccountInfo}</Text>
-          {"\n"}
-          {t.privacyAccountInfoText}
-        </Text>
+          <Section
+            title={t.privacyStorage}
+            content={t.privacyStorageText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyUse}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyUseText}
-        </Text>
+          <Section
+            title={t.privacySharing}
+            content={t.privacySharingText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyStorage}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyStorageText}
-        </Text>
+          <Section
+            title={t.privacyThirdParty}
+            content={t.privacyThirdPartyText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacySharing}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacySharingText}
-        </Text>
+          <Section
+            title={t.privacyRights}
+            content={t.privacyRightsText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyThirdParty}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyThirdPartyText}
-        </Text>
+          <Section
+            title={t.privacyRetention}
+            content={t.privacyRetentionText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyRights}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyRightsText}
-        </Text>
+          <Section
+            title={t.privacyChildren}
+            content={t.privacyChildrenText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyRetention}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyRetentionText}
-        </Text>
+          <Section
+            title={t.privacyInternational}
+            content={t.privacyInternationalText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyChildren}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyChildrenText}
-        </Text>
+          <Section
+            title={t.privacyChanges}
+            content={t.privacyChangesText}
+            theme={theme}
+          />
 
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyInternational}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyInternationalText}
-        </Text>
-
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyChanges}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyChangesText}
-        </Text>
-
-        <Text
-          style={{
-            fontSize: 17,
-            color: theme.text,
-            fontWeight: "700",
-            marginTop: 24,
-            marginBottom: 8,
-            letterSpacing: -0.3,
-          }}
-        >
-          {t.privacyContact}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.text,
-            marginBottom: 24,
-            lineHeight: 24,
-          }}
-        >
-          {t.privacyContactText}
-        </Text>
+          <Section
+            title={t.privacyContact}
+            content={t.privacyContactText}
+            theme={theme}
+          />
+        </View>
 
         <Text
           style={{
             fontSize: 14,
             color: theme.textSecondary,
-            marginTop: 32,
-            lineHeight: 20,
+            marginTop: 16,
+            lineHeight: 22,
+            textAlign: "center",
           }}
         >
           {t.privacyAcknowledgment}
@@ -3124,17 +2828,6 @@ function PrivacyScreen() {
 function SupportScreen() {
   const { t } = useContext(LanguageContext);
   const { theme } = useContext(ThemeContext);
-  const navigation = useNavigation();
-  const appVersion = Constants.expoConfig?.version || "1.0.0";
-
-  const handleBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      // If no history (e.g., direct URL access), go to main app
-      navigation.navigate("MainTabs", { screen: "Calendar" });
-    }
-  };
 
   return (
     <SafeAreaView
@@ -3142,43 +2835,6 @@ function SupportScreen() {
       accessibilityViewIsModal={true}
       accessibilityLabel="Support Screen"
     >
-      {/* Custom Header with Back Chevron */}
-      <View
-        style={{
-          backgroundColor: theme.backgroundSecondary,
-          height: 64,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingLeft: 8,
-        }}
-      >
-        <TouchableOpacity
-          onPress={handleBack}
-          style={{ padding: 10, marginRight: 4 }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Svg width={18} height={28}>
-            <Line
-              x1={12}
-              y1={6}
-              x2={4}
-              y2={14}
-              stroke={theme.text}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-            />
-            <Line
-              x1={4}
-              y1={14}
-              x2={12}
-              y2={22}
-              stroke={theme.text}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-            />
-          </Svg>
-        </TouchableOpacity>
-      </View>
       <View
         style={{
           flex: 1,
@@ -3243,46 +2899,6 @@ function SupportScreen() {
             {t.supportGithub}
           </Text>
         </TouchableOpacity>
-
-        {/* In-App Feedback */}
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate("MainTabs", { screen: "Setting" });
-          }}
-          style={{
-            width: "100%",
-            maxWidth: 400,
-            paddingVertical: 16,
-            paddingHorizontal: 20,
-            backgroundColor: theme.card,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: theme.cardBorder,
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 16,
-              color: theme.text,
-              fontWeight: "600",
-            }}
-          >
-            {t.supportAppFeedback}
-          </Text>
-        </TouchableOpacity>
-
-        {/* App Version */}
-        <Text
-          style={{
-            fontSize: 13,
-            color: theme.textTertiary,
-            textAlign: "center",
-            marginTop: 48,
-          }}
-        >
-          {t.supportVersion} {appVersion}
-        </Text>
       </View>
     </SafeAreaView>
   );
@@ -3450,6 +3066,7 @@ function SettingScreen() {
   const [rating, setRating] = useState(0);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [feedbackCategory, setFeedbackCategory] = useState("suggestion");
+  const [feedbackTitle, setFeedbackTitle] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const navigation = useNavigation();
@@ -4812,7 +4429,11 @@ function SettingScreen() {
                     marginRight: 4,
                   }}
                 >
-                  {themeMode === "light" ? t.lightMode : t.darkMode}
+                  {themeMode === "light"
+                    ? t.lightMode
+                    : themeMode === "dark"
+                    ? t.darkMode
+                    : t.autoMode || "Auto"}
                 </Text>
                 <MaterialIcons
                   name={
@@ -4837,6 +4458,36 @@ function SettingScreen() {
                       : theme.backgroundTertiary,
                 }}
               >
+                {/* Auto (第一個選項 - 預設推薦) */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setThemeMode("auto");
+                    setThemeDropdownVisible(false);
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 52,
+                    backgroundColor:
+                      themeMode === "auto"
+                        ? theme.calendarSelected
+                        : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        themeMode === "auto"
+                          ? theme.primary
+                          : theme.textSecondary,
+                      fontSize: 15,
+                      fontWeight: themeMode === "auto" ? "600" : "400",
+                    }}
+                  >
+                    {t.autoMode || "Auto (Follow System)"}
+                  </Text>
+                </TouchableOpacity>
+                {/* Light Mode */}
                 <TouchableOpacity
                   onPress={() => {
                     setThemeMode("light");
@@ -4865,6 +4516,7 @@ function SettingScreen() {
                     {t.lightMode}
                   </Text>
                 </TouchableOpacity>
+                {/* Dark Mode */}
                 <TouchableOpacity
                   onPress={() => {
                     setThemeMode("dark");
@@ -5563,6 +5215,38 @@ function SettingScreen() {
                     ))}
                   </View>
 
+                  {/* Title Field (Optional) */}
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 16,
+                      fontWeight: "600",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {t.feedbackTitle || "Title"}{" "}
+                    <Text style={{ color: theme.textTertiary, fontWeight: "400" }}>
+                      ({t.optional || "Optional"})
+                    </Text>
+                  </Text>
+                  <TextInput
+                    style={{
+                      backgroundColor: theme.background,
+                      color: theme.text,
+                      borderRadius: 12,
+                      padding: 16,
+                      fontSize: 16,
+                      borderWidth: 1,
+                      borderColor: theme.divider,
+                      marginBottom: 20,
+                    }}
+                    placeholder={t.feedbackTitlePlaceholder || "Brief summary of your feedback"}
+                    placeholderTextColor={theme.textTertiary}
+                    value={feedbackTitle}
+                    onChangeText={setFeedbackTitle}
+                    maxLength={100}
+                  />
+
                   {/* Feedback Text Area */}
                   <Text
                     style={{
@@ -5631,6 +5315,7 @@ function SettingScreen() {
                             user_id: user.id,
                             email: user.email,
                             category: feedbackCategory,
+                            title: feedbackTitle.trim() || null,
                             feedback: feedbackText.trim(),
                             app_version: Application.nativeApplicationVersion,
                             build_number: Application.nativeBuildVersion,
@@ -5653,6 +5338,7 @@ function SettingScreen() {
                             text: t.done,
                             onPress: () => {
                               setFeedbackModalVisible(false);
+                              setFeedbackTitle("");
                               setFeedbackText("");
                               setFeedbackCategory("suggestion");
                             },
@@ -5817,40 +5503,6 @@ function SettingScreen() {
                 marginHorizontal: 20,
               }}
             />
-
-            {/* About/Support */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Support")}
-              activeOpacity={0.6}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingVertical: 14,
-                paddingHorizontal: 20,
-              }}
-            >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-              >
-                <MaterialIcons
-                  name="info-outline"
-                  size={20}
-                  color={theme.primary}
-                  style={{ marginRight: 12 }}
-                />
-                <Text
-                  style={{ color: theme.text, fontSize: 16, fontWeight: "500" }}
-                >
-                  {t.support || "Support"}
-                </Text>
-              </View>
-              <MaterialIcons
-                name="keyboard-arrow-right"
-                size={20}
-                color={theme.textTertiary}
-              />
-            </TouchableOpacity>
 
             {Platform.OS !== "web" && (
               <>
@@ -9018,10 +8670,13 @@ export default function App() {
   }, []);
   const [language, setLanguageState] = useState("en");
   const [loadingLang, setLoadingLang] = useState(true);
-  const [themeMode, setThemeModeState] = useState("light");
+  const [themeMode, setThemeModeState] = useState("auto"); // 預設跟隨系統
   const [loadingTheme, setLoadingTheme] = useState(true);
   const [userType, setUserTypeState] = useState("general");
   const [loadingUserType, setLoadingUserType] = useState(true);
+
+  // 檢測系統顏色模式
+  const systemColorScheme = useColorScheme();
 
   // 版本更新狀態
   const [updateInfo, setUpdateInfo] = useState(null);
@@ -9111,20 +8766,20 @@ export default function App() {
         typeof userSettings.theme,
       );
 
-      // 明確檢查 theme 值
-      if (userSettings.theme === "dark" || userSettings.theme === "light") {
+      // 明確檢查 theme 值（支援 auto, dark, light）
+      if (userSettings.theme === "dark" || userSettings.theme === "light" || userSettings.theme === "auto") {
         console.log(`✅ Theme loaded: ${userSettings.theme}`);
         setThemeModeState(userSettings.theme);
       } else {
         console.log(
-          `⚠️ Invalid theme setting (${userSettings.theme}), using default: light`,
+          `⚠️ Invalid theme setting (${userSettings.theme}), using default: auto`,
         );
-        setThemeModeState("light");
+        setThemeModeState("auto");
       }
     } catch (error) {
       console.error("❌ Error loading theme settings:", error);
-      // 錯誤時使用預設值
-      setThemeModeState("light");
+      // 錯誤時使用預設值（跟隨系統）
+      setThemeModeState("auto");
     } finally {
       setLoadingTheme(false);
     }
@@ -9512,7 +9167,12 @@ export default function App() {
   };
 
   const t = translations[language] || translations.en;
-  const theme = getTheme(themeMode);
+
+  // 計算實際使用的 theme（如果是 auto 則使用系統設定）
+  const actualThemeMode = themeMode === "auto"
+    ? (systemColorScheme || "light")  // 如果系統無回應則預設 light
+    : themeMode;
+  const theme = getTheme(actualThemeMode);
 
   // Wait for fonts and language to load
   // Add timeout fallback to prevent infinite white screen

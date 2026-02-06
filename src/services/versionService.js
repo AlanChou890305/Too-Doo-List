@@ -433,6 +433,12 @@ class VersionService {
         return;
       }
 
+      // 🛠️ 開發環境不自動註冊，避免誤觸發用戶更新提示
+      if (__DEV__) {
+        console.log("🛠️ [VersionRegister] 開發環境，跳過自動註冊");
+        return;
+      }
+
       const { data, error } = await supabase
         .from("app_versions")
         .select("id")
@@ -445,17 +451,17 @@ class VersionService {
         return;
       }
 
-      // 如果版本不存在，自動登記
+      // 如果版本不存在，自動登記（但不設為活躍版本）
       if (!data) {
         console.log(
           "📝 [VersionRegister] 當前版本未登記，自動登記中...",
           this.currentVersion,
         );
         const result = await this.registerVersion({
-          setAsActive: true, // 自動設為活躍版本
+          setAsActive: false, // 🔴 改為 false：新版本預設不活躍，需手動在 App Store 發布後才設為 true
         });
         if (result.success) {
-          console.log("✅ [VersionRegister] 自動登記成功");
+          console.log("✅ [VersionRegister] 自動登記成功（is_active=false）");
         } else {
           console.warn("⚠️ [VersionRegister] 自動登記失敗:", result.message);
         }
