@@ -1855,6 +1855,8 @@ function SettingScreen() {
             <TouchableOpacity
               onPress={async () => {
                 // iOS: Try native StoreReview first (shows native iOS rating dialog)
+                // Note: iOS may silently refuse to show the dialog (rate limiting, recently rated, etc.)
+                // So we always show our custom modal as fallback
                 if (
                   Platform.OS === "ios" &&
                   StoreReview &&
@@ -1864,7 +1866,8 @@ function SettingScreen() {
                     const isAvailable = await StoreReview.isAvailableAsync();
                     if (isAvailable) {
                       await StoreReview.requestReview();
-                      return;
+                      // iOS may or may not show the native dialog (rate limiting)
+                      // We always show our custom modal as user feedback
                     }
                   } catch (reviewError) {
                     console.warn(
@@ -1873,6 +1876,7 @@ function SettingScreen() {
                     );
                   }
                 }
+                // Always show custom modal for consistent user feedback
                 setRateUsModalVisible(true);
               }}
               activeOpacity={0.6}
