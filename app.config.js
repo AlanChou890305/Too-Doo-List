@@ -13,12 +13,12 @@ const getEnvironmentConfig = () => {
   return {
     name: "TaskCal",
     slug: "too-doo-list",
-    version: "1.2.6",
+    version: "1.2.7",
     description: "Simple and intuitive task management app with Google SSO",
     scheme: "taskcal",
     bundleIdentifier: "com.cty0305.too.doo.list",
     package: "com.cty0305.too.doo.list",
-    iosBuildNumber: "14",
+    iosBuildNumber: "15",
   };
 };
 
@@ -32,7 +32,7 @@ module.exports = {
     description: envConfig.description,
     main: "node_modules/expo/AppEntry.js",
     orientation: "portrait",
-    userInterfaceStyle: "light",
+    userInterfaceStyle: "automatic",
     scheme: envConfig.scheme,
     icon: "./assets/logo.png",
     jsEngine: "hermes",

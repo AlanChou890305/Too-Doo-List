@@ -20,6 +20,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import * as Application from "expo-application";
 import * as Constants from "expo-constants";
 import * as WebBrowser from "expo-web-browser";
+import * as StoreReview from "expo-store-review";
 import Svg, { Path, Circle } from "react-native-svg";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LanguageContext, ThemeContext, UserContext } from "../contexts";
@@ -1876,8 +1877,6 @@ function SettingScreen() {
                     );
                   }
                 }
-                // Always show custom modal for consistent user feedback
-                setRateUsModalVisible(true);
               }}
               activeOpacity={0.6}
               style={{

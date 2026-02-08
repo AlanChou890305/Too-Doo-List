@@ -71,6 +71,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   useColorScheme,
+  Appearance,
 } from "react-native";
 
 // 🚨 CRITICAL: Handle OAuth callback IMMEDIATELY before React initializes
@@ -2603,6 +2604,16 @@ export default function App() {
   // 檢測系統顏色模式
   const systemColorScheme = useColorScheme();
 
+  // 監聽系統主題變化（確保 auto 模式能即時響應 iOS 設定）
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      console.log(`🎨 System theme changed to: ${colorScheme}`);
+      // useColorScheme hook 會自動更新，這裡只是記錄日誌
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   // 版本更新狀態
   const [updateInfo, setUpdateInfo] = useState(null);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
@@ -3094,9 +3105,15 @@ export default function App() {
   const t = translations[language] || translations.en;
 
   // 計算實際使用的 theme（如果是 auto 則使用系統設定）
-  const actualThemeMode = themeMode === "auto"
-    ? (systemColorScheme || "light")  // 如果系統無回應則預設 light
-    : themeMode;
+  const actualThemeMode = React.useMemo(() => {
+    if (themeMode === "auto") {
+      const systemTheme = systemColorScheme || Appearance.getColorScheme() || "light";
+      console.log(`🎨 [Auto Mode] systemColorScheme: ${systemColorScheme}, Appearance.getColorScheme(): ${Appearance.getColorScheme()}, final: ${systemTheme}`);
+      return systemTheme;
+    }
+    return themeMode;
+  }, [themeMode, systemColorScheme]);
+
   const theme = getTheme(actualThemeMode);
 
   // Wait for fonts and language to load

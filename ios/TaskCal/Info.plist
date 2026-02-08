@@ -21,7 +21,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.2.6</string>
+    <string>1.2.7</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -40,7 +40,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>14</string>
+    <string>15</string>
     <key>GADApplicationIdentifier</key>
     <string>ca-app-pub-6912116995419220~3944964842</string>
     <key>GADDelayAppMeasurementInit</key>
@@ -76,7 +76,7 @@
       <string>UIInterfaceOrientationPortraitUpsideDown</string>
     </array>
     <key>UIUserInterfaceStyle</key>
-    <string>Light</string>
+    <string>Automatic</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
   </dict>

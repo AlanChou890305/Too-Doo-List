@@ -72,7 +72,7 @@
 ### 設定
 
 - **切換語言：** 在英文、繁體中文與西班牙文之間切換
-- **查看版本：** 確認目前應用程式版本 (v1.2.4)
+- **查看版本：** 確認目前應用程式版本 (v1.2.7)
 - **法律資訊：** 查看使用條款與隱私權政策
 - **登出：** 安全登出並立即返回登入畫面
 
@@ -97,12 +97,22 @@
 
 ### 版本管理
 
-- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.2.4)
+- **語意化版本 (Semantic Versioning)** - Major.Minor.Patch (目前 v1.2.7)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 版本資訊
 
-### v1.2.4 (最新版本)
+### v1.2.7 (最新版本) - 2026-02-08
+
+**重要錯誤修正更新**
+
+- 🐛 **修正新增任務失敗**：解決無法新增任務的嚴重錯誤
+- 💬 **改善評分功能**：優化 Rate Us 功能的使用者體驗
+- ⚡ **增強穩定性**：提升應用程式整體可靠性
+
+---
+
+### v1.2.4 (舊版本)
 
 **本版新增**
 
@@ -206,7 +216,7 @@ A cross-platform React Native task management application with calendar view, Go
 ### Settings
 
 - **Switch Language:** Toggle between English, Traditional Chinese, and Spanish
-- **View Version:** Check current application version (v1.2.4)
+- **View Version:** Check current application version (v1.2.7)
 - **Legal Information:** View terms of use and privacy policy
 - **Sign Out:** Securely sign out and return to login screen
 
@@ -231,7 +241,7 @@ A cross-platform React Native task management application with calendar view, Go
 
 ### Version Management
 
-- **Semantic Versioning** - Major.Minor.Patch (Current: v1.2.4)
+- **Semantic Versioning** - Major.Minor.Patch (Current: v1.2.7)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Version Information
@@ -351,7 +361,7 @@ Una aplicación multiplataforma de gestión de tareas React Native con vista de 
 
 ### Gestión de Versiones
 
-- **Versionado Semántico** - Major.Minor.Patch (Actual: v1.2.4)
+- **Versionado Semántico** - Major.Minor.Patch (Actual: v1.2.7)
 - **npm scripts** - version:patch, version:minor, version:major
 
 ## 📝 Información de Versión
