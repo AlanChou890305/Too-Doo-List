@@ -45,6 +45,44 @@
 
 ---
 
+### Changes Made (2026-02-08)
+
+#### 🌐 Internationalization (i18n) Improvements
+- **Fixed Hardcoded Alert Messages**:
+  - Replaced 5 hardcoded alert messages with localized translations
+  - Account creation success messages now support all languages
+  - Sign-in error messages now properly localized
+  - User type update error messages now use translation system
+
+#### 🛠️ Code Quality Improvements
+- **Removed Duplicate Code**:
+  - Removed duplicate `document.title` setting logic in App.js
+  - Consolidated into single MutationObserver-based implementation
+
+- **Production Console Optimization**:
+  - Added `babel-plugin-transform-remove-console` for production builds
+  - Console.log statements automatically removed in production (389 instances)
+  - Kept console.error and console.warn for critical logging
+  - Created `src/utils/logger.js` utility for future use
+
+#### 🎨 UI Bug Fixes
+- **Settings Page**:
+  - Fixed duplicate separator line between Privacy Policy and Version sections
+  - All separators now have consistent thickness (height: 1)
+
+#### 📦 Dependencies
+- Added: `babel-plugin-transform-remove-console@^6.9.4`
+
+### Translation Keys Added (2026-02-08)
+- `accountCreatedSuccess`: "Account created successfully! Welcome to TaskCal!" / "帳號建立成功！歡迎使用 TaskCal！"
+- `accountCreatedPartial`: "Account created but some settings could not be saved..." / "帳號已建立，但部分設定無法儲存..."
+- `signInError`: "Sign In Error" / "登入錯誤"
+- `error`: "Error" / "錯誤"
+- `ok`: "OK" / "確定"
+- `failedToUpdateUserType`: "Failed to update user type" / "無法更新使用者類型"
+
+---
+
 # Release Notes - Version 1.2.6
 
 ## Version Information

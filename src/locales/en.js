@@ -228,4 +228,11 @@ export default {
   supportGithubUrl: "https://github.com/AlanChou890305/Too-Doo-List/issues",
   supportAppFeedback: "Share Feedback in App",
   supportVersion: "Version",
+  // Auth messages
+  accountCreatedSuccess: "Account created successfully! Welcome to TaskCal!",
+  accountCreatedPartial: "Account created but some settings could not be saved. You can continue using the app.",
+  signInError: "Sign In Error",
+  error: "Error",
+  ok: "OK",
+  failedToUpdateUserType: "Failed to update user type",
 };

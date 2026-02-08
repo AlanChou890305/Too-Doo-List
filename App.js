@@ -549,11 +549,9 @@ const SplashScreen = ({ navigation }) => {
                     .select("id")
                     .limit(1);
 
-                  alert(
-                    "Account created but some settings could not be saved. You can continue using the app.",
-                  );
+                  alert(t.accountCreatedPartial);
                 } else {
-                  alert("Account created successfully! Welcome to TaskCal!");
+                  alert(t.accountCreatedSuccess);
                 }
 
                 // Navigate to main app even if there were some issues
@@ -2208,9 +2206,9 @@ const SplashScreen = ({ navigation }) => {
         errorMessage = error.message;
       }
 
-      Alert.alert("Sign In Error", errorMessage, [
+      Alert.alert(t.signInError, errorMessage, [
         {
-          text: "OK",
+          text: t.ok,
           style: "default",
           onPress: () => setIsAppleSigningIn(false),
         },
@@ -3087,9 +3085,9 @@ function SettingScreen() {
     } catch (error) {
       console.error("Error updating user type:", error);
       if (Platform.OS !== "web") {
-        Alert.alert("Error", "Failed to update user type");
+        Alert.alert(t.error, t.failedToUpdateUserType);
       } else {
-        alert("Failed to update user type");
+        alert(t.failedToUpdateUserType);
       }
     }
   };
@@ -5506,14 +5504,6 @@ function SettingScreen() {
 
             {Platform.OS !== "web" && (
               <>
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: theme.divider,
-                    marginHorizontal: 20,
-                  }}
-                />
-
                 {/* Version Info */}
                 {effectiveHasUpdate ? (
                   <TouchableOpacity
@@ -8662,12 +8652,7 @@ export default function App() {
       return () => observer.disconnect();
     }
   }, []);
-  // Always set browser tab title on web
-  React.useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.title = getAppDisplayName();
-    }
-  }, []);
+
   const [language, setLanguageState] = useState("en");
   const [loadingLang, setLoadingLang] = useState(true);
   const [themeMode, setThemeModeState] = useState("auto"); // 預設跟隨系統

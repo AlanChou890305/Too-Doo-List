@@ -228,4 +228,11 @@ export default {
   supportGithubUrl: "https://github.com/AlanChou890305/Too-Doo-List/issues",
   supportAppFeedback: "在 App 內分享回饋",
   supportVersion: "版本",
+  // Auth messages
+  accountCreatedSuccess: "帳號建立成功！歡迎使用 TaskCal！",
+  accountCreatedPartial: "帳號已建立，但部分設定無法儲存。您可以繼續使用 App。",
+  signInError: "登入錯誤",
+  error: "錯誤",
+  ok: "確定",
+  failedToUpdateUserType: "無法更新使用者類型",
 };
