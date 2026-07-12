@@ -21,6 +21,8 @@ manifest.json
 
 # Database setup files (may contain sensitive schema info)
 *.sql
+# ...但 Supabase migrations 必須進版控
+!supabase/migrations/**/*.sql
 
 # Environment variables
 .env
@@ -143,31 +145,12 @@ expo-env.d.ts
 # Flipper
 ios/Pods/Flipper*
 
-# CocoaPods
-ios/Pods/
-
-# Android
-android/app/build/
-android/build/
-android/.gradle/
-android/gradle/
-android/gradlew
-android/gradlew.bat
-android/local.properties
-android/app/release/
-
 # iOS
 ios/build/
 ios/Pods/
 ios/*.xcworkspace
 ios/*.xcuserdata
 ios/DerivedData/
-
-# Web
-web-build/
-
-# Testing
-coverage/
 
 # React Native specific
 *.jks
@@ -184,10 +167,10 @@ coverage/
 *.tmp
 *.temp
 *.cache
-*.lockandroid/
+*.lock
 
 # Android directory (not used)
 android/
 
-# Fastlane
+# Vercel
 .vercel
