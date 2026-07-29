@@ -26,6 +26,32 @@ const getAppDisplayName = () => {
   return "TaskCal";
 };
 
+// 已送出 User Signed Up 的使用者 id，避免同一台裝置重複計數
+const SIGNUP_TRACKED_KEY = "@taskcal:signup_tracked_user_id";
+// created_at 在這個時間內視為「剛註冊」；重裝 App 的舊帳號 created_at 早於此
+const SIGNUP_FRESH_WINDOW_MS = 10 * 60 * 1000;
+
+/**
+ * 只在真正的首次註冊時送出 User Signed Up
+ * 判斷條件：帳號建立時間在 10 分鐘內，且這台裝置還沒為這個 id 送過
+ */
+const trackSignUpIfFirstTime = async (user) => {
+  if (!user?.created_at) return;
+
+  const createdAtMs = new Date(user.created_at).getTime();
+  if (Number.isNaN(createdAtMs)) return;
+  if (Date.now() - createdAtMs > SIGNUP_FRESH_WINDOW_MS) return;
+
+  const alreadyTracked = await AsyncStorage.getItem(SIGNUP_TRACKED_KEY);
+  if (alreadyTracked === user.id) return;
+
+  mixpanelService.track("User Signed Up", {
+    provider: user.app_metadata?.provider || "unknown",
+    platform: Platform.OS,
+  });
+  await AsyncStorage.setItem(SIGNUP_TRACKED_KEY, user.id);
+};
+
 // MarkM1: calendar cell + check — matches Indigo design spec exactly
 const MarkM1 = ({ size = 44, color = "#F2F1EB" }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -242,10 +268,21 @@ const SplashScreen = ({ navigation }) => {
                 user.email?.split("@")[0],
               platform: Platform.OS,
             });
+            // First Seen 是留存 cohort 的錨點，setOnce 保證只記第一次
+            mixpanelService.setUserPropertiesOnce({
+              "First Seen": user.created_at || new Date().toISOString(),
+              signup_provider: user.app_metadata?.provider || "unknown",
+            });
+
             mixpanelService.track("User Signed In", {
               method: event === "SIGNED_IN" ? "new_signin" : "existing_session",
               email: user.email,
               platform: Platform.OS,
+            });
+
+            // 新註冊只送一次（判斷邏輯見 trackSignUpIfFirstTime）
+            trackSignUpIfFirstTime(user).catch((signUpError) => {
+              console.error("❌ Error tracking sign up:", signUpError);
             });
 
             // 更新用戶平台資訊（不阻止登入流程）

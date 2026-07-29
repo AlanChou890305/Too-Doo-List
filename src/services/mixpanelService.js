@@ -124,6 +124,22 @@ class MixpanelService {
   }
 
   /**
+   * 設定使用者屬性（僅在該屬性尚未存在時寫入）
+   * 用於 First Seen 這類「只記第一次」的屬性，留存 cohort 會用到
+   * @param {object} properties - 使用者屬性
+   */
+  setUserPropertiesOnce(properties) {
+    if (!this.isInitialized || !this.mixpanel) return;
+
+    try {
+      this.mixpanel.getPeople().setOnce(properties);
+      console.log("✅ [Mixpanel] 使用者屬性已設定 (once):", properties);
+    } catch (error) {
+      console.error("❌ [Mixpanel] 設定使用者屬性 (once) 失敗:", error);
+    }
+  }
+
+  /**
    * 重置使用者（登出時使用）
    */
   reset() {
