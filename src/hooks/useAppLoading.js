@@ -7,6 +7,7 @@ import { getSharedSession } from "../services/sessionCache";
 import { UserService } from "../services/userService";
 import { dataPreloadService } from "../services/dataPreloadService";
 import { mixpanelService } from "../services/mixpanelService";
+import { sessionTrackingService } from "../services/sessionTrackingService";
 import { getCurrentEnvironment } from "../config/environment";
 import ReactGA from "react-ga4";
 
@@ -159,7 +160,9 @@ export function useAppLoading() {
       const env = getCurrentEnvironment();
       if (env === "production") {
         mixpanelService.initialize();
-        mixpanelService.track("App Opened");
+        // App Opened 由 sessionTrackingService 送出（含冷啟動與背景恢復），
+        // 同時負責計算 session 長度
+        sessionTrackingService.start();
       }
     }
 
@@ -295,7 +298,10 @@ export function useAppLoading() {
       updatePlatformOnStart();
     }, 8000);
 
-    return () => clearTimeout(platformUpdateTimer);
+    return () => {
+      clearTimeout(platformUpdateTimer);
+      sessionTrackingService.stop();
+    };
   }, [loadTheme, loadUserType]);
 
   return {
