@@ -153,6 +153,45 @@ grep -r "CFBundleVersion\|CURRENT_PROJECT_VERSION\|iosBuildNumber\|currentBuildN
 grep "MARKETING_VERSION\|CURRENT_PROJECT_VERSION" ios/TaskCal.xcodeproj/project.pbxproj
 ```
 
+### 步驟 4.5: ⚠️ Archive 前必做 — 關掉 Xcode 的 build number 自動遞增
+
+> **這一步防的是「線上有、版控沒有」的 build。**
+
+Xcode Organizer 的 Distribute App 精靈裡有一個 **「Manage Version and Build Number」** 選項（預設勾選）。
+勾著的話，上傳時若偵測到 build number 與 App Store Connect 已存在的重複，
+**Xcode 會在上傳當下自動把 build number +1**，而且：
+
+- 磁碟上的 `.xcarchive` **不會**被改（Info.plist 仍是舊號碼）
+- repo 裡的 9 個位置**全部不會**被改
+- 結果：App Store 上跑的是 build N+1，但版控裡從頭到尾只有 build N，**沒有任何 commit 或 tag 對應得上它**
+
+**實際案例**：2.0.3 (43)。archive 與 repo 都是 42，線上卻是 43，
+是 2026-07-11 16:42 那次 archive 上傳時被自動遞增的。事後只能靠 archive 時間戳
+＋ App Store Connect 送審時間 ＋ reflog 回推，才確認來源是 `ef8c8be`。
+（見 tag `v2.0.3-build43` 的 annotated message。）
+
+**規則**：
+
+1. **Archive 前**，先確認 build number 沒跟 App Store Connect 上已有的重複。
+   重複的話回到步驟 2 重新 bump，**在 repo 裡改、commit 完再 archive**。
+2. **Distribute App 時取消勾選「Manage Version and Build Number」**，
+   讓上傳失敗而不是讓 Xcode 偷偷改號碼——失敗看得見，偷改看不見。
+3. **上傳完成後**，到 App Store Connect 核對該 build 顯示的號碼
+   與 `app.config.js` 的 `iosBuildNumber` **完全一致**。不一致就是被自動遞增了，
+   必須立刻回頭補 bump commit，再依步驟 6 打 tag。
+
+**驗證命令**（archive 前跑）：
+```bash
+# 確認本機 9 個位置的 build number 全部一致
+grep -h "CURRENT_PROJECT_VERSION" ios/TaskCal.xcodeproj/project.pbxproj | sort -u
+grep -A1 "CFBundleVersion" ios/TaskCal/Info.plist
+grep "iosBuildNumber" app.config.js
+grep "currentBuildNumber" src/services/versionService.js
+
+# 確認工作區乾淨（version bump 已 commit，不是還躺在工作區）
+git status --short
+```
+
 ### 步驟 5: 產出 App Store Connect 文案
 
 從 RELEASE_NOTES.md 提取，方便使用者直接複製：
@@ -232,6 +271,7 @@ git checkout v{version}-build{build}   # 回到該版本送審時的程式碼
 |-----|------|-------|---------|--------|
 | `v2.0.0-build38` | 2.0.0 | 38 | 2026-06-05 | `d31d46e` |
 | `v2.0.3-build42` | 2.0.3 | 42 | 2026-07-11 | `ef8c8be` |
+| `v2.0.3-build43` | 2.0.3 | 43 | 2026-07-11 | `ef8c8be` ⚠️ 與 42 同 commit，43 是 Xcode 上傳時自動遞增產生（見步驟 4.5），tag 為 2026-08-02 事後回溯補建 |
 
 ### 步驟 7: 建立 GitHub Release
 
@@ -343,6 +383,7 @@ gh release view v{version}-build{build}
 - [ ] 用 Xcode 開啟專案: `open ios/TaskCal.xcworkspace`
 - [ ] 在模擬器測試主要功能
 - [ ] 測試 Widget 功能正常
+- [ ] 版本 bump 已 commit，`git status --short` 為空（不要帶著未 commit 的版本號去 archive）
 - [ ] 執行 Xcode Archive（Product → Archive）
 - [ ] 驗證 Archive 中的版本號正確
 
@@ -352,7 +393,9 @@ gh release view v{version}-build{build}
 - [ ] 貼上 What's New (三種語言)
 - [ ] 貼上 Promotional Text
 - [ ] 更新 Keywords
+- [ ] **Distribute App 時取消勾選「Manage Version and Build Number」**（見步驟 4.5）
 - [ ] 上傳 Archive
+- [ ] **核對 App Store Connect 顯示的 build number 與 `app.config.js` 一致**（不一致代表被自動遞增，需回頭補 bump commit）
 - [ ] 提交審核
 
 ### Git 提交與 Tag
@@ -448,6 +491,31 @@ echo "=== iOS Info.plist ===" && grep -A1 "CFBundleShortVersionString" ios/TaskC
 ### 錯誤 3: RELEASE_NOTES.md 包含舊版本
 **症狀**: 檔案過長，難以維護
 **解決**: 每次更新時移除所有舊版本內容
+
+### 錯誤 4: App Store 上的 build number 比 repo 大 1（版控裡找不到這顆 build）
+**症狀**:
+- Sentry / App Store Connect 顯示 build N+1，但 repo 全 branch `git log -S` 都找不到 N+1
+- 本機 `.xcarchive` 的 `CFBundleVersion` 也是 N，不是 N+1
+
+**原因**: Xcode Organizer 的「Manage Version and Build Number」在上傳時自動遞增（見步驟 4.5）
+
+**事後回溯來源 commit 的方法**（無法從 repo 直接查到時）:
+```bash
+# 1. 列出本機 archive 的版本號與建立時間
+for a in ~/Library/Developer/Xcode/Archives/*/*.xcarchive; do
+  echo "=== $a"
+  /usr/libexec/PlistBuddy -c "Print :ApplicationProperties:CFBundleShortVersionString" \
+    -c "Print :ApplicationProperties:CFBundleVersion" -c "Print :CreationDate" "$a/Info.plist"
+done
+
+# 2. 對照 App Store Connect 的 "Ready for Review" / "Waiting for Review" 時間戳，
+#    找出送審前最後一個 archive
+
+# 3. 用 reflog（不是 committer date！）判斷該時間點的 HEAD
+#    PR merge / pull 進來的 commit，committer date 會早於它實際進入本機的時間
+git reflog --date=format:"%m/%d %H:%M"
+```
+**解決**: 補 annotated tag 指向回溯出的 commit，message 註明「事後回溯推定」與判定依據
 
 ## 工具使用提示
 
